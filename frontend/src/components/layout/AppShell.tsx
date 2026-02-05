@@ -10,7 +10,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
       <Sidebar />
       <div className="app-main">
         <TopBar />
-        <div className="app-content">{children}</div>
+        <main className="app-content">{children}</main>
       </div>
       <CommandPalette />
     </div>

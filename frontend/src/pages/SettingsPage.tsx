@@ -42,7 +42,7 @@ export default function SettingsPage() {
 
       <div className="grid-2">
         <div className="card">
-          <h3>{t("localization")}</h3>
+          <h2>{t("localization")}</h2>
           <label>
             <div style={{ marginBottom: 6 }}>{t("language")}</div>
             <select className="input" value={i18n.language} onChange={(event) => i18n.changeLanguage(event.target.value)}>
@@ -54,7 +54,7 @@ export default function SettingsPage() {
         </div>
 
         <div className="card">
-          <h3>{t("accessibilityUx")}</h3>
+          <h2>{t("accessibilityUx")}</h2>
           <div style={{ display: "grid", gap: 8 }}>
             <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <input

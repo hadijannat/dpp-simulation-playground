@@ -39,7 +39,7 @@ export default function HomePage() {
 
       <div className="card">
         <div className="section-title">
-          <h3>First-Run Onboarding</h3>
+          <h2>First-Run Onboarding</h2>
           <span className="pill">{t("role")}: {role}</span>
         </div>
         <ol className="onboarding-list">
@@ -55,15 +55,15 @@ export default function HomePage() {
       </p>
       <div className="grid-3" style={{ marginTop: 16 }}>
         <div className="card-subtle">
-          <h3>{t("simulation:title")}</h3>
+          <h2>{t("simulation:title")}</h2>
           <p>Run end-to-end stories across roles and track progress.</p>
         </div>
         <div className="card-subtle">
-          <h3>{t("compliance:title")}</h3>
+          <h2>{t("compliance:title")}</h2>
           <p>Evaluate ESPR, Battery Regulation, WEEE, and RoHS checks.</p>
         </div>
         <div className="card-subtle">
-          <h3>{t("edc:title")}</h3>
+          <h2>{t("edc:title")}</h2>
           <p>Negotiate contracts and model data transfer state machines.</p>
         </div>
       </div>

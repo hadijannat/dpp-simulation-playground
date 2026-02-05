@@ -209,7 +209,7 @@ export default function JourneyPage() {
 
       <div className="simulation-workspace">
         <div className="card">
-          <h3>{t("journeySteps")}</h3>
+          <h2>{t("journeySteps")}</h2>
           <div style={{ display: "grid", gap: 8 }}>
             {steps.map((step, idx) => (
               <button
@@ -241,7 +241,7 @@ export default function JourneyPage() {
             </button>
           </div>
           <div style={{ marginTop: 12 }}>
-            <h4>{t("sessionResume")}</h4>
+            <h3>{t("sessionResume")}</h3>
             <ul className="onboarding-list">
               <li>{t("sessionResumeHint1")}</li>
               <li>{t("sessionResumeHint2")}</li>
@@ -252,7 +252,7 @@ export default function JourneyPage() {
 
         <div className="card workspace-panel-full">
           <div className="section-title">
-            <h3>{t("runState")}</h3>
+            <h2>{t("runState")}</h2>
             <span className="pill">{run.data?.status || t("idle")}</span>
           </div>
           <div className="mono-panel">
@@ -261,7 +261,7 @@ export default function JourneyPage() {
 
           <div style={{ marginTop: 14 }}>
             <div className="section-title">
-              <h3>{t("complianceState")}</h3>
+              <h2>{t("complianceState")}</h2>
               <button className="btn btn-secondary" onClick={autoFixFirstViolation}>
                 {t("applyFirstFix")}
               </button>
@@ -272,14 +272,14 @@ export default function JourneyPage() {
           </div>
 
           <div style={{ marginTop: 14 }}>
-            <h3>{t("digitalTwinPreview")}</h3>
+            <h2>{t("digitalTwinPreview")}</h2>
             <div className="mono-panel">
               <pre>{JSON.stringify(twin.data || { status: t("awaitingDppId") }, null, 2)}</pre>
             </div>
           </div>
 
           <div style={{ marginTop: 14 }}>
-            <h3>{t("csat")}</h3>
+            <h2>{t("csat")}</h2>
             <div className="grid-2">
               <label>
                 <div style={{ marginBottom: 6 }}>{t("score")}</div>
@@ -307,7 +307,7 @@ export default function JourneyPage() {
 
         <div className="card desktop-only">
           <div className="section-title">
-            <h3>{t("payloadEditor")}</h3>
+            <h2>{t("payloadEditor")}</h2>
             <button className="btn btn-secondary" onClick={undoDpp} disabled={dppDraft.past.length === 0}>
               {t("undo")}
             </button>
@@ -330,7 +330,7 @@ export default function JourneyPage() {
           <div className="bottom-sheet-overlay mobile-only" onClick={() => setIsEditorOpen(false)} role="presentation" />
           <div className="bottom-sheet mobile-only">
             <div className="section-title">
-              <h3>{t("payloadEditor")}</h3>
+              <h2>{t("payloadEditor")}</h2>
               <div style={{ display: "flex", gap: 8 }}>
                 <button className="btn btn-secondary" onClick={undoDpp} disabled={dppDraft.past.length === 0}>
                   {t("undo")}

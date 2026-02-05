@@ -49,7 +49,7 @@ export default function ProfilePage() {
 
       <div className="grid-2">
         <div className="card">
-          <h3>{t("identity")}</h3>
+          <h2>{t("identity")}</h2>
           <div className="card-subtle">
             <div><strong>{t("user")}:</strong> {userId}</div>
             <div><strong>{t("activeRole")}:</strong> {role}</div>
@@ -57,7 +57,7 @@ export default function ProfilePage() {
         </div>
 
         <div className="card">
-          <h3>{t("preferences")}</h3>
+          <h2>{t("preferences")}</h2>
           <div style={{ display: "grid", gap: 10 }}>
             <label>
               <div style={{ marginBottom: 6 }}>{t("organization")}</div>

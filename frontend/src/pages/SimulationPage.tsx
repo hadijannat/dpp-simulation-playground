@@ -83,7 +83,7 @@ export default function SimulationPage() {
     <div style={{ display: "grid", gap: 16 }}>
       <div className="card hero-panel">
         <div className="section-title">
-          <h2>{t("title")}</h2>
+          <h1>{t("title")}</h1>
           <span className="pill">Role: {role}</span>
         </div>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
@@ -131,12 +131,12 @@ export default function SimulationPage() {
               />
             </div>
             <div className="card workspace-panel-full">
-              <h3>{story.title}</h3>
+              <h2>{story.title}</h2>
               <SimulationCanvas steps={story.steps} completed={completedSteps} />
               <div style={{ marginTop: 12, display: "grid", gap: 16 }}>
                 <div className="card-subtle">
                   <div className="section-title">
-                    <h3>{t("runValidation")}</h3>
+                    <h2>{t("runValidation")}</h2>
                     <button className="btn btn-secondary" onClick={handleValidate}>Validate</button>
                   </div>
                   <div className="pill">Inline hint: include required identifiers before validation.</div>
@@ -174,7 +174,7 @@ export default function SimulationPage() {
           <div className="bottom-sheet-overlay mobile-only" onClick={() => setIsStepSheetOpen(false)} role="presentation" />
           <div className="bottom-sheet mobile-only">
             <div className="section-title">
-              <h3>Step Editor</h3>
+              <h2>Step Editor</h2>
               <button className="btn btn-secondary" onClick={() => setIsStepSheetOpen(false)}>Close</button>
             </div>
             <StepExecutor storyCode={story.code} steps={story.steps} onExecute={handleExecute} />
