@@ -190,6 +190,15 @@ test("manufacturer mobile journey completes end-to-end flow", async ({ page }) =
       });
     }
 
+    if (method === "GET" && path.startsWith("/api/v2/journeys/templates")) {
+      return json(200, {
+        code: "manufacturer-core-e2e",
+        name: "Manufacturer Journey",
+        description: "End-to-end DPP journey",
+        steps: [],
+      });
+    }
+
     if (method === "POST" && path === "/api/v2/feedback/csat") {
       feedbackCounter += 1;
       return json(200, {
