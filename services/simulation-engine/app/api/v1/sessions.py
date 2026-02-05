@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException
-from ..schemas.session_schema import SessionCreate, SessionResponse
+from ...schemas.session_schema import SessionCreate, SessionResponse
 from ...core.db import SessionLocal
 from ...services.session_service import create_new_session, fetch_session
 

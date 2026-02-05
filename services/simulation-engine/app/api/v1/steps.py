@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 from ...core.step_executor import execute_step
 from ...core.event_publisher import publish_event
-from ..schemas.step_schema import StepExecuteRequest
+from ...schemas.step_schema import StepExecuteRequest
 from ...core.story_loader import load_story
 
 router = APIRouter()

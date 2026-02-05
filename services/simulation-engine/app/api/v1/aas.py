@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from ..schemas.aas_schema import AasCreate
+from ...schemas.aas_schema import AasCreate
 
 router = APIRouter()
 
