@@ -1,0 +1,9 @@
+- code: EPIC-10-STORY-01
+  title: Epic 10 Sample Story
+  steps:
+    - action: user.input
+      params:
+        prompt: "Provide input"
+    - action: compliance.check
+      params:
+        regulations: ["ESPR"]

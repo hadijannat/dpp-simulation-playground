@@ -1,0 +1,9 @@
+- code: EPIC-05-STORY-01
+  title: Epic 05 Sample Story
+  steps:
+    - action: user.input
+      params:
+        prompt: "Provide input"
+    - action: compliance.check
+      params:
+        regulations: ["ESPR"]
