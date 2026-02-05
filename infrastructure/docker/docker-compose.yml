@@ -20,6 +20,8 @@ services:
     build: ../../services/simulation-engine
     ports: ["8001:8001"]
     environment:
+      - KEYCLOAK_URL=http://keycloak:8080
+      - KEYCLOAK_REALM=dpp
       - DATABASE_URL=postgresql://dpp:dpp@postgres:5432/dpp_playground
       - REDIS_URL=redis://redis:6379/0
     depends_on: [postgres, redis, mongodb]
@@ -28,6 +30,8 @@ services:
     build: ../../services/compliance-service
     ports: ["8002:8002"]
     environment:
+      - KEYCLOAK_URL=http://keycloak:8080
+      - KEYCLOAK_REALM=dpp
       - DATABASE_URL=postgresql://dpp:dpp@postgres:5432/dpp_playground
       - REDIS_URL=redis://redis:6379/0
 
@@ -35,6 +39,8 @@ services:
     build: ../../services/gamification-service
     ports: ["8003:8003"]
     environment:
+      - KEYCLOAK_URL=http://keycloak:8080
+      - KEYCLOAK_REALM=dpp
       - DATABASE_URL=postgresql://dpp:dpp@postgres:5432/dpp_playground
       - REDIS_URL=redis://redis:6379/0
     depends_on: [postgres, redis]
@@ -43,6 +49,8 @@ services:
     build: ../../services/edc-simulator
     ports: ["8004:8004"]
     environment:
+      - KEYCLOAK_URL=http://keycloak:8080
+      - KEYCLOAK_REALM=dpp
       - DATABASE_URL=postgresql://dpp:dpp@postgres:5432/dpp_playground
       - REDIS_URL=redis://redis:6379/0
 
@@ -50,6 +58,8 @@ services:
     build: ../../services/collaboration-service
     ports: ["8005:8005"]
     environment:
+      - KEYCLOAK_URL=http://keycloak:8080
+      - KEYCLOAK_REALM=dpp
       - DATABASE_URL=postgresql://dpp:dpp@postgres:5432/dpp_playground
       - REDIS_URL=redis://redis:6379/0
 
