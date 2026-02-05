@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 from ...core.db import get_db
 from ...models.vote import Vote
 from ...models.annotation import Annotation
+from ...models.gap_report import GapReport
 from ...auth import require_roles
 from services.shared.user_registry import resolve_user_id
 
@@ -15,12 +16,18 @@ class VoteCreate(BaseModel):
     value: int
 
 @router.get("/votes")
-def list_votes(request: Request, target_id: str | None = None, db: Session = Depends(get_db)):
+def list_votes(
+    request: Request,
+    target_id: str | None = None,
+    limit: int = 50,
+    offset: int = 0,
+    db: Session = Depends(get_db),
+):
     require_roles(request.state.user, ["developer", "admin", "regulator", "manufacturer"])
     query = db.query(Vote)
     if target_id:
         query = query.filter(Vote.target_id == target_id)
-    items = query.order_by(Vote.created_at.desc()).all()
+    items = query.order_by(Vote.created_at.desc()).offset(offset).limit(limit).all()
     return {
         "items": [
             {"id": str(item.id), "target_id": item.target_id, "value": item.value}
@@ -42,5 +49,8 @@ def create_vote(request: Request, payload: VoteCreate, db: Session = Depends(get
     annotation = db.query(Annotation).filter(Annotation.id == payload.target_id).first()
     if annotation:
         annotation.votes_count = (annotation.votes_count or 0) + payload.value
+    gap_report = db.query(GapReport).filter(GapReport.id == payload.target_id).first()
+    if gap_report:
+        gap_report.votes_count = (gap_report.votes_count or 0) + payload.value
     db.commit()
     return {"id": str(item.id), "target_id": item.target_id, "value": item.value}

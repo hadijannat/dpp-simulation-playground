@@ -12,4 +12,5 @@ class GapReport(Base):
     story_id = Column(Integer, ForeignKey("user_stories.id"))
     description = Column(Text, nullable=False)
     status = Column(String(30), default="open")
+    votes_count = Column(Integer, default=0)
     created_at = Column(DateTime(timezone=True), server_default=func.now())

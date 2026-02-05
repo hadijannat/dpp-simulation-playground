@@ -14,12 +14,18 @@ class CommentCreate(BaseModel):
     content: str
 
 @router.get("/comments")
-def list_comments(request: Request, target_id: str | None = None, db: Session = Depends(get_db)):
+def list_comments(
+    request: Request,
+    target_id: str | None = None,
+    limit: int = 50,
+    offset: int = 0,
+    db: Session = Depends(get_db),
+):
     require_roles(request.state.user, ["developer", "admin", "regulator", "manufacturer"])
     query = db.query(Comment)
     if target_id:
         query = query.filter(Comment.target_id == target_id)
-    items = query.order_by(Comment.created_at.desc()).all()
+    items = query.order_by(Comment.created_at.desc()).offset(offset).limit(limit).all()
     return {
         "items": [
             {

@@ -15,6 +15,8 @@ def list_annotations(
     story_id: int | None = None,
     status: str | None = None,
     target_element: str | None = None,
+    limit: int = 50,
+    offset: int = 0,
     db: Session = Depends(get_db),
 ):
     require_roles(request.state.user, ["developer", "admin", "regulator", "manufacturer"])
@@ -25,7 +27,7 @@ def list_annotations(
         query = query.filter(Annotation.status == status)
     if target_element:
         query = query.filter(Annotation.target_element == target_element)
-    items = query.order_by(Annotation.created_at.desc()).all()
+    items = query.order_by(Annotation.created_at.desc()).offset(offset).limit(limit).all()
     return {
         "items": [
             {

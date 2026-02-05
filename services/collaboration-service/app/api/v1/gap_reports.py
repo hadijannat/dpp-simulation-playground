@@ -8,6 +8,7 @@ from ...config import REDIS_URL
 from redis import Redis
 from ...auth import require_roles
 from services.shared.user_registry import resolve_user_id
+from services.shared import events
 
 router = APIRouter()
 
@@ -15,11 +16,18 @@ class GapReportCreate(BaseModel):
     story_id: int | None = None
     description: str
 
+
+class GapReportUpdate(BaseModel):
+    status: str | None = None
+    description: str | None = None
+
 @router.get("/gap_reports")
 def list_reports(
     request: Request,
     story_id: int | None = None,
     status: str | None = None,
+    limit: int = 50,
+    offset: int = 0,
     db: Session = Depends(get_db),
 ):
     require_roles(request.state.user, ["developer", "admin", "regulator", "manufacturer"])
@@ -28,7 +36,7 @@ def list_reports(
         query = query.filter(GapReport.story_id == story_id)
     if status:
         query = query.filter(GapReport.status == status)
-    items = query.order_by(GapReport.created_at.desc()).all()
+    items = query.order_by(GapReport.created_at.desc()).offset(offset).limit(limit).all()
     return {
         "items": [
             {
@@ -36,6 +44,7 @@ def list_reports(
                 "story_id": item.story_id,
                 "description": item.description,
                 "status": item.status,
+                "votes_count": item.votes_count,
             }
             for item in items
         ]
@@ -59,12 +68,37 @@ def create_report(request: Request, payload: GapReportCreate, db: Session = Depe
     try:
         Redis.from_url(REDIS_URL).xadd(
             "simulation.events",
-            {
-                "event_type": "gap_reported",
-                "user_id": user_id,
-                "story_id": payload.story_id or "",
-            },
+            events.build_event(
+                events.GAP_REPORTED,
+                user_id=user_id,
+                story_id=payload.story_id or "",
+            ),
         )
     except Exception:
         pass
     return {"id": str(item.id), "story_id": item.story_id, "description": item.description, "status": item.status}
+
+
+@router.patch("/gap_reports/{report_id}")
+def update_report(
+    request: Request,
+    report_id: str,
+    payload: GapReportUpdate,
+    db: Session = Depends(get_db),
+):
+    require_roles(request.state.user, ["developer", "admin", "manufacturer", "regulator"])
+    item = db.query(GapReport).filter(GapReport.id == report_id).first()
+    if not item:
+        raise HTTPException(status_code=404, detail="Not found")
+    if payload.status:
+        item.status = payload.status
+    if payload.description:
+        item.description = payload.description
+    db.commit()
+    return {
+        "id": str(item.id),
+        "story_id": item.story_id,
+        "description": item.description,
+        "status": item.status,
+        "votes_count": item.votes_count,
+    }
