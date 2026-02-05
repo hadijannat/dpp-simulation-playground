@@ -1,13 +1,12 @@
 from typing import Dict, Any
-import os
 import requests
 from ..config import COMPLIANCE_URL, EDC_URL
-
-INTERNAL_TOKEN = os.getenv("INTERNAL_TOKEN", "dev-internal")
+from .service_token import get_service_token
 
 
 def execute_step(action: str, params: Dict[str, Any], payload: Dict[str, Any]) -> Dict[str, Any]:
-    headers = {"X-Internal-Token": INTERNAL_TOKEN}
+    token = get_service_token()
+    headers = {"Authorization": f"Bearer {token}"}
     if action == "user.input":
         return {"status": "awaiting_input", "prompt": params.get("prompt")}
     if action == "compliance.check":

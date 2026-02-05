@@ -23,6 +23,15 @@
     {
       "clientId": "dpp-api",
       "bearerOnly": true
+    },
+    {
+      "clientId": "dpp-services",
+      "secret": "dev-services-secret",
+      "publicClient": false,
+      "serviceAccountsEnabled": true,
+      "clientAuthenticatorType": "client-secret",
+      "directAccessGrantsEnabled": true,
+      "standardFlowEnabled": false
     }
   ],
   "users": [

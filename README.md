@@ -37,6 +37,12 @@ make seed
 - Username: `demo@example.com`
 - Password: `demo1234`
 
+## Service-to-Service Auth
+
+Simulation Engine uses Keycloak client credentials:
+- Client ID: `dpp-services`
+- Client Secret: `dev-services-secret`
+
 ## Services
 
 - Simulation Engine: http://localhost:8001

@@ -22,10 +22,11 @@ services:
     environment:
       - KEYCLOAK_URL=http://keycloak:8080
       - KEYCLOAK_REALM=dpp
-      - INTERNAL_TOKEN=dev-internal
+      - SERVICE_CLIENT_ID=dpp-services
+      - SERVICE_CLIENT_SECRET=dev-services-secret
       - DATABASE_URL=postgresql://dpp:dpp@postgres:5432/dpp_playground
       - REDIS_URL=redis://redis:6379/0
-    depends_on: [postgres, redis, mongodb]
+    depends_on: [postgres, redis, mongodb, keycloak]
 
   compliance-service:
     build: ../../services/compliance-service
@@ -33,9 +34,9 @@ services:
     environment:
       - KEYCLOAK_URL=http://keycloak:8080
       - KEYCLOAK_REALM=dpp
-      - INTERNAL_TOKEN=dev-internal
       - DATABASE_URL=postgresql://dpp:dpp@postgres:5432/dpp_playground
       - REDIS_URL=redis://redis:6379/0
+    depends_on: [keycloak]
 
   gamification-service:
     build: ../../services/gamification-service
@@ -43,10 +44,9 @@ services:
     environment:
       - KEYCLOAK_URL=http://keycloak:8080
       - KEYCLOAK_REALM=dpp
-      - INTERNAL_TOKEN=dev-internal
       - DATABASE_URL=postgresql://dpp:dpp@postgres:5432/dpp_playground
       - REDIS_URL=redis://redis:6379/0
-    depends_on: [postgres, redis]
+    depends_on: [postgres, redis, keycloak]
 
   edc-simulator:
     build: ../../services/edc-simulator
@@ -54,9 +54,9 @@ services:
     environment:
       - KEYCLOAK_URL=http://keycloak:8080
       - KEYCLOAK_REALM=dpp
-      - INTERNAL_TOKEN=dev-internal
       - DATABASE_URL=postgresql://dpp:dpp@postgres:5432/dpp_playground
       - REDIS_URL=redis://redis:6379/0
+    depends_on: [keycloak]
 
   collaboration-service:
     build: ../../services/collaboration-service
@@ -64,9 +64,9 @@ services:
     environment:
       - KEYCLOAK_URL=http://keycloak:8080
       - KEYCLOAK_REALM=dpp
-      - INTERNAL_TOKEN=dev-internal
       - DATABASE_URL=postgresql://dpp:dpp@postgres:5432/dpp_playground
       - REDIS_URL=redis://redis:6379/0
+    depends_on: [keycloak]
 
   keycloak:
     build: ../keycloak
