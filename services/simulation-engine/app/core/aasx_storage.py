@@ -73,7 +73,10 @@ def store_aasx_payload(
         raw = base64.b64decode(content_base64)
     except binascii.Error:
         raw = content_base64.encode("utf-8")
-    stored = _store_minio(filename, raw) or _store_local(filename, raw)
+    try:
+        stored = _store_minio(filename, raw) or _store_local(filename, raw)
+    except Exception:
+        stored = _store_local(filename, raw)
     if session_id:
         instance = (
             db.query(DppInstance)
