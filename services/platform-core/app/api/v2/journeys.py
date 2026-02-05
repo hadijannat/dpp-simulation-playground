@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from typing import Any
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field
@@ -9,6 +10,16 @@ from sqlalchemy.orm import Session
 from ...auth import require_roles
 from ...core.db import get_db
 from services.shared.repositories import journey_repo
+
+
+def _safe_uuid(value: str | None) -> UUID | None:
+    """Convert a string to UUID, returning None if invalid or absent."""
+    if not value:
+        return None
+    try:
+        return UUID(value) if isinstance(value, str) else value
+    except (ValueError, AttributeError):
+        return None
 
 router = APIRouter()
 
@@ -84,7 +95,7 @@ def create_run(request: Request, payload: RunCreateRequest, db: Session = Depend
     template = journey_repo.get_template_by_code(db, payload.template_code)
     if not template:
         raise HTTPException(status_code=404, detail=f"Template '{payload.template_code}' not found")
-    user_id = getattr(request.state, "user", {}).get("sub")
+    user_id = _safe_uuid(getattr(request.state, "user", {}).get("sub"))
     run = journey_repo.create_run(
         db,
         template_id=template.id,
@@ -100,7 +111,7 @@ def create_run(request: Request, payload: RunCreateRequest, db: Session = Depend
 @router.get("/core/journeys/runs/{run_id}")
 def get_run(request: Request, run_id: str, db: Session = Depends(get_db)):
     require_roles(request.state.user, ALL_ROLES)
-    data = journey_repo.get_run_with_steps(db, run_id)
+    data = journey_repo.get_run_with_steps(db, UUID(run_id))
     if not data:
         raise HTTPException(status_code=404, detail="Run not found")
     run = data["run"]
@@ -113,7 +124,7 @@ def execute_step(
     request: Request, run_id: str, step_id: str, payload: StepExecuteRequest, db: Session = Depends(get_db)
 ):
     require_roles(request.state.user, ALL_ROLES)
-    run = journey_repo.get_run(db, run_id)
+    run = journey_repo.get_run(db, UUID(run_id))
     if not run:
         raise HTTPException(status_code=404, detail="Run not found")
     step_run = journey_repo.create_step_run(

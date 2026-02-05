@@ -6,7 +6,7 @@ from uuid import uuid4
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine, event
+from sqlalchemy import create_engine, event, text
 from sqlalchemy.orm import sessionmaker
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -86,6 +86,10 @@ def db_session():
         yield session
     finally:
         session.close()
+        # Disable FK enforcement before DROP to avoid circular-dependency errors
+        with engine.connect() as conn:
+            conn.execute(text("PRAGMA foreign_keys=OFF"))
+            conn.commit()
         Base.metadata.drop_all(bind=engine)
 
 
@@ -123,6 +127,7 @@ def seed_template(db_session):
         is_active=True,
     )
     db_session.add(template)
+    db_session.flush()  # ensure template row exists before FK-referencing steps
 
     step_1_id = uuid4()
     step_2_id = uuid4()

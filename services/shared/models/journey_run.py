@@ -1,6 +1,6 @@
-from sqlalchemy import Column, String, DateTime, ForeignKey
-from sqlalchemy.dialects.postgresql import UUID, JSONB
-from sqlalchemy.sql import func, text
+from sqlalchemy import Column, String, DateTime, ForeignKey, JSON
+from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.sql import func
 from .base import Base
 
 
@@ -15,6 +15,6 @@ class JourneyRun(Base):
     status = Column(String(30), server_default="active")
     current_step_key = Column(String(120))
     session_id = Column(UUID(as_uuid=True), ForeignKey("simulation_sessions.id", ondelete="SET NULL"))
-    metadata_ = Column("metadata", JSONB, server_default=text("'{}'::jsonb"))
+    metadata_ = Column("metadata", JSON, default=dict)
     started_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now())

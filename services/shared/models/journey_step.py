@@ -1,6 +1,5 @@
-from sqlalchemy import Column, String, Text, Integer, ForeignKey, UniqueConstraint
-from sqlalchemy.dialects.postgresql import UUID, JSONB
-from sqlalchemy.sql import text
+from sqlalchemy import Column, String, Text, Integer, ForeignKey, UniqueConstraint, JSON
+from sqlalchemy.dialects.postgresql import UUID
 from .base import Base
 
 
@@ -18,4 +17,4 @@ class JourneyStep(Base):
     action = Column(String(120), nullable=False)
     order_index = Column(Integer, nullable=False)
     help_text = Column(Text)
-    default_payload = Column(JSONB, server_default=text("'{}'::jsonb"))
+    default_payload = Column(JSON, default=dict)

@@ -1,6 +1,6 @@
-from sqlalchemy import Column, String, DateTime, UniqueConstraint
-from sqlalchemy.dialects.postgresql import UUID, JSONB
-from sqlalchemy.sql import func, text
+from sqlalchemy import Column, String, DateTime, UniqueConstraint, JSON
+from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.sql import func
 from .base import Base
 
 
@@ -11,6 +11,6 @@ class ComplianceRuleVersion(Base):
     id = Column(UUID(as_uuid=True), primary_key=True)
     regulation = Column(String(120), nullable=False)
     version = Column(String(40), nullable=False)
-    rules = Column(JSONB, server_default=text("'{}'::jsonb"))
+    rules = Column(JSON, default=dict)
     effective_from = Column(DateTime(timezone=True), server_default=func.now())
     created_at = Column(DateTime(timezone=True), server_default=func.now())

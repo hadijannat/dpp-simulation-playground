@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from uuid import UUID
+
 from fastapi import APIRouter, Depends, Request
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
@@ -7,6 +9,16 @@ from sqlalchemy.orm import Session
 from ...auth import require_roles
 from ...core.db import get_db
 from services.shared.repositories import feedback_repo
+
+
+def _safe_uuid(value: str | None) -> UUID | None:
+    """Convert a string to UUID, returning None if invalid or absent."""
+    if not value:
+        return None
+    try:
+        return UUID(value) if isinstance(value, str) else value
+    except (ValueError, AttributeError):
+        return None
 
 router = APIRouter()
 
@@ -25,11 +37,11 @@ class CsatRequest(BaseModel):
 @router.post("/core/feedback/csat")
 def submit_csat(request: Request, payload: CsatRequest, db: Session = Depends(get_db)):
     require_roles(request.state.user, ALL_ROLES)
-    user_id = getattr(request.state, "user", {}).get("sub")
+    user_id = _safe_uuid(getattr(request.state, "user", {}).get("sub"))
     fb = feedback_repo.create_feedback(
         db,
         user_id=user_id,
-        journey_run_id=payload.journey_run_id,
+        journey_run_id=_safe_uuid(payload.journey_run_id),
         locale=payload.locale,
         role=payload.role,
         flow=payload.flow,

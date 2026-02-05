@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from fastapi import APIRouter, Depends, Request
 from sqlalchemy.orm import Session
 
@@ -11,7 +13,7 @@ router = APIRouter()
 @router.get("/core/digital-twins/{dpp_id}")
 def get_digital_twin(request: Request, dpp_id: str, db: Session = Depends(get_db)):
     require_roles(request.state.user, ["manufacturer", "developer", "admin", "regulator"])
-    graph = digital_twin_repo.get_graph(db, dpp_id)
+    graph = digital_twin_repo.get_graph(db, UUID(dpp_id) if isinstance(dpp_id, str) else dpp_id)
     if not graph:
         # Fallback: return empty graph structure
         return {

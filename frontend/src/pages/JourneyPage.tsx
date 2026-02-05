@@ -44,7 +44,7 @@ export default function JourneyPage() {
     if (Object.keys(defaultPayload).length > 0 && dppDraft.present === "{}") {
       setDppDraft({ past: [], present: JSON.stringify(defaultPayload, null, 2) });
     }
-  }, [defaultPayload]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [defaultPayload]);
 
   const { run, createRun, executeStep } = useJourneyRun(runId);
   const { complianceRun, runCheck, applyFix } = useJourneyCompliance(complianceRunId);
