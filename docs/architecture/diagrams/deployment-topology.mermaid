@@ -1,0 +1,4 @@
+flowchart TB
+  Ingress[Ingress] --> Kong
+  Kong --> Services[Core Services]
+  Services --> Data[Postgres/Redis/Mongo/MinIO]

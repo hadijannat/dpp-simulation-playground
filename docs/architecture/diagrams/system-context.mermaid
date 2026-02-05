@@ -1,0 +1,14 @@
+flowchart LR
+  User[User] --> FE[Frontend]
+  FE --> Kong[API Gateway]
+  Kong --> Sim[Simulation Engine]
+  Kong --> Comp[Compliance Service]
+  Kong --> Game[Gamification Service]
+  Kong --> Edc[EDC Simulator]
+  Kong --> Collab[Collaboration Service]
+  Sim --> Pg[(Postgres)]
+  Sim --> Redis[(Redis)]
+  Sim --> Basyx[BaSyx]
+  Comp --> Pg
+  Game --> Pg
+  Edc --> Pg
