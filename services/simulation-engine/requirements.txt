@@ -4,8 +4,8 @@ pydantic==2.6.4
 sqlalchemy==2.0.27
 psycopg2-binary==2.9.9
 redis==7.1.0
-PyYAML==6.0.1
-jsonpath-ng==1.6.1
+PyYAML==6.0.3
+jsonpath-ng==1.7.0
 python-jose==3.3.0
 requests==2.31.0
 alembic==1.13.1

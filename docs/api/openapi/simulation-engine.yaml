@@ -1,5 +1,645 @@
 openapi: 3.1.0
 info:
-  title: Simulation Engine API
+  title: Simulation Engine
   version: 0.1.0
-paths: {}
+paths:
+  /api/v1/health:
+    get:
+      summary: Health
+      operationId: health_api_v1_health_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+  /api/v1/health/{service_name}:
+    get:
+      summary: Health Named
+      operationId: health_named_api_v1_health__service_name__get
+      parameters:
+      - name: service_name
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Service Name
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/sessions:
+    post:
+      summary: Create Session
+      operationId: create_session_api_v1_sessions_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SessionCreate'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/sessions/{session_id}:
+    get:
+      summary: Get Session
+      operationId: get_session_api_v1_sessions__session_id__get
+      parameters:
+      - name: session_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Session Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    patch:
+      summary: Update Session
+      operationId: update_session_api_v1_sessions__session_id__patch
+      parameters:
+      - name: session_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Session Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SessionUpdate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    delete:
+      summary: Close Session
+      operationId: close_session_api_v1_sessions__session_id__delete
+      parameters:
+      - name: session_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Session Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/stories:
+    get:
+      summary: Get Stories
+      operationId: get_stories_api_v1_stories_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+  /api/v1/stories/{code}:
+    get:
+      summary: Get Story
+      operationId: get_story_api_v1_stories__code__get
+      parameters:
+      - name: code
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Code
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/sessions/{session_id}/stories/{code}/start:
+    post:
+      summary: Start Story
+      operationId: start_story_api_v1_sessions__session_id__stories__code__start_post
+      parameters:
+      - name: session_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Session Id
+      - name: code
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Code
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/sessions/{session_id}/stories/{code}/validate:
+    post:
+      summary: Validate Story
+      operationId: validate_story_api_v1_sessions__session_id__stories__code__validate_post
+      parameters:
+      - name: session_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Session Id
+      - name: code
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Code
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StoryValidateRequest'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/sessions/{session_id}/stories/{code}/steps/{idx}/execute:
+    post:
+      summary: Execute
+      operationId: execute_api_v1_sessions__session_id__stories__code__steps__idx__execute_post
+      parameters:
+      - name: session_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Session Id
+      - name: code
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Code
+      - name: idx
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Idx
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StepExecuteRequest'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/aas/shells:
+    get:
+      summary: List Shells
+      operationId: list_shells_api_v1_aas_shells_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+    post:
+      summary: Create Shell
+      operationId: create_shell_api_v1_aas_shells_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AasCreate'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/aas/validate:
+    post:
+      summary: Validate Aas
+      operationId: validate_aas_api_v1_aas_validate_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AasValidateRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/aas/submodels:
+    post:
+      summary: Create Submodel
+      operationId: create_submodel_api_v1_aas_submodels_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AasSubmodelCreate'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/aas/submodels/{submodel_id}/elements:
+    get:
+      summary: Get Submodel Elements
+      operationId: get_submodel_elements_api_v1_aas_submodels__submodel_id__elements_get
+      parameters:
+      - name: submodel_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Submodel Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    patch:
+      summary: Patch Submodel Elements
+      operationId: patch_submodel_elements_api_v1_aas_submodels__submodel_id__elements_patch
+      parameters:
+      - name: submodel_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Submodel Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AasSubmodelElementsPatch'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/aasx/upload:
+    post:
+      summary: Upload Aasx
+      operationId: upload_aasx_api_v1_aasx_upload_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AasxUploadRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/progress:
+    get:
+      summary: Get Progress
+      operationId: get_progress_api_v1_progress_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+  /api/v1/progress/epics:
+    get:
+      summary: Get Epic Progress
+      operationId: get_epic_progress_api_v1_progress_epics_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+components:
+  schemas:
+    AasCreate:
+      properties:
+        aas_identifier:
+          type: string
+          title: Aas Identifier
+        product_identifier:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Product Identifier
+        product_name:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Product Name
+        product_category:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Product Category
+        session_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Session Id
+      type: object
+      required:
+      - aas_identifier
+      title: AasCreate
+    AasSubmodelCreate:
+      properties:
+        submodel:
+          type: object
+          title: Submodel
+        session_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Session Id
+        register:
+          type: boolean
+          title: Register
+          default: true
+      type: object
+      required:
+      - submodel
+      title: AasSubmodelCreate
+    AasSubmodelElementsPatch:
+      properties:
+        elements:
+          title: Elements
+      type: object
+      required:
+      - elements
+      title: AasSubmodelElementsPatch
+    AasValidateRequest:
+      properties:
+        data:
+          type: object
+          title: Data
+        templates:
+          items:
+            type: string
+          type: array
+          title: Templates
+          default: []
+      type: object
+      required:
+      - data
+      title: AasValidateRequest
+    AasxUploadRequest:
+      properties:
+        filename:
+          type: string
+          title: Filename
+        content_base64:
+          type: string
+          title: Content Base64
+        session_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Session Id
+      type: object
+      required:
+      - filename
+      - content_base64
+      title: AasxUploadRequest
+    HTTPValidationError:
+      properties:
+        detail:
+          items:
+            $ref: '#/components/schemas/ValidationError'
+          type: array
+          title: Detail
+      type: object
+      title: HTTPValidationError
+    SessionCreate:
+      properties:
+        user_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: User Id
+        role:
+          type: string
+          title: Role
+        state:
+          anyOf:
+          - type: object
+          - type: 'null'
+          title: State
+      type: object
+      required:
+      - role
+      title: SessionCreate
+    SessionResponse:
+      properties:
+        id:
+          type: string
+          title: Id
+        user_id:
+          type: string
+          title: User Id
+        role:
+          type: string
+          title: Role
+        state:
+          type: object
+          title: State
+      type: object
+      required:
+      - id
+      - user_id
+      - role
+      - state
+      title: SessionResponse
+    SessionUpdate:
+      properties:
+        role:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Role
+        state:
+          anyOf:
+          - type: object
+          - type: 'null'
+          title: State
+        is_active:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          title: Is Active
+      type: object
+      title: SessionUpdate
+    StepExecuteRequest:
+      properties:
+        payload:
+          type: object
+          title: Payload
+        metadata:
+          type: object
+          title: Metadata
+      type: object
+      title: StepExecuteRequest
+    StoryValidateRequest:
+      properties:
+        data:
+          type: object
+          title: Data
+        regulations:
+          items:
+            type: string
+          type: array
+          title: Regulations
+          default: []
+      type: object
+      required:
+      - data
+      title: StoryValidateRequest
+    ValidationError:
+      properties:
+        loc:
+          items:
+            anyOf:
+            - type: string
+            - type: integer
+          type: array
+          title: Location
+        msg:
+          type: string
+          title: Message
+        type:
+          type: string
+          title: Error Type
+      type: object
+      required:
+      - loc
+      - msg
+      - type
+      title: ValidationError

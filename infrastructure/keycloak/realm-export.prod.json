@@ -1,0 +1,64 @@
+{
+  "realm": "dpp",
+  "sslRequired": "EXTERNAL",
+  "enabled": true,
+  "displayName": "DPP Playground",
+  "roles": {
+    "realm": [
+      {
+        "name": "manufacturer"
+      },
+      {
+        "name": "regulator"
+      },
+      {
+        "name": "consumer"
+      },
+      {
+        "name": "recycler"
+      },
+      {
+        "name": "developer"
+      },
+      {
+        "name": "admin"
+      }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "dpp-frontend",
+      "publicClient": true,
+      "redirectUris": [
+        "https://dpp.local/*"
+      ],
+      "webOrigins": [
+        "https://dpp.local"
+      ],
+      "standardFlowEnabled": true
+    },
+    {
+      "clientId": "dpp-api",
+      "bearerOnly": true
+    },
+    {
+      "clientId": "dpp-services",
+      "secret": "CHANGE_ME",
+      "publicClient": false,
+      "serviceAccountsEnabled": true,
+      "clientAuthenticatorType": "client-secret",
+      "directAccessGrantsEnabled": true,
+      "standardFlowEnabled": false
+    }
+  ],
+  "users": [
+    {
+      "username": "service-account-dpp-services",
+      "enabled": true,
+      "serviceAccountClientId": "dpp-services",
+      "realmRoles": [
+        "admin"
+      ]
+    }
+  ]
+}

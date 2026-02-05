@@ -29,10 +29,22 @@ if [ -z "$PUB_KEY" ]; then
 fi
 
 python3 - <<PY
+import os
 from pathlib import Path
 pub = """$PUB_KEY"""
 text = Path("$TEMPLATE").read_text()
 text = text.replace("REPLACE_WITH_KEYCLOAK_REALM_PUBLIC_KEY", pub)
+allow = os.getenv("KONG_ALLOW_ANONYMOUS", "true").lower() in ("1", "true", "yes")
+if allow:
+    text = text.replace("__ANON_CONSUMER__", "  - username: anonymous\n")
+    text = text.replace("__ANON_CONFIG__", "      anonymous: anonymous\n")
+else:
+    text = text.replace("__ANON_CONSUMER__", "")
+    text = text.replace("__ANON_CONFIG__", "")
+origins = os.getenv("KONG_CORS_ORIGINS", "http://localhost:3000")
+items = [o.strip() for o in origins.split(",") if o.strip()]
+origin_list = "[" + ", ".join(f'\"{o}\"' for o in items) + "]" if items else "[]"
+text = text.replace("__CORS_ORIGINS__", origin_list)
 Path("$OUTPUT").write_text(text)
 PY
 
