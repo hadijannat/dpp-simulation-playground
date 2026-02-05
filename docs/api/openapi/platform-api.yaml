@@ -12,7 +12,8 @@ paths:
           description: Successful Response
           content:
             application/json:
-              schema: {}
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
   /api/v1/stories:
     get:
       summary: List Stories
@@ -22,7 +23,8 @@ paths:
           description: Successful Response
           content:
             application/json:
-              schema: {}
+              schema:
+                $ref: '#/components/schemas/StoryListResponse'
   /api/v1/sessions:
     post:
       summary: Create Session
@@ -39,7 +41,8 @@ paths:
           description: Successful Response
           content:
             application/json:
-              schema: {}
+              schema:
+                $ref: '#/components/schemas/SessionResponse'
         '422':
           description: Validation Error
           content:
@@ -62,7 +65,8 @@ paths:
           description: Successful Response
           content:
             application/json:
-              schema: {}
+              schema:
+                $ref: '#/components/schemas/SessionResponse'
         '422':
           description: Validation Error
           content:
@@ -91,7 +95,8 @@ paths:
           description: Successful Response
           content:
             application/json:
-              schema: {}
+              schema:
+                $ref: '#/components/schemas/SessionResponse'
         '422':
           description: Validation Error
           content:
@@ -113,7 +118,8 @@ paths:
           description: Successful Response
           content:
             application/json:
-              schema: {}
+              schema:
+                $ref: '#/components/schemas/SessionResponse'
         '422':
           description: Validation Error
           content:
@@ -150,7 +156,8 @@ paths:
           description: Successful Response
           content:
             application/json:
-              schema: {}
+              schema:
+                $ref: '#/components/schemas/StoryStartResponse'
         '422':
           description: Validation Error
           content:
@@ -192,7 +199,8 @@ paths:
           description: Successful Response
           content:
             application/json:
-              schema: {}
+              schema:
+                $ref: '#/components/schemas/StepExecuteResponse'
         '422':
           description: Validation Error
           content:
@@ -228,7 +236,8 @@ paths:
           description: Successful Response
           content:
             application/json:
-              schema: {}
+              schema:
+                $ref: '#/components/schemas/StoryValidateResponse'
         '422':
           description: Validation Error
           content:
@@ -244,7 +253,8 @@ paths:
           description: Successful Response
           content:
             application/json:
-              schema: {}
+              schema:
+                $ref: '#/components/schemas/ProgressResponse'
   /api/v1/progress/epics:
     get:
       summary: Get Epic Progress
@@ -254,7 +264,8 @@ paths:
           description: Successful Response
           content:
             application/json:
-              schema: {}
+              schema:
+                $ref: '#/components/schemas/EpicProgressResponse'
   /api/v1/aas/shells:
     get:
       summary: List Shells
@@ -264,7 +275,8 @@ paths:
           description: Successful Response
           content:
             application/json:
-              schema: {}
+              schema:
+                $ref: '#/components/schemas/AasShellListResponse'
     post:
       summary: Create Shell
       operationId: create_shell_api_v1_aas_shells_post
@@ -280,7 +292,8 @@ paths:
           description: Successful Response
           content:
             application/json:
-              schema: {}
+              schema:
+                $ref: '#/components/schemas/AasShellCreateResponse'
         '422':
           description: Validation Error
           content:
@@ -303,7 +316,8 @@ paths:
           description: Successful Response
           content:
             application/json:
-              schema: {}
+              schema:
+                $ref: '#/components/schemas/AasSubmodelCreateResponse'
         '422':
           description: Validation Error
           content:
@@ -326,7 +340,8 @@ paths:
           description: Successful Response
           content:
             application/json:
-              schema: {}
+              schema:
+                $ref: '#/components/schemas/AasSubmodelPatchResponse'
         '422':
           description: Validation Error
           content:
@@ -355,7 +370,8 @@ paths:
           description: Successful Response
           content:
             application/json:
-              schema: {}
+              schema:
+                $ref: '#/components/schemas/AasSubmodelPatchResponse'
         '422':
           description: Validation Error
           content:
@@ -378,7 +394,8 @@ paths:
           description: Successful Response
           content:
             application/json:
-              schema: {}
+              schema:
+                $ref: '#/components/schemas/ComplianceRunResponse'
         '422':
           description: Validation Error
           content:
@@ -401,7 +418,8 @@ paths:
           description: Successful Response
           content:
             application/json:
-              schema: {}
+              schema:
+                $ref: '#/components/schemas/AasxUploadResponse'
         '422':
           description: Validation Error
           content:
@@ -424,7 +442,8 @@ paths:
           description: Successful Response
           content:
             application/json:
-              schema: {}
+              schema:
+                $ref: '#/components/schemas/ComplianceRunResponse'
         '422':
           description: Validation Error
           content:
@@ -472,7 +491,8 @@ paths:
           description: Successful Response
           content:
             application/json:
-              schema: {}
+              schema:
+                $ref: '#/components/schemas/ComplianceReportListResponse'
         '422':
           description: Validation Error
           content:
@@ -495,7 +515,8 @@ paths:
           description: Successful Response
           content:
             application/json:
-              schema: {}
+              schema:
+                $ref: '#/components/schemas/ComplianceReportDetail'
         '422':
           description: Validation Error
           content:
@@ -511,7 +532,8 @@ paths:
           description: Successful Response
           content:
             application/json:
-              schema: {}
+              schema:
+                $ref: '#/components/schemas/CatalogResponse'
   /api/v1/edc/participants:
     get:
       summary: Get Participants
@@ -521,7 +543,8 @@ paths:
           description: Successful Response
           content:
             application/json:
-              schema: {}
+              schema:
+                $ref: '#/components/schemas/ParticipantListResponse'
   /api/v1/edc/assets:
     get:
       summary: Get Assets
@@ -531,7 +554,8 @@ paths:
           description: Successful Response
           content:
             application/json:
-              schema: {}
+              schema:
+                $ref: '#/components/schemas/AssetListResponse'
   /api/v1/edc/negotiations:
     post:
       summary: Create Negotiation
@@ -548,7 +572,8 @@ paths:
           description: Successful Response
           content:
             application/json:
-              schema: {}
+              schema:
+                $ref: '#/components/schemas/NegotiationResponse'
         '422':
           description: Validation Error
           content:
@@ -585,7 +610,8 @@ paths:
           description: Successful Response
           content:
             application/json:
-              schema: {}
+              schema:
+                $ref: '#/components/schemas/NegotiationResponse'
         '422':
           description: Validation Error
           content:
@@ -608,7 +634,8 @@ paths:
           description: Successful Response
           content:
             application/json:
-              schema: {}
+              schema:
+                $ref: '#/components/schemas/TransferResponse'
         '422':
           description: Validation Error
           content:
@@ -645,7 +672,8 @@ paths:
           description: Successful Response
           content:
             application/json:
-              schema: {}
+              schema:
+                $ref: '#/components/schemas/TransferResponse'
         '422':
           description: Validation Error
           content:
@@ -661,7 +689,8 @@ paths:
           description: Successful Response
           content:
             application/json:
-              schema: {}
+              schema:
+                $ref: '#/components/schemas/AchievementListResponse'
   /api/v1/leaderboard:
     get:
       summary: Leaderboard
@@ -686,7 +715,8 @@ paths:
           description: Successful Response
           content:
             application/json:
-              schema: {}
+              schema:
+                $ref: '#/components/schemas/LeaderboardResponse'
         '422':
           description: Validation Error
           content:
@@ -702,7 +732,8 @@ paths:
           description: Successful Response
           content:
             application/json:
-              schema: {}
+              schema:
+                $ref: '#/components/schemas/StreakResponse'
   /api/v1/annotations:
     get:
       summary: Annotations
@@ -751,7 +782,8 @@ paths:
           description: Successful Response
           content:
             application/json:
-              schema: {}
+              schema:
+                $ref: '#/components/schemas/AnnotationListResponse'
         '422':
           description: Validation Error
           content:
@@ -773,7 +805,8 @@ paths:
           description: Successful Response
           content:
             application/json:
-              schema: {}
+              schema:
+                $ref: '#/components/schemas/AnnotationItem'
         '422':
           description: Validation Error
           content:
@@ -820,7 +853,8 @@ paths:
           description: Successful Response
           content:
             application/json:
-              schema: {}
+              schema:
+                $ref: '#/components/schemas/GapListResponse'
         '422':
           description: Validation Error
           content:
@@ -842,7 +876,8 @@ paths:
           description: Successful Response
           content:
             application/json:
-              schema: {}
+              schema:
+                $ref: '#/components/schemas/GapItem'
         '422':
           description: Validation Error
           content:
@@ -881,7 +916,8 @@ paths:
           description: Successful Response
           content:
             application/json:
-              schema: {}
+              schema:
+                $ref: '#/components/schemas/VoteListResponse'
         '422':
           description: Validation Error
           content:
@@ -903,7 +939,8 @@ paths:
           description: Successful Response
           content:
             application/json:
-              schema: {}
+              schema:
+                $ref: '#/components/schemas/VoteItem'
         '422':
           description: Validation Error
           content:
@@ -1335,6 +1372,41 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/JourneyStepExecuteResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v2/journeys/templates:
+    get:
+      summary: List Templates
+      operationId: list_templates_api_v2_journeys_templates_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JourneyTemplateListResponse'
+  /api/v2/journeys/templates/{code}:
+    get:
+      summary: Get Template
+      operationId: get_template_api_v2_journeys_templates__code__get
+      parameters:
+      - name: code
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Code
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JourneyTemplateDetail'
         '422':
           description: Validation Error
           content:
@@ -2778,6 +2850,112 @@ components:
       required:
       - status
       title: HealthResponse
+    JourneyStepDefinition:
+      properties:
+        id:
+          type: string
+          title: Id
+        step_key:
+          type: string
+          title: Step Key
+        title:
+          type: string
+          title: Title
+        action:
+          type: string
+          title: Action
+        order_index:
+          type: integer
+          title: Order Index
+        help_text:
+          type: string
+          title: Help Text
+          default: ''
+        default_payload:
+          type: object
+          title: Default Payload
+          default: {}
+      type: object
+      required:
+      - id
+      - step_key
+      - title
+      - action
+      - order_index
+      title: JourneyStepDefinition
+    JourneyTemplateDetail:
+      properties:
+        id:
+          type: string
+          title: Id
+        code:
+          type: string
+          title: Code
+        name:
+          type: string
+          title: Name
+        description:
+          type: string
+          title: Description
+          default: ''
+        target_role:
+          type: string
+          title: Target Role
+        is_active:
+          type: boolean
+          title: Is Active
+        steps:
+          items:
+            $ref: '#/components/schemas/JourneyStepDefinition'
+          type: array
+          title: Steps
+      type: object
+      required:
+      - id
+      - code
+      - name
+      - target_role
+      - is_active
+      - steps
+      title: JourneyTemplateDetail
+    JourneyTemplateSummary:
+      properties:
+        id:
+          type: string
+          title: Id
+        code:
+          type: string
+          title: Code
+        name:
+          type: string
+          title: Name
+        description:
+          type: string
+          title: Description
+          default: ''
+        target_role:
+          type: string
+          title: Target Role
+        is_active:
+          type: boolean
+          title: Is Active
+      type: object
+      required:
+      - id
+      - code
+      - name
+      - target_role
+      - is_active
+      title: JourneyTemplateSummary
+    JourneyTemplateListResponse:
+      properties:
+        items:
+          items:
+            $ref: '#/components/schemas/JourneyTemplateSummary'
+          type: array
+          title: Items
+      type: object
+      title: JourneyTemplateListResponse
     JourneyRunCreate:
       properties:
         template_code:
