@@ -19,7 +19,7 @@ export default defineConfig({
     timeout: 120_000,
     env: {
       VITE_AUTH_MODE: "mock",
-      VITE_API_URL: "http://127.0.0.1:4173",
+      VITE_API_URL: process.env.VITE_API_URL || "http://127.0.0.1:4173",
     },
   },
   projects: [

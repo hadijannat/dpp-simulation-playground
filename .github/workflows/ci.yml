@@ -149,6 +149,8 @@ jobs:
         run: sleep 15
       - run: npx playwright test --project=integration-chromium
         working-directory: frontend
+        env:
+          VITE_API_URL: http://127.0.0.1:8106
       - name: Stop services
         if: always()
         run: docker compose -f infrastructure/docker/docker-compose.test.yml down
