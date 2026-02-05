@@ -214,7 +214,7 @@ test("manufacturer mobile journey completes end-to-end flow", async ({ page }) =
   await page.getByRole("button", { name: "Close" }).click();
   await expect(page.locator(".bottom-sheet")).not.toBeVisible();
 
-  await page.getByRole("button", { name: "Create Session" }).click();
+  await page.getByRole("button", { name: "Start Journey" }).click();
   await expect(page.getByText("Journey Run ID: run-001")).toBeVisible();
 
   await page.getByRole("button", { name: "1. Create DPP" }).click();

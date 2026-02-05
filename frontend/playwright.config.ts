@@ -28,6 +28,7 @@ export default defineConfig({
       use: {
         ...devices["Pixel 7"],
       },
+      testIgnore: /.*integration.*\.spec\.ts/,
     },
     {
       name: "integration-chromium",
