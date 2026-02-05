@@ -10,6 +10,7 @@ export default function CompliancePage() {
   return (
     <div>
       <h1>Compliance</h1>
+      <p>Run regulation checks and review violations in real time.</p>
       <ComplianceChecker />
     </div>
   );

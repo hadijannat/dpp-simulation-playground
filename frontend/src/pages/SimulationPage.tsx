@@ -1,6 +1,14 @@
 import { useEffect, useState } from "react";
-import { apiGet, apiPost } from "../services/api";
 import { useRoleStore } from "../stores/roleStore";
+import { useStories, useSession } from "../hooks/useSimulation";
+import SimulationCanvas from "../components/simulation/SimulationCanvas";
+import StoryNavigator from "../components/simulation/StoryNavigator";
+import StepExecutor from "../components/simulation/StepExecutor";
+import ValidationFeedback from "../components/simulation/ValidationFeedback";
+import RoleOnboarding from "../components/role-play/RoleOnboarding";
+import PerspectiveComparison from "../components/role-play/PerspectiveComparison";
+import AnnotationLayer from "../components/collaboration/AnnotationLayer";
+import GapReporter from "../components/collaboration/GapReporter";
 
 interface StoryStep {
   action: string;
@@ -15,100 +23,120 @@ interface Story {
 
 export default function SimulationPage() {
   const { role } = useRoleStore();
+  const { data } = useStories();
+  const { createSession, startStory, executeStep, validateStory } = useSession();
   const [stories, setStories] = useState<Story[]>([]);
-  const [selectedCode, setSelectedCode] = useState<string>("");
+  const [selectedCode, setSelectedCode] = useState("");
   const [story, setStory] = useState<Story | null>(null);
-  const [sessionId, setSessionId] = useState<string>("");
-  const [payload, setPayload] = useState<string>("{}\n");
-  const [result, setResult] = useState<string>("");
+  const [sessionId, setSessionId] = useState("");
+  const [completedSteps, setCompletedSteps] = useState<number[]>([]);
+  const [result, setResult] = useState<any>(null);
+  const [validation, setValidation] = useState<any>(null);
 
   useEffect(() => {
-    apiGet("/api/v1/stories").then((data) => {
-      setStories(data.items || []);
-    });
-  }, []);
-
-  async function createSession() {
-    const data = await apiPost("/api/v1/sessions", { role, state: {} });
-    setSessionId(data.id);
-  }
-
-  async function startStory() {
-    if (!sessionId || !selectedCode) return;
-    const data = await apiPost(`/api/v1/sessions/${sessionId}/stories/${selectedCode}/start`, {});
-    setStory(data.story);
-  }
-
-  async function runStep(idx: number) {
-    if (!sessionId || !story) return;
-    let parsed: Record<string, unknown> = {};
-    try {
-        parsed = JSON.parse(payload);
-    } catch {
-        setResult("Invalid JSON payload");
-        return;
+    if (data?.items) {
+      const sorted = [...data.items].sort((a, b) => {
+        const epicA = a.epic_code || "";
+        const epicB = b.epic_code || "";
+        if (epicA !== epicB) return epicA.localeCompare(epicB);
+        return (a.order_index || 0) - (b.order_index || 0);
+      });
+      setStories(sorted);
     }
-    const body = { payload: parsed };
-    const data = await apiPost(
-      `/api/v1/sessions/${sessionId}/stories/${story.code}/steps/${idx}/execute`,
-      body
-    );
-    setResult(JSON.stringify(data, null, 2));
+  }, [data]);
+
+  async function handleCreateSession() {
+    const response = await createSession.mutateAsync({ role, state: {} });
+    setSessionId(response.id);
+  }
+
+  async function handleStartStory(code: string) {
+    if (!sessionId) return;
+    const response = await startStory.mutateAsync({ sessionId, code });
+    setStory(response.story);
+    setCompletedSteps([]);
+    setResult(null);
+    setValidation(null);
+  }
+
+  async function handleExecute(idx: number, payload: Record<string, unknown>) {
+    if (!sessionId || !story) return;
+    const response = await executeStep.mutateAsync({
+      sessionId,
+      code: story.code,
+      idx,
+      body: { payload, metadata: { role } },
+    });
+    setResult(response);
+    if (!completedSteps.includes(idx)) {
+      setCompletedSteps([...completedSteps, idx]);
+    }
+  }
+
+  async function handleValidate() {
+    if (!sessionId || !story) return;
+    const response = await validateStory.mutateAsync({
+      sessionId,
+      code: story.code,
+      body: { data: result?.result?.data || {}, regulations: ["ESPR"] },
+    });
+    setValidation(response);
   }
 
   return (
-    <div>
-      <h1>Simulation</h1>
-      <div style={{ display: "flex", gap: 12, marginBottom: 12 }}>
-        <button onClick={createSession}>Create Session</button>
-        <input
-          placeholder="Session ID"
-          value={sessionId}
-          onChange={(e) => setSessionId(e.target.value)}
-          style={{ flex: 1 }}
-        />
-      </div>
-
-      <div style={{ display: "flex", gap: 12, marginBottom: 12 }}>
-        <select value={selectedCode} onChange={(e) => setSelectedCode(e.target.value)}>
-          <option value="">Select story</option>
-          {stories.map((s) => (
-            <option key={s.code} value={s.code}>
-              {s.code} - {s.title}
-            </option>
-          ))}
-        </select>
-        <button onClick={startStory} disabled={!sessionId || !selectedCode}>
-          Start Story
-        </button>
+    <div style={{ display: "grid", gap: 16 }}>
+      <div className="grid-2">
+        <div className="card">
+          <div className="section-title">
+            <h2>Simulation</h2>
+            <span className="pill">Role: {role}</span>
+          </div>
+          <div style={{ display: "flex", gap: 8 }}>
+            <button className="btn btn-primary" onClick={handleCreateSession}>Create Session</button>
+            <input
+              className="input"
+              placeholder="Session ID"
+              value={sessionId}
+              onChange={(e) => setSessionId(e.target.value)}
+            />
+          </div>
+          <div style={{ marginTop: 12 }}>
+            <RoleOnboarding role={role} />
+          </div>
+          <div style={{ marginTop: 12 }}>
+            <PerspectiveComparison left={role} right={role === "regulator" ? "manufacturer" : "regulator"} />
+          </div>
+        </div>
+        <StoryNavigator stories={stories} selectedCode={selectedCode} onSelect={(code) => {
+          setSelectedCode(code);
+          handleStartStory(code);
+        }} />
       </div>
 
       {story && (
-        <div>
-          <h2>{story.title}</h2>
-          <textarea
-            value={payload}
-            onChange={(e) => setPayload(e.target.value)}
-            rows={6}
-            style={{ width: "100%", marginBottom: 8 }}
-          />
-          <div style={{ display: "grid", gap: 8 }}>
-            {story.steps.map((step, idx) => (
-              <div key={`${step.action}-${idx}`} style={{ border: "1px solid #e2e8f0", padding: 8 }}>
-                <div style={{ fontWeight: 600 }}>{idx + 1}. {step.action}</div>
-                {step.params && <pre>{JSON.stringify(step.params, null, 2)}</pre>}
-                <button onClick={() => runStep(idx)}>Execute Step</button>
-              </div>
-            ))}
+        <>
+          <div className="card">
+            <h3>{story.title}</h3>
+            <SimulationCanvas steps={story.steps} completed={completedSteps} />
           </div>
-        </div>
-      )}
-
-      {result && (
-        <div style={{ marginTop: 16 }}>
-          <h3>Result</h3>
-          <pre style={{ background: "#0b1a2a", color: "#e2e8f0", padding: 12 }}>{result}</pre>
-        </div>
+          <div className="grid-2">
+            <StepExecutor storyCode={story.code} steps={story.steps} onExecute={handleExecute} />
+            <div style={{ display: "grid", gap: 16 }}>
+              <div className="card">
+                <div className="section-title">
+                  <h3>Run Validation</h3>
+                  <button className="btn btn-secondary" onClick={handleValidate}>Validate</button>
+                </div>
+                <pre>{JSON.stringify(result, null, 2)}</pre>
+              </div>
+              <ValidationFeedback result={validation} />
+            </div>
+          </div>
+          <div className="grid-2">
+            <AnnotationLayer />
+            <GapReporter />
+          </div>
+        </>
       )}
     </div>
   );

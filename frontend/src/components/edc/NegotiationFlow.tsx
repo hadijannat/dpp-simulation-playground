@@ -1,40 +1,47 @@
 import { useState } from "react";
-import { apiPost } from "../../services/api";
+import { useEDC } from "../../hooks/useEDC";
 
 const negActions = ["request", "requested", "offer", "accept", "agree", "verify", "finalize", "terminate"] as const;
 const transferActions = ["provision", "provisioned", "request", "requested", "start", "complete", "terminate"] as const;
 
 export default function NegotiationFlow() {
+  const {
+    createNegotiation,
+    advanceNegotiation: advanceNegotiationMutation,
+    createTransfer,
+    advanceTransfer: advanceTransferMutation,
+  } = useEDC();
   const [state, setState] = useState<string>("");
   const [negotiationId, setNegotiationId] = useState<string>("");
   const [transferId, setTransferId] = useState<string>("");
 
   async function startNegotiation() {
-    const data = await apiPost("/api/v1/edc/negotiations", {
+    const data = await createNegotiation.mutateAsync({
       consumer_id: "BPNL000000000001",
       provider_id: "BPNL000000000002",
       asset_id: "asset-001",
-      policy: { "@type": "odrl:Offer" },
+      policy: { permission: [{ constraint: { leftOperand: "purpose", rightOperand: "dpp:simulation" } }] },
+      purpose: "dpp:simulation",
     });
     setNegotiationId(data.id);
     setState(JSON.stringify(data, null, 2));
   }
 
-  async function advanceNegotiation(action: string) {
+  async function handleAdvanceNegotiation(action: string) {
     if (!negotiationId) return;
-    const data = await apiPost(`/api/v1/edc/negotiations/${negotiationId}/${action}`, {});
+    const data = await advanceNegotiationMutation.mutateAsync({ id: negotiationId, action });
     setState(JSON.stringify(data, null, 2));
   }
 
   async function startTransfer() {
-    const data = await apiPost("/api/v1/edc/transfers", { asset_id: "asset-001" });
+    const data = await createTransfer.mutateAsync({ asset_id: "asset-001" });
     setTransferId(data.id);
     setState(JSON.stringify(data, null, 2));
   }
 
-  async function advanceTransfer(action: string) {
+  async function handleAdvanceTransfer(action: string) {
     if (!transferId) return;
-    const data = await apiPost(`/api/v1/edc/transfers/${transferId}/${action}`, {});
+    const data = await advanceTransferMutation.mutateAsync({ id: transferId, action });
     setState(JSON.stringify(data, null, 2));
   }
 
@@ -46,14 +53,14 @@ export default function NegotiationFlow() {
       </div>
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 12 }}>
         {negActions.map((action) => (
-          <button key={action} onClick={() => advanceNegotiation(action)}>
+          <button key={action} onClick={() => handleAdvanceNegotiation(action)}>
             {action}
           </button>
         ))}
       </div>
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 12 }}>
         {transferActions.map((action) => (
-          <button key={action} onClick={() => advanceTransfer(action)}>
+          <button key={action} onClick={() => handleAdvanceTransfer(action)}>
             {action}
           </button>
         ))}

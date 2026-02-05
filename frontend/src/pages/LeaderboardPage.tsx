@@ -1,4 +1,5 @@
 import AccessDenied from "../components/common/AccessDenied";
+import Leaderboard from "../components/gamification/Leaderboard";
 import { useHasRole } from "../hooks/useRoles";
 
 export default function LeaderboardPage() {
@@ -9,7 +10,8 @@ export default function LeaderboardPage() {
   return (
     <div>
       <h1>Leaderboard</h1>
-      <p>Content for leaderboard.</p>
+      <p>Top contributors across simulation roles and scenarios.</p>
+      <Leaderboard />
     </div>
   );
 }

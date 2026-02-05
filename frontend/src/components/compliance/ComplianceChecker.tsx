@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { apiPost } from "../../services/api";
+import { useCompliance } from "../../hooks/useCompliance";
 
 export default function ComplianceChecker() {
   const [result, setResult] = useState<string>("");
   const [payload, setPayload] = useState("{\n  \"aas_identifier\": \"urn:example:aas:battery-ev-001\"\n}");
   const [sessionId, setSessionId] = useState("");
   const [storyCode, setStoryCode] = useState("");
+  const { checkCompliance } = useCompliance();
 
   async function run() {
     let parsed: Record<string, unknown> = {};
@@ -15,9 +16,9 @@ export default function ComplianceChecker() {
       setResult("Invalid JSON payload");
       return;
     }
-    const data = await apiPost("/api/v1/compliance/check", {
+    const data = await checkCompliance.mutateAsync({
       data: parsed,
-      regulations: ["ESPR"],
+      regulations: ["ESPR", "Battery Regulation", "WEEE", "RoHS"],
       session_id: sessionId || undefined,
       story_code: storyCode || undefined,
     });
@@ -40,9 +41,11 @@ export default function ComplianceChecker() {
           style={{ flex: 1 }}
         />
       </div>
-      <textarea value={payload} onChange={(e) => setPayload(e.target.value)} rows={6} style={{ width: "100%" }} />
-      <button onClick={run}>Run Compliance Check</button>
-      <pre>{result}</pre>
+      <textarea className="textarea" value={payload} onChange={(e) => setPayload(e.target.value)} rows={6} />
+      <button className="btn btn-primary" onClick={run}>Run Compliance Check</button>
+      <div className="card" style={{ marginTop: 12 }}>
+        <pre>{result}</pre>
+      </div>
     </div>
   );
 }
