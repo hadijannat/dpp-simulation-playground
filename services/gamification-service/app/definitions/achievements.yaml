@@ -1,0 +1,5 @@
+- code: first-dpp
+  name: First DPP
+  points: 25
+  criteria:
+    event: aas_created
