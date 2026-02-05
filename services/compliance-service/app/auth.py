@@ -6,6 +6,7 @@ from fastapi import HTTPException, Request
 
 KEYCLOAK_URL = os.getenv("KEYCLOAK_URL", "http://keycloak:8080")
 KEYCLOAK_REALM = os.getenv("KEYCLOAK_REALM", "dpp")
+INTERNAL_TOKEN = os.getenv("INTERNAL_TOKEN", "dev-internal")
 JWKS_URL = f"{KEYCLOAK_URL}/realms/{KEYCLOAK_REALM}/protocol/openid-connect/certs"
 ISSUER = f"{KEYCLOAK_URL}/realms/{KEYCLOAK_REALM}"
 
@@ -25,6 +26,11 @@ def _get_jwks():
 
 
 def verify_request(request: Request) -> None:
+    internal = request.headers.get("x-internal-token")
+    if internal and internal == INTERNAL_TOKEN:
+        request.state.user = {"internal": True}
+        return
+
     auth = request.headers.get("authorization", "")
     if not auth.startswith("Bearer "):
         raise HTTPException(status_code=401, detail="Missing bearer token")
