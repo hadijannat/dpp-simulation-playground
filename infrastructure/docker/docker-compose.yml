@@ -1,7 +1,7 @@
 version: '3.8'
 services:
   frontend:
-    build: ../frontend
+    build: ../../frontend
     ports: ["3000:3000"]
     environment:
       - VITE_API_URL=http://localhost:8000
@@ -18,7 +18,7 @@ services:
       - ../kong/kong.yml:/kong/declarative/kong.yml:ro
 
   simulation-engine:
-    build: ../services/simulation-engine
+    build: ../../services/simulation-engine
     ports: ["8001:8001"]
     environment:
       - DATABASE_URL=postgresql://dpp:dpp@postgres:5432/dpp_playground
@@ -26,14 +26,14 @@ services:
     depends_on: [postgres, redis, mongodb]
 
   compliance-service:
-    build: ../services/compliance-service
+    build: ../../services/compliance-service
     ports: ["8002:8002"]
     environment:
       - DATABASE_URL=postgresql://dpp:dpp@postgres:5432/dpp_playground
       - REDIS_URL=redis://redis:6379/0
 
   gamification-service:
-    build: ../services/gamification-service
+    build: ../../services/gamification-service
     ports: ["8003:8003"]
     environment:
       - DATABASE_URL=postgresql://dpp:dpp@postgres:5432/dpp_playground
@@ -41,14 +41,14 @@ services:
     depends_on: [postgres, redis]
 
   edc-simulator:
-    build: ../services/edc-simulator
+    build: ../../services/edc-simulator
     ports: ["8004:8004"]
     environment:
       - DATABASE_URL=postgresql://dpp:dpp@postgres:5432/dpp_playground
       - REDIS_URL=redis://redis:6379/0
 
   collaboration-service:
-    build: ../services/collaboration-service
+    build: ../../services/collaboration-service
     ports: ["8005:8005"]
     environment:
       - DATABASE_URL=postgresql://dpp:dpp@postgres:5432/dpp_playground
