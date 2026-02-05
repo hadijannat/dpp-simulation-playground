@@ -11,7 +11,7 @@ export default function RoleOnboarding({ role }: { role: string }) {
   return (
     <div className="card-subtle">
       <div className="section-title">
-        <h3>Role Onboarding</h3>
+        <h2>Role Onboarding</h2>
         <span className="pill">{role}</span>
       </div>
       <p>{roleDescriptions[role] || "Select a role to view guidance."}</p>
