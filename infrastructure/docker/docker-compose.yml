@@ -9,13 +9,12 @@ services:
       - api-gateway
 
   api-gateway:
-    image: kong:3.6
+    build: ../kong
     ports: ["8000:8000", "8443:8443"]
     environment:
       KONG_DATABASE: "off"
-      KONG_DECLARATIVE_CONFIG: /kong/declarative/kong.yml
-    volumes:
-      - ../kong/kong.yml:/kong/declarative/kong.yml:ro
+      KEYCLOAK_URL: http://keycloak:8080
+      KEYCLOAK_REALM: dpp
 
   simulation-engine:
     build: ../../services/simulation-engine
