@@ -1,8 +1,10 @@
+import RequestBuilder from "../components/playground/RequestBuilder";
+
 export default function PlaygroundPage() {
   return (
     <div>
-      <h1>Playground Page</h1>
-      <p>Content for playground.</p>
+      <h1>API Playground</h1>
+      <RequestBuilder />
     </div>
   );
 }

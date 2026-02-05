@@ -1,8 +1,10 @@
+import NegotiationFlow from "../components/edc/NegotiationFlow";
+
 export default function EDCSimulatorPage() {
   return (
     <div>
-      <h1>EDCSimulator Page</h1>
-      <p>Content for edcsimulator.</p>
+      <h1>EDC Simulator</h1>
+      <NegotiationFlow />
     </div>
   );
 }
