@@ -88,7 +88,7 @@ services:
 
   aas-environment:
     image: eclipsebasyx/aas-environment:2.0.0-SNAPSHOT
-    ports: ["8081:8081"]
+    ports: ["8281:8081"]
     depends_on: [mongodb]
 
   aas-registry:
