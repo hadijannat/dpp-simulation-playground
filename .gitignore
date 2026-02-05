@@ -54,6 +54,7 @@ secrets/
 # Logs
 *.log
 logs/
+output/playwright/
 
 # OS
 .DS_Store
