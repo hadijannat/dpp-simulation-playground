@@ -1,52 +1,214 @@
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap");
+
 :root {
   font-family: "IBM Plex Sans", system-ui, sans-serif;
-  color: #0f172a;
-  background: #f8fafc;
+  color: #0b1220;
+  background: #eef2f6;
+
+  --surface-0: #f6f8fb;
+  --surface-1: #ffffff;
+  --surface-2: #e9eef5;
+  --surface-3: #e2e8f0;
+
+  --ink-1: #0b1220;
+  --ink-2: #334155;
+  --ink-3: #64748b;
+
+  --accent: #1d4ed8;
+  --accent-2: #0ea5e9;
+  --accent-3: #0f766e;
+  --danger: #ef4444;
+  --warn: #f97316;
+  --success: #16a34a;
+
+  --radius-lg: 16px;
+  --radius-md: 12px;
+  --radius-sm: 8px;
+
+  --shadow-md: 0 16px 40px rgba(15, 23, 42, 0.08);
+  --shadow-sm: 0 8px 20px rgba(15, 23, 42, 0.05);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: radial-gradient(circle at top left, #f8fafc 0%, #e2e8f0 45%, #e9eef5 100%);
+}
+
+h1, h2, h3, h4 {
+  font-family: "Space Grotesk", sans-serif;
+  margin: 0 0 12px 0;
+  color: var(--ink-1);
+}
+
+p {
+  color: var(--ink-2);
 }
 
 .app-shell {
-  display: flex;
+  display: grid;
+  grid-template-columns: 260px 1fr;
   height: 100vh;
 }
 
 .sidebar {
-  width: 220px;
-  background: #0b1a2a;
+  background: linear-gradient(160deg, #0b1220 0%, #0f172a 60%, #111827 100%);
   color: #e2e8f0;
-  padding: 16px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
 }
 
 .sidebar-title {
-  font-size: 18px;
-  margin-bottom: 16px;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.nav-group {
+  display: grid;
+  gap: 6px;
 }
 
 .nav-link {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 10px;
   color: #cbd5f5;
   text-decoration: none;
-  padding: 6px 0;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  transition: all 0.2s ease;
 }
 
-.nav-link.active {
+.nav-link.active,
+.nav-link:hover {
   color: #fff;
+  background: rgba(148, 163, 184, 0.2);
 }
 
 .app-main {
-  flex: 1;
   display: flex;
   flex-direction: column;
+  min-width: 0;
 }
 
 .topbar {
   display: flex;
   justify-content: space-between;
-  padding: 12px 16px;
-  border-bottom: 1px solid #e2e8f0;
-  background: #fff;
+  align-items: center;
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--surface-3);
+  background: var(--surface-1);
+}
+
+.topbar-title {
+  font-family: "Space Grotesk", sans-serif;
+  font-weight: 600;
+  font-size: 18px;
 }
 
 .app-content {
-  padding: 16px;
+  padding: 24px;
   overflow: auto;
+}
+
+.card {
+  background: var(--surface-1);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: 20px;
+}
+
+.card-subtle {
+  background: var(--surface-0);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  border: 1px solid var(--surface-3);
+}
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.btn {
+  border: none;
+  border-radius: 999px;
+  padding: 10px 18px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: #fff;
+}
+
+.btn-secondary {
+  background: var(--surface-2);
+  color: var(--ink-2);
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+.input, .textarea, select {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--surface-3);
+  font-family: inherit;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  background: var(--surface-2);
+  color: var(--ink-2);
+}
+
+.status-ok { color: var(--success); }
+.status-warn { color: var(--warn); }
+.status-bad { color: var(--danger); }
+
+.section-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+@media (max-width: 960px) {
+  .app-shell {
+    grid-template-columns: 1fr;
+  }
+  .sidebar {
+    flex-direction: row;
+    overflow-x: auto;
+    padding: 16px;
+  }
+  .nav-group {
+    display: flex;
+    gap: 8px;
+  }
 }

@@ -10,11 +10,11 @@ export default function TopBar() {
       <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
         <RoleSelector />
         {!initialized ? (
-          <span>Auth...</span>
+          <span className="pill">Auth...</span>
         ) : authenticated ? (
-          <button onClick={logout}>Logout</button>
+          <button className="btn btn-secondary" onClick={logout}>Logout</button>
         ) : (
-          <button onClick={login}>Login</button>
+          <button className="btn btn-primary" onClick={login}>Login</button>
         )}
       </div>
     </header>

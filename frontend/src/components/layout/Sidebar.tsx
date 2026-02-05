@@ -8,12 +8,14 @@ export default function Sidebar() {
   return (
     <aside className="sidebar">
       <div className="sidebar-title">DPP Playground</div>
-      <nav>
+      <nav className="nav-group">
         <NavLink to="/" className="nav-link">Home</NavLink>
         <NavLink to="/simulation" className="nav-link">Simulation</NavLink>
         <NavLink to="/playground" className="nav-link">API Playground</NavLink>
         {canCompliance && <NavLink to="/compliance" className="nav-link">Compliance</NavLink>}
         {canEdc && <NavLink to="/edc" className="nav-link">EDC</NavLink>}
+      </nav>
+      <nav className="nav-group">
         <NavLink to="/dashboard" className="nav-link">Dashboard</NavLink>
         <NavLink to="/achievements" className="nav-link">Achievements</NavLink>
         <NavLink to="/leaderboard" className="nav-link">Leaderboard</NavLink>
