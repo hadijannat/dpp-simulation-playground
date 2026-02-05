@@ -1,7 +1,7 @@
 from typing import Dict, Any
 import requests
 from sqlalchemy.orm import Session
-from ..config import COMPLIANCE_URL, EDC_URL, BASYX_BASE_URL
+from ..config import COMPLIANCE_URL, EDC_URL, BASYX_BASE_URL, BASYX_API_PREFIX
 from .service_token import get_service_token
 from ..aas.basyx_client import BasyxClient
 from ..models.dpp_instance import DppInstance
@@ -69,7 +69,7 @@ def execute_step(
             return {"status": "error", "error": str(exc)}
     if action == "aas.create":
         payload = _default_payload(payload, params)
-        client = BasyxClient(base_url=BASYX_BASE_URL)
+        client = BasyxClient(base_url=BASYX_BASE_URL, api_prefix=BASYX_API_PREFIX)
         try:
             shell = client.create_shell(payload)
         except requests.RequestException as exc:

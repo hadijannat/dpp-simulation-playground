@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from uuid import uuid4
 from ...schemas.aas_schema import AasCreate, AasValidateRequest
 from ...core.db import get_db
-from ...config import BASYX_BASE_URL, AAS_REGISTRY_URL, SUBMODEL_REGISTRY_URL
+from ...config import BASYX_BASE_URL, BASYX_API_PREFIX, AAS_REGISTRY_URL, SUBMODEL_REGISTRY_URL
 from ...aas.basyx_client import BasyxClient
 from ...models.dpp_instance import DppInstance
 from ...models.validation_result import ValidationResult
@@ -16,7 +16,7 @@ router = APIRouter()
 @router.post("/aas/shells")
 def create_shell(request: Request, payload: AasCreate, db: Session = Depends(get_db)):
     require_roles(request.state.user, ["manufacturer", "developer", "admin"])
-    client = BasyxClient(base_url=BASYX_BASE_URL)
+    client = BasyxClient(base_url=BASYX_BASE_URL, api_prefix=BASYX_API_PREFIX)
     shell_payload = {
         "id": payload.aas_identifier,
         "idShort": payload.product_name or "dpp-asset",
@@ -55,7 +55,7 @@ def create_shell(request: Request, payload: AasCreate, db: Session = Depends(get
 @router.get("/aas/shells")
 def list_shells(request: Request):
     require_roles(request.state.user, ["manufacturer", "developer", "admin", "regulator", "consumer", "recycler"])
-    client = BasyxClient(base_url=BASYX_BASE_URL)
+    client = BasyxClient(base_url=BASYX_BASE_URL, api_prefix=BASYX_API_PREFIX)
     try:
         return client.list_shells()
     except Exception as exc:

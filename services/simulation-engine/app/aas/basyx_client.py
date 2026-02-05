@@ -5,22 +5,29 @@ import requests
 
 
 class BasyxClient:
-    def __init__(self, base_url: str):
+    def __init__(self, base_url: str, api_prefix: str = "/api/v3.0"):
         self.base_url = base_url.rstrip("/")
+        self.api_prefix = f"/{api_prefix.strip('/')}" if api_prefix else ""
+
+    def _request(self, method: str, path: str, json: Optional[Dict[str, Any]] = None) -> requests.Response:
+        primary = f"{self.base_url}{self.api_prefix}/{path.lstrip('/')}"
+        resp = requests.request(method, primary, json=json, timeout=5)
+        if resp.status_code == 404 and self.api_prefix:
+            fallback = f"{self.base_url}/{path.lstrip('/')}"
+            resp = requests.request(method, fallback, json=json, timeout=5)
+        resp.raise_for_status()
+        return resp
 
     def create_shell(self, shell: Dict[str, Any]) -> Dict[str, Any]:
-        resp = requests.post(f"{self.base_url}/api/v3.0/shells", json=shell, timeout=5)
-        resp.raise_for_status()
+        resp = self._request("POST", "shells", json=shell)
         return resp.json() if resp.content else shell
 
     def list_shells(self) -> Dict[str, Any]:
-        resp = requests.get(f"{self.base_url}/api/v3.0/shells", timeout=5)
-        resp.raise_for_status()
+        resp = self._request("GET", "shells")
         return resp.json()
 
     def create_submodel(self, submodel: Dict[str, Any]) -> Dict[str, Any]:
-        resp = requests.post(f"{self.base_url}/api/v3.0/submodels", json=submodel, timeout=5)
-        resp.raise_for_status()
+        resp = self._request("POST", "submodels", json=submodel)
         return resp.json() if resp.content else submodel
 
     def register_shell_descriptor(self, registry_url: str, shell: Dict[str, Any]) -> Optional[Dict[str, Any]]:
