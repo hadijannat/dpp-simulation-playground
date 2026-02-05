@@ -7,6 +7,8 @@ import {
   getAssets,
   getCatalog,
   getParticipants,
+  type NegotiationCreatePayload,
+  type TransferCreatePayload,
 } from "../services/edcService";
 import { useEdcStore } from "../stores/edcStore";
 
@@ -29,7 +31,7 @@ export function useEDC() {
   });
 
   const createNegotiation = useMutation({
-    mutationFn: (payload: Record<string, unknown>) => createNegotiationRequest(payload),
+    mutationFn: (payload: NegotiationCreatePayload) => createNegotiationRequest(payload),
     onSuccess: (data) => setLastNegotiation(data),
   });
 
@@ -40,7 +42,7 @@ export function useEDC() {
   });
 
   const createTransfer = useMutation({
-    mutationFn: (payload: Record<string, unknown>) => createTransferRequest(payload),
+    mutationFn: (payload: TransferCreatePayload) => createTransferRequest(payload),
     onSuccess: (data) => setLastTransfer(data),
   });
 

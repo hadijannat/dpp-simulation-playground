@@ -48,24 +48,24 @@ export default function NegotiationFlow() {
   return (
     <div>
       <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
-        <button onClick={startNegotiation}>Start Negotiation</button>
-        <button onClick={startTransfer}>Start Transfer</button>
+        <button className="btn btn-primary" onClick={startNegotiation}>Start Negotiation</button>
+        <button className="btn btn-secondary" onClick={startTransfer}>Start Transfer</button>
       </div>
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 12 }}>
         {negActions.map((action) => (
-          <button key={action} onClick={() => handleAdvanceNegotiation(action)}>
+          <button className="btn btn-secondary" key={action} onClick={() => handleAdvanceNegotiation(action)}>
             {action}
           </button>
         ))}
       </div>
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 12 }}>
         {transferActions.map((action) => (
-          <button key={action} onClick={() => handleAdvanceTransfer(action)}>
+          <button className="btn btn-secondary" key={action} onClick={() => handleAdvanceTransfer(action)}>
             {action}
           </button>
         ))}
       </div>
-      <pre>{state}</pre>
+      <pre className="mono-panel">{state}</pre>
     </div>
   );
 }

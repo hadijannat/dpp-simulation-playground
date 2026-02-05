@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aas-adapter
+  namespace: dpp-playground
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: aas-adapter
+  template:
+    metadata:
+      labels:
+        app: aas-adapter
+    spec:
+      containers:
+        - name: aas-adapter
+          image: dpp/aas-adapter:latest
+          ports:
+            - containerPort: 8008
+          envFrom:
+            - configMapRef:
+                name: app-config
+            - secretRef:
+                name: minio-secrets
+          readinessProbe:
+            httpGet:
+              path: /api/v2/health
+              port: 8008
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /api/v2/health
+              port: 8008
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"

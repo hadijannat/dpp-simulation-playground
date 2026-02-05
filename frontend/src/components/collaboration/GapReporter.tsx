@@ -1,5 +1,8 @@
 import { useState } from "react";
 import { apiPost } from "../../services/api";
+import type { components } from "../../types/generated/platform-api";
+
+type GapReportResponse = components["schemas"]["GapItem"];
 
 export default function GapReporter({ storyId }: { storyId?: number }) {
   const [description, setDescription] = useState("");
@@ -7,7 +10,7 @@ export default function GapReporter({ storyId }: { storyId?: number }) {
 
   async function submit() {
     if (!description.trim()) return;
-    const data = await apiPost("/api/v1/gap_reports", { story_id: storyId, description });
+    const data = await apiPost<GapReportResponse>("/api/v2/collaboration/gaps", { story_id: storyId, description });
     setStatus(`Reported gap ${data.id}`);
     setDescription("");
   }

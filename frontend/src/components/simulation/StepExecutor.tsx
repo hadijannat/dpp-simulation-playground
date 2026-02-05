@@ -5,6 +5,20 @@ interface StoryStep {
   params?: Record<string, unknown>;
 }
 
+type DraftState = {
+  present: string;
+  past: string[];
+};
+
+const ACTION_HINTS: Record<string, string> = {
+  "aas.create": "Include aas_identifier and product identifiers to avoid downstream validation failures.",
+  "compliance.check": "Provide regulations and payload data for deterministic compliance output.",
+  "edc.negotiate": "Use participant IDs and policy purpose aligned with your business context.",
+  "edc.transfer": "Keep asset and participant references consistent with negotiation results.",
+  "aas.submodel.add": "Start with a small submodel to validate schema compatibility quickly.",
+  "aasx.upload": "Large base64 payloads may impact browser responsiveness.",
+};
+
 function defaultPayloadForAction(action: string) {
   switch (action) {
     case "aas.create":
@@ -62,7 +76,7 @@ export default function StepExecutor({
   steps: StoryStep[];
   onExecute: (idx: number, payload: Record<string, unknown>) => void;
 }) {
-  const [payloads, setPayloads] = useState<Record<number, string>>({});
+  const [payloads, setPayloads] = useState<Record<number, DraftState>>({});
 
   function parsedPayload(value: string) {
     try {
@@ -70,6 +84,51 @@ export default function StepExecutor({
     } catch {
       return null;
     }
+  }
+
+  function getDraft(idx: number, action: string) {
+    return payloads[idx] ?? {
+      present: JSON.stringify(defaultPayloadForAction(action), null, 2),
+      past: [],
+    };
+  }
+
+  function setDraft(idx: number, next: string) {
+    setPayloads((current) => {
+      const previous =
+        current[idx] ?? {
+          present: JSON.stringify(defaultPayloadForAction(steps[idx].action), null, 2),
+          past: [],
+        };
+      return {
+        ...current,
+        [idx]: {
+          present: next,
+          past: [...previous.past, previous.present],
+        },
+      };
+    });
+  }
+
+  function undoDraft(idx: number, action: string) {
+    setPayloads((current) => {
+      const previous =
+        current[idx] ?? {
+          present: JSON.stringify(defaultPayloadForAction(action), null, 2),
+          past: [],
+        };
+      if (previous.past.length === 0) {
+        return current;
+      }
+      const nextPresent = previous.past[previous.past.length - 1];
+      return {
+        ...current,
+        [idx]: {
+          present: nextPresent,
+          past: previous.past.slice(0, -1),
+        },
+      };
+    });
   }
 
   return (
@@ -80,30 +139,41 @@ export default function StepExecutor({
       </div>
       <div style={{ display: "grid", gap: 10, marginTop: 12 }}>
         {steps.map((step, idx) => {
-          const template = defaultPayloadForAction(step.action);
-          const text = payloads[idx] ?? JSON.stringify(template, null, 2);
+          const draft = getDraft(idx, step.action);
+          const text = draft.present;
           const parsed = parsedPayload(text);
+          const hint = ACTION_HINTS[step.action] || "Review payload structure before executing this step.";
 
           return (
             <div key={`${step.action}-${idx}`} className="card-subtle">
               <div style={{ fontWeight: 600 }}>{idx + 1}. {step.action}</div>
-              {step.params && <pre>{JSON.stringify(step.params, null, 2)}</pre>}
+              <div className="pill" style={{ marginBottom: 8 }}>{hint}</div>
+              {step.params && <pre className="mono-panel">{JSON.stringify(step.params, null, 2)}</pre>}
               <textarea
                 className="textarea"
                 rows={6}
                 value={text}
-                onChange={(e) => setPayloads((prev) => ({ ...prev, [idx]: e.target.value }))}
+                onChange={(e) => setDraft(idx, e.target.value)}
               />
-              {!parsed && <div style={{ color: "#b91c1c" }}>Invalid JSON payload</div>}
-              <button
-                className="btn btn-primary"
-                onClick={() => {
-                  if (!parsed) return;
-                  onExecute(idx, parsed);
-                }}
-              >
-                Execute Step
-              </button>
+              {!parsed && <div className="error">Invalid JSON payload</div>}
+              <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+                <button className="btn btn-secondary" onClick={() => undoDraft(idx, step.action)} disabled={draft.past.length === 0}>
+                  Undo
+                </button>
+                <button
+                  className="btn btn-primary"
+                  onClick={() => {
+                    if (!parsed) return;
+                    onExecute(idx, parsed);
+                  }}
+                >
+                  Execute Step
+                </button>
+              </div>
+              <div style={{ marginTop: 8 }}>
+                <div style={{ color: "var(--ink-muted)", fontSize: 12, marginBottom: 6 }}>Payload Preview</div>
+                <pre className="mono-panel">{JSON.stringify(parsed || {}, null, 2)}</pre>
+              </div>
             </div>
           );
         })}

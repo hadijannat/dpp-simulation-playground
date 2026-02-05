@@ -1,10 +1,11 @@
 import { create } from "zustand";
+import type { EDCNegotiation, EDCTransfer } from "../types/api.types";
 
 type EDCState = {
-  lastNegotiation?: Record<string, unknown>;
-  lastTransfer?: Record<string, unknown>;
-  setLastNegotiation: (negotiation: Record<string, unknown>) => void;
-  setLastTransfer: (transfer: Record<string, unknown>) => void;
+  lastNegotiation?: EDCNegotiation;
+  lastTransfer?: EDCTransfer;
+  setLastNegotiation: (negotiation: EDCNegotiation) => void;
+  setLastTransfer: (transfer: EDCTransfer) => void;
 };
 
 export const useEdcStore = create<EDCState>((set) => ({

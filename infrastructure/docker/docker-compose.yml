@@ -96,6 +96,43 @@ services:
       - REDIS_URL=redis://redis:6379/0
     depends_on: [keycloak]
 
+  platform-api:
+    build:
+      context: ../..
+      dockerfile: services/platform-api/Dockerfile
+    ports: ["8106:8006"]
+    environment:
+      - KEYCLOAK_URL=http://keycloak:8080
+      - KEYCLOAK_REALM=dpp
+      - AUTH_MODE=${AUTH_MODE:-keycloak}
+      - DEV_BYPASS_AUTH=${DEV_BYPASS_AUTH:-false}
+    depends_on: [keycloak]
+
+  platform-core:
+    build:
+      context: ../..
+      dockerfile: services/platform-core/Dockerfile
+    ports: ["8107:8007"]
+    environment:
+      - KEYCLOAK_URL=http://keycloak:8080
+      - KEYCLOAK_REALM=dpp
+      - AUTH_MODE=${AUTH_MODE:-keycloak}
+      - DEV_BYPASS_AUTH=${DEV_BYPASS_AUTH:-false}
+    depends_on: [keycloak]
+
+  aas-adapter:
+    build:
+      context: ../..
+      dockerfile: services/aas-adapter/Dockerfile
+    ports: ["8108:8008"]
+    environment:
+      - KEYCLOAK_URL=http://keycloak:8080
+      - KEYCLOAK_REALM=dpp
+      - AUTH_MODE=${AUTH_MODE:-keycloak}
+      - DEV_BYPASS_AUTH=${DEV_BYPASS_AUTH:-false}
+      - BASYX_BASE_URL=http://aas-environment:8081
+    depends_on: [keycloak, aas-environment]
+
   keycloak:
     build: ../keycloak
     ports: ["8080:8080"]

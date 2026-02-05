@@ -22,8 +22,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [initialized, setInitialized] = useState(false);
   const [authenticated, setAuthenticated] = useState(false);
   const [user, setUser] = useState<Record<string, unknown> | null>(null);
+  const authMode = import.meta.env.VITE_AUTH_MODE || "auto";
 
   useEffect(() => {
+    // E2E and local demo mode can explicitly bypass OIDC bootstrap.
+    if (authMode === "mock") {
+      setAuthenticated(false);
+      setUser(null);
+      setInitialized(true);
+      return;
+    }
+
     initKeycloak()
       .then((auth) => {
         setAuthenticated(auth);
@@ -50,7 +59,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setUser(null);
         });
     };
-  }, []);
+  }, [authMode]);
 
   const value = useMemo(
     () => ({

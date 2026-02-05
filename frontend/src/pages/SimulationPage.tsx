@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useRoleStore } from "../stores/roleStore";
+import { useSessionStore } from "../stores/sessionStore";
 import { useStories, useSession } from "../hooks/useSimulation";
 import SimulationCanvas from "../components/simulation/SimulationCanvas";
 import StoryNavigator from "../components/simulation/StoryNavigator";
@@ -9,29 +11,22 @@ import RoleOnboarding from "../components/role-play/RoleOnboarding";
 import PerspectiveComparison from "../components/role-play/PerspectiveComparison";
 import AnnotationLayer from "../components/collaboration/AnnotationLayer";
 import GapReporter from "../components/collaboration/GapReporter";
-
-interface StoryStep {
-  action: string;
-  params?: Record<string, unknown>;
-}
-
-interface Story {
-  code: string;
-  title: string;
-  steps: StoryStep[];
-}
+import type { Story } from "../types/api.types";
 
 export default function SimulationPage() {
+  const { t } = useTranslation("simulation");
   const { role } = useRoleStore();
+  const currentSession = useSessionStore((state) => state.currentSession);
   const { data } = useStories();
   const { createSession, startStory, executeStep, validateStory } = useSession();
   const [stories, setStories] = useState<Story[]>([]);
   const [selectedCode, setSelectedCode] = useState("");
   const [story, setStory] = useState<Story | null>(null);
-  const [sessionId, setSessionId] = useState("");
+  const [sessionId, setSessionId] = useState(currentSession?.id || "");
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
   const [result, setResult] = useState<unknown>(null);
   const [validation, setValidation] = useState<unknown>(null);
+  const [isStepSheetOpen, setIsStepSheetOpen] = useState(false);
 
   useEffect(() => {
     if (data?.items) {
@@ -86,56 +81,103 @@ export default function SimulationPage() {
 
   return (
     <div style={{ display: "grid", gap: 16 }}>
-      <div className="grid-2">
-        <div className="card">
-          <div className="section-title">
-            <h2>Simulation</h2>
-            <span className="pill">Role: {role}</span>
-          </div>
-          <div style={{ display: "flex", gap: 8 }}>
-            <button className="btn btn-primary" onClick={handleCreateSession}>Create Session</button>
-            <input
-              className="input"
-              placeholder="Session ID"
-              value={sessionId}
-              onChange={(e) => setSessionId(e.target.value)}
-            />
-          </div>
-          <div style={{ marginTop: 12 }}>
-            <RoleOnboarding role={role} />
-          </div>
-          <div style={{ marginTop: 12 }}>
-            <PerspectiveComparison left={role} right={role === "regulator" ? "manufacturer" : "regulator"} />
-          </div>
+      <div className="card hero-panel">
+        <div className="section-title">
+          <h2>{t("title")}</h2>
+          <span className="pill">Role: {role}</span>
         </div>
-        <StoryNavigator stories={stories} selectedCode={selectedCode} onSelect={(code) => {
-          setSelectedCode(code);
-          handleStartStory(code);
-        }} />
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <button className="btn btn-primary" onClick={handleCreateSession}>{t("createSession")}</button>
+          {currentSession?.id && (
+            <button
+              className="btn btn-secondary"
+              onClick={() => {
+                setSessionId(currentSession.id);
+              }}
+            >
+              {t("resumeSession")}
+            </button>
+          )}
+          <input
+            className="input"
+            placeholder="Session ID"
+            value={sessionId}
+            onChange={(e) => setSessionId(e.target.value)}
+            style={{ maxWidth: 360 }}
+          />
+          <button className="btn btn-secondary mobile-only" onClick={() => setIsStepSheetOpen(true)}>
+            Open Step Editor
+          </button>
+        </div>
+        <div style={{ marginTop: 12 }}>
+          <RoleOnboarding role={role} />
+        </div>
+        <div style={{ marginTop: 12 }}>
+          <PerspectiveComparison left={role} right={role === "regulator" ? "manufacturer" : "regulator"} />
+        </div>
       </div>
 
       {story && (
         <>
-          <div className="card">
-            <h3>{story.title}</h3>
-            <SimulationCanvas steps={story.steps} completed={completedSteps} />
-          </div>
-          <div className="grid-2">
-            <StepExecutor storyCode={story.code} steps={story.steps} onExecute={handleExecute} />
-            <div style={{ display: "grid", gap: 16 }}>
-              <div className="card">
-                <div className="section-title">
-                  <h3>Run Validation</h3>
-                  <button className="btn btn-secondary" onClick={handleValidate}>Validate</button>
+          <div className="simulation-workspace">
+            <div className="card">
+              <StoryNavigator
+                stories={stories}
+                selectedCode={selectedCode}
+                onSelect={(code) => {
+                  setSelectedCode(code);
+                  handleStartStory(code);
+                }}
+              />
+            </div>
+            <div className="card workspace-panel-full">
+              <h3>{story.title}</h3>
+              <SimulationCanvas steps={story.steps} completed={completedSteps} />
+              <div style={{ marginTop: 12, display: "grid", gap: 16 }}>
+                <div className="card-subtle">
+                  <div className="section-title">
+                    <h3>{t("runValidation")}</h3>
+                    <button className="btn btn-secondary" onClick={handleValidate}>Validate</button>
+                  </div>
+                  <div className="pill">Inline hint: include required identifiers before validation.</div>
+                  <pre className="mono-panel">{JSON.stringify(result, null, 2)}</pre>
                 </div>
-                <pre>{JSON.stringify(result, null, 2)}</pre>
+                <ValidationFeedback result={validation} />
               </div>
-              <ValidationFeedback result={validation} />
+              <div className="grid-2" style={{ marginTop: 12 }}>
+                <AnnotationLayer />
+                <GapReporter />
+              </div>
+            </div>
+            <div className="card desktop-only">
+              <StepExecutor storyCode={story.code} steps={story.steps} onExecute={handleExecute} />
             </div>
           </div>
-          <div className="grid-2">
-            <AnnotationLayer />
-            <GapReporter />
+        </>
+      )}
+
+      {!story && (
+        <div className="card">
+          <StoryNavigator
+            stories={stories}
+            selectedCode={selectedCode}
+            onSelect={(code) => {
+              setSelectedCode(code);
+              handleStartStory(code);
+            }}
+          />
+        </div>
+      )}
+
+      {story && isStepSheetOpen && (
+        <>
+          <div className="bottom-sheet-overlay mobile-only" onClick={() => setIsStepSheetOpen(false)} role="presentation" />
+          <div className="bottom-sheet mobile-only">
+            <div className="section-title">
+              <h3>Step Editor</h3>
+              <button className="btn btn-secondary" onClick={() => setIsStepSheetOpen(false)}>Close</button>
+            </div>
+            <StepExecutor storyCode={story.code} steps={story.steps} onExecute={handleExecute} />
           </div>
         </>
       )}

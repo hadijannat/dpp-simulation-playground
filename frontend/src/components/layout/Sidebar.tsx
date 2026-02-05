@@ -12,6 +12,7 @@ export default function Sidebar() {
       <div className="sidebar-title">DPP Playground</div>
       <nav className="nav-group">
         <NavLink to="/" className="nav-link">Home</NavLink>
+        <NavLink to="/journey" className="nav-link">Manufacturer Journey</NavLink>
         <NavLink to="/simulation" className="nav-link">Simulation</NavLink>
         <NavLink to="/simulation/sessions" className="nav-link">Sessions</NavLink>
         <NavLink to="/playground" className="nav-link">API Playground</NavLink>

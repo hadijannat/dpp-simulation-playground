@@ -1,13 +1,9 @@
 import { useProgress } from "../../hooks/useProgress";
-
-interface EpicProgress {
-  epic_id: number;
-  completion_percentage: number;
-}
+import type { EpicProgressItem } from "../../types/api.types";
 
 export default function ProgressTracker() {
   const { epics } = useProgress();
-  const items = (epics.data?.epics || []) as EpicProgress[];
+  const items: EpicProgressItem[] = epics.data?.epics || [];
   return (
     <div className="card">
       <div className="section-title">

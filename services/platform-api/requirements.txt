@@ -1,0 +1,5 @@
+fastapi==0.128.1
+uvicorn==0.27.1
+pydantic==2.7.4
+python-jose==3.3.0
+requests==2.31.0

@@ -22,7 +22,13 @@ make up
 make migrate
 ```
 
-4. Seed initial data:
+4. Backfill journey runs (v2 data model):
+
+```bash
+python services/simulation-engine/scripts/backfill_journeys.py
+```
+
+5. Seed initial data:
 
 ```bash
 make seed
@@ -64,6 +70,9 @@ Simulation Engine uses Keycloak client credentials:
 - Gamification Service: http://localhost:8103 (gateway: http://localhost:8000)
 - EDC Simulator: http://localhost:8104 (gateway: http://localhost:8000)
 - Collaboration Service: http://localhost:8105 (gateway: http://localhost:8000)
+- Platform API (v2 BFF): http://localhost:8106 (gateway: http://localhost:8000/api/v2)
+- Platform Core: http://localhost:8107
+- AAS Adapter: http://localhost:8108
 - Keycloak: http://localhost:8080
 - MinIO: http://localhost:9100 (console 9101)
 

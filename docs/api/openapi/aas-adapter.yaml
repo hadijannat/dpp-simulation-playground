@@ -1,0 +1,214 @@
+openapi: 3.1.0
+info:
+  title: AAS Adapter
+  version: 0.2.0
+paths:
+  /api/v2/health:
+    get:
+      summary: Health
+      operationId: health_api_v2_health_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+  /api/v2/health/aas-adapter:
+    get:
+      summary: Service Health
+      operationId: service_health_api_v2_health_aas_adapter_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+  /api/v2/aas/shells:
+    get:
+      summary: List Shells
+      operationId: list_shells_api_v2_aas_shells_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+    post:
+      summary: Create Shell
+      operationId: create_shell_api_v2_aas_shells_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShellCreateRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v2/aas/submodels:
+    post:
+      summary: Create Submodel
+      operationId: create_submodel_api_v2_aas_submodels_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubmodelCreateRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v2/aas/submodels/{submodel_id}/elements:
+    patch:
+      summary: Patch Submodel Elements
+      operationId: patch_submodel_elements_api_v2_aas_submodels__submodel_id__elements_patch
+      parameters:
+      - name: submodel_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Submodel Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubmodelPatchRequest'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v2/aasx/upload:
+    post:
+      summary: Upload Aasx
+      operationId: upload_aasx_api_v2_aasx_upload_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AasxUploadRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+components:
+  schemas:
+    AasxUploadRequest:
+      properties:
+        filename:
+          type: string
+          title: Filename
+        content_base64:
+          type: string
+          title: Content Base64
+      type: object
+      required:
+      - filename
+      - content_base64
+      title: AasxUploadRequest
+    HTTPValidationError:
+      properties:
+        detail:
+          items:
+            $ref: '#/components/schemas/ValidationError'
+          type: array
+          title: Detail
+      type: object
+      title: HTTPValidationError
+    ShellCreateRequest:
+      properties:
+        aas_identifier:
+          type: string
+          title: Aas Identifier
+        product_name:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Product Name
+        product_identifier:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Product Identifier
+      type: object
+      required:
+      - aas_identifier
+      title: ShellCreateRequest
+    SubmodelCreateRequest:
+      properties:
+        submodel:
+          type: object
+          title: Submodel
+      type: object
+      title: SubmodelCreateRequest
+    SubmodelPatchRequest:
+      properties:
+        elements:
+          items:
+            type: object
+          type: array
+          title: Elements
+      type: object
+      title: SubmodelPatchRequest
+    ValidationError:
+      properties:
+        loc:
+          items:
+            anyOf:
+            - type: string
+            - type: integer
+          type: array
+          title: Location
+        msg:
+          type: string
+          title: Message
+        type:
+          type: string
+          title: Error Type
+        input:
+          title: Input
+        ctx:
+          type: object
+          title: Context
+      type: object
+      required:
+      - loc
+      - msg
+      - type
+      title: ValidationError

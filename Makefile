@@ -1,4 +1,4 @@
-.PHONY: help up down logs restart test seed migrate clean health load-test openapi
+.PHONY: help up down logs restart test seed migrate backfill clean health load-test openapi contract-check
 
 COMPOSE_FILE := infrastructure/docker/docker-compose.yml
 COMPOSE_DEV  := infrastructure/docker/docker-compose.dev.yml
@@ -28,6 +28,9 @@ migrate: ## Run database migrations
 seed: ## Seed database with initial data
 	./scripts/seed-database.sh
 
+backfill: ## Backfill v2 journey runs from existing sessions
+	python services/simulation-engine/scripts/backfill_journeys.py
+
 test: ## Run all tests
 	@echo "Run unit tests"
 
@@ -42,3 +45,7 @@ load-test: ## Run load tests
 
 openapi: ## Export OpenAPI specs
 	python scripts/export-openapi.py
+	cd frontend && npm run typegen
+
+contract-check: ## Validate frontend API routes against generated OpenAPI contract
+	cd frontend && npm run contract:check

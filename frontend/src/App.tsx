@@ -2,6 +2,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import AppShell from "./components/layout/AppShell";
 import RouteGuard from "./components/common/RouteGuard";
 import HomePage from "./pages/HomePage";
+import JourneyPage from "./pages/JourneyPage";
 import SimulationPage from "./pages/SimulationPage";
 import PlaygroundPage from "./pages/PlaygroundPage";
 import CompliancePage from "./pages/CompliancePage";
@@ -23,6 +24,14 @@ export default function App() {
     <AppShell>
       <Routes>
         <Route path="/" element={<HomePage />} />
+        <Route
+          path="/journey"
+          element={
+            <RouteGuard roles={["manufacturer", "developer", "admin"]}>
+              <JourneyPage />
+            </RouteGuard>
+          }
+        />
         <Route
           path="/simulation"
           element={

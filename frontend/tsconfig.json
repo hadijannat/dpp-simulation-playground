@@ -7,7 +7,8 @@
     "moduleResolution": "Bundler",
     "strict": true,
     "jsx": "react-jsx",
-    "noEmit": true
+    "noEmit": true,
+    "types": ["vite/client", "vitest/globals"]
   },
   "include": ["src"]
 }

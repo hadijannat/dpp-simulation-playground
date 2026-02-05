@@ -1,0 +1,3378 @@
+openapi: 3.1.0
+info:
+  title: Platform API
+  version: 0.2.0
+paths:
+  /api/v1/health:
+    get:
+      summary: Health
+      operationId: health_api_v1_health_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+  /api/v1/stories:
+    get:
+      summary: List Stories
+      operationId: list_stories_api_v1_stories_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+  /api/v1/sessions:
+    post:
+      summary: Create Session
+      operationId: create_session_api_v1_sessions_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              title: Payload
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/sessions/{session_id}:
+    get:
+      summary: Get Session
+      operationId: get_session_api_v1_sessions__session_id__get
+      parameters:
+      - name: session_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Session Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    patch:
+      summary: Patch Session
+      operationId: patch_session_api_v1_sessions__session_id__patch
+      parameters:
+      - name: session_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Session Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              title: Payload
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    delete:
+      summary: Delete Session
+      operationId: delete_session_api_v1_sessions__session_id__delete
+      parameters:
+      - name: session_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Session Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/sessions/{session_id}/stories/{code}/start:
+    post:
+      summary: Start Story
+      operationId: start_story_api_v1_sessions__session_id__stories__code__start_post
+      parameters:
+      - name: session_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Session Id
+      - name: code
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Code
+      requestBody:
+        content:
+          application/json:
+            schema:
+              anyOf:
+              - type: object
+              - type: 'null'
+              title: Payload
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/sessions/{session_id}/stories/{code}/steps/{idx}/execute:
+    post:
+      summary: Execute Step
+      operationId: execute_step_api_v1_sessions__session_id__stories__code__steps__idx__execute_post
+      parameters:
+      - name: session_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Session Id
+      - name: code
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Code
+      - name: idx
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Idx
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              title: Payload
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/sessions/{session_id}/stories/{code}/validate:
+    post:
+      summary: Validate Story
+      operationId: validate_story_api_v1_sessions__session_id__stories__code__validate_post
+      parameters:
+      - name: session_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Session Id
+      - name: code
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Code
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              title: Payload
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/progress:
+    get:
+      summary: Get Progress
+      operationId: get_progress_api_v1_progress_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+  /api/v1/progress/epics:
+    get:
+      summary: Get Epic Progress
+      operationId: get_epic_progress_api_v1_progress_epics_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+  /api/v1/aas/shells:
+    get:
+      summary: List Shells
+      operationId: list_shells_api_v1_aas_shells_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+    post:
+      summary: Create Shell
+      operationId: create_shell_api_v1_aas_shells_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              title: Payload
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/aas/submodels:
+    post:
+      summary: Create Submodel
+      operationId: create_submodel_api_v1_aas_submodels_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              title: Payload
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/aas/submodels/{submodel_id}/elements:
+    get:
+      summary: Get Submodel Elements
+      operationId: get_submodel_elements_api_v1_aas_submodels__submodel_id__elements_get
+      parameters:
+      - name: submodel_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Submodel Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    patch:
+      summary: Patch Submodel Elements
+      operationId: patch_submodel_elements_api_v1_aas_submodels__submodel_id__elements_patch
+      parameters:
+      - name: submodel_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Submodel Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              title: Payload
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/aas/validate:
+    post:
+      summary: Validate Aas
+      operationId: validate_aas_api_v1_aas_validate_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              title: Payload
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/aasx/upload:
+    post:
+      summary: Upload Aasx
+      operationId: upload_aasx_api_v1_aasx_upload_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              title: Payload
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/compliance/check:
+    post:
+      summary: Check Compliance
+      operationId: check_compliance_api_v1_compliance_check_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              title: Payload
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/reports:
+    get:
+      summary: List Reports
+      operationId: list_reports_api_v1_reports_get
+      parameters:
+      - name: session_id
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Session Id
+      - name: story_code
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Story Code
+      - name: status
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Status
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          default: 50
+          title: Limit
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/reports/{report_id}:
+    get:
+      summary: Get Report
+      operationId: get_report_api_v1_reports__report_id__get
+      parameters:
+      - name: report_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Report Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/edc/catalog:
+    get:
+      summary: Get Catalog
+      operationId: get_catalog_api_v1_edc_catalog_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+  /api/v1/edc/participants:
+    get:
+      summary: Get Participants
+      operationId: get_participants_api_v1_edc_participants_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+  /api/v1/edc/assets:
+    get:
+      summary: Get Assets
+      operationId: get_assets_api_v1_edc_assets_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+  /api/v1/edc/negotiations:
+    post:
+      summary: Create Negotiation
+      operationId: create_negotiation_api_v1_edc_negotiations_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              title: Payload
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/edc/negotiations/{negotiation_id}/{action}:
+    post:
+      summary: Negotiation Action
+      operationId: negotiation_action_api_v1_edc_negotiations__negotiation_id___action__post
+      parameters:
+      - name: negotiation_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Negotiation Id
+      - name: action
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Action
+      requestBody:
+        content:
+          application/json:
+            schema:
+              anyOf:
+              - type: object
+              - type: 'null'
+              title: Payload
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/edc/transfers:
+    post:
+      summary: Create Transfer
+      operationId: create_transfer_api_v1_edc_transfers_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              title: Payload
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/edc/transfers/{transfer_id}/{action}:
+    post:
+      summary: Transfer Action
+      operationId: transfer_action_api_v1_edc_transfers__transfer_id___action__post
+      parameters:
+      - name: transfer_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Transfer Id
+      - name: action
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Action
+      requestBody:
+        content:
+          application/json:
+            schema:
+              anyOf:
+              - type: object
+              - type: 'null'
+              title: Payload
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/achievements:
+    get:
+      summary: List Achievements
+      operationId: list_achievements_api_v1_achievements_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+  /api/v1/leaderboard:
+    get:
+      summary: Leaderboard
+      operationId: leaderboard_api_v1_leaderboard_get
+      parameters:
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          default: 10
+          title: Limit
+      - name: offset
+        in: query
+        required: false
+        schema:
+          type: integer
+          default: 0
+          title: Offset
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/streaks:
+    get:
+      summary: Streaks
+      operationId: streaks_api_v1_streaks_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+  /api/v1/annotations:
+    get:
+      summary: Annotations
+      operationId: annotations_api_v1_annotations_get
+      parameters:
+      - name: story_id
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Story Id
+      - name: status
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Status
+      - name: target_element
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Target Element
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          default: 50
+          title: Limit
+      - name: offset
+        in: query
+        required: false
+        schema:
+          type: integer
+          default: 0
+          title: Offset
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    post:
+      summary: Add Annotation
+      operationId: add_annotation_api_v1_annotations_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              title: Payload
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/gap_reports:
+    get:
+      summary: Gap Reports
+      operationId: gap_reports_api_v1_gap_reports_get
+      parameters:
+      - name: story_id
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Story Id
+      - name: status
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Status
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          default: 50
+          title: Limit
+      - name: offset
+        in: query
+        required: false
+        schema:
+          type: integer
+          default: 0
+          title: Offset
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    post:
+      summary: Add Gap Report
+      operationId: add_gap_report_api_v1_gap_reports_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              title: Payload
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/votes:
+    get:
+      summary: Votes
+      operationId: votes_api_v1_votes_get
+      parameters:
+      - name: target_id
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Target Id
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          default: 50
+          title: Limit
+      - name: offset
+        in: query
+        required: false
+        schema:
+          type: integer
+          default: 0
+          title: Offset
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    post:
+      summary: Vote
+      operationId: vote_api_v1_votes_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              title: Payload
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v2/health:
+    get:
+      summary: Health
+      operationId: health_api_v2_health_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+  /api/v2/health/platform-api:
+    get:
+      summary: Service Health
+      operationId: service_health_api_v2_health_platform_api_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+  /api/v2/simulation/stories:
+    get:
+      summary: List Stories
+      operationId: list_stories_api_v2_simulation_stories_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StoryListResponse'
+  /api/v2/simulation/sessions:
+    post:
+      summary: Create Session
+      operationId: create_session_api_v2_simulation_sessions_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SessionCreateRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v2/simulation/sessions/{session_id}:
+    get:
+      summary: Get Session
+      operationId: get_session_api_v2_simulation_sessions__session_id__get
+      parameters:
+      - name: session_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Session Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    patch:
+      summary: Update Session
+      operationId: update_session_api_v2_simulation_sessions__session_id__patch
+      parameters:
+      - name: session_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Session Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SessionUpdateRequest'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v2/simulation/sessions/{session_id}/stories/{code}/start:
+    post:
+      summary: Start Story
+      operationId: start_story_api_v2_simulation_sessions__session_id__stories__code__start_post
+      parameters:
+      - name: session_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Session Id
+      - name: code
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Code
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StoryStartResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v2/simulation/sessions/{session_id}/stories/{code}/steps/{idx}/execute:
+    post:
+      summary: Execute Step
+      operationId: execute_step_api_v2_simulation_sessions__session_id__stories__code__steps__idx__execute_post
+      parameters:
+      - name: session_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Session Id
+      - name: code
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Code
+      - name: idx
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Idx
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StepExecuteRequest'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StepExecuteResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v2/simulation/sessions/{session_id}/stories/{code}/validate:
+    post:
+      summary: Validate Story
+      operationId: validate_story_api_v2_simulation_sessions__session_id__stories__code__validate_post
+      parameters:
+      - name: session_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Session Id
+      - name: code
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Code
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StoryValidateRequest'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StoryValidateResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v2/simulation/progress:
+    get:
+      summary: Get Progress
+      operationId: get_progress_api_v2_simulation_progress_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProgressResponse'
+  /api/v2/simulation/progress/epics:
+    get:
+      summary: Get Epic Progress
+      operationId: get_epic_progress_api_v2_simulation_progress_epics_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EpicProgressResponse'
+  /api/v2/aas/shells:
+    get:
+      summary: List Shells
+      operationId: list_shells_api_v2_aas_shells_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AasShellListResponse'
+    post:
+      summary: Create Shell
+      operationId: create_shell_api_v2_aas_shells_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AasCreateRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AasShellCreateResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v2/aas/submodels:
+    post:
+      summary: Create Submodel
+      operationId: create_submodel_api_v2_aas_submodels_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AasSubmodelCreateRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AasSubmodelCreateResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v2/aas/submodels/{submodel_id}/elements:
+    patch:
+      summary: Patch Submodel Elements
+      operationId: patch_submodel_elements_api_v2_aas_submodels__submodel_id__elements_patch
+      parameters:
+      - name: submodel_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Submodel Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AasSubmodelPatchRequest'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AasSubmodelPatchResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v2/aasx/upload:
+    post:
+      summary: Upload Aasx
+      operationId: upload_aasx_api_v2_aasx_upload_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AasxUploadRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AasxUploadResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v2/journeys/runs:
+    post:
+      summary: Create Run
+      operationId: create_run_api_v2_journeys_runs_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JourneyRunCreate'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JourneyRunResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v2/journeys/runs/{run_id}:
+    get:
+      summary: Get Run
+      operationId: get_run_api_v2_journeys_runs__run_id__get
+      parameters:
+      - name: run_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Run Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JourneyRunResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v2/journeys/runs/{run_id}/steps/{step_id}/execute:
+    post:
+      summary: Execute Step
+      operationId: execute_step_api_v2_journeys_runs__run_id__steps__step_id__execute_post
+      parameters:
+      - name: run_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Run Id
+      - name: step_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Step Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JourneyStepExecution'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JourneyStepExecuteResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v2/compliance/runs:
+    post:
+      summary: Create Run
+      operationId: create_run_api_v2_compliance_runs_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ComplianceRunCreate'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ComplianceRunResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v2/compliance/runs/{run_id}:
+    get:
+      summary: Get Run
+      operationId: get_run_api_v2_compliance_runs__run_id__get
+      parameters:
+      - name: run_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Run Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ComplianceRunResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v2/compliance/runs/{run_id}/apply-fix:
+    post:
+      summary: Apply Fix
+      operationId: apply_fix_api_v2_compliance_runs__run_id__apply_fix_post
+      parameters:
+      - name: run_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Run Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ComplianceFixRequest'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ComplianceFixResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v2/compliance/reports:
+    get:
+      summary: List Reports
+      operationId: list_reports_api_v2_compliance_reports_get
+      parameters:
+      - name: session_id
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Session Id
+      - name: story_code
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Story Code
+      - name: status
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Status
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          default: 50
+          title: Limit
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ComplianceReportListResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v2/compliance/reports/{report_id}:
+    get:
+      summary: Get Report
+      operationId: get_report_api_v2_compliance_reports__report_id__get
+      parameters:
+      - name: report_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Report Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ComplianceReportDetail'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v2/edc/catalog:
+    get:
+      summary: Get Catalog
+      operationId: get_catalog_api_v2_edc_catalog_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CatalogResponse'
+  /api/v2/edc/participants:
+    get:
+      summary: Get Participants
+      operationId: get_participants_api_v2_edc_participants_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ParticipantListResponse'
+  /api/v2/edc/assets:
+    get:
+      summary: Get Assets
+      operationId: get_assets_api_v2_edc_assets_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssetListResponse'
+  /api/v2/edc/negotiations:
+    post:
+      summary: Create Negotiation
+      operationId: create_negotiation_api_v2_edc_negotiations_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NegotiationCreate'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NegotiationResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v2/edc/negotiations/{negotiation_id}/actions/{action}:
+    post:
+      summary: Run Negotiation Action
+      operationId: run_negotiation_action_api_v2_edc_negotiations__negotiation_id__actions__action__post
+      parameters:
+      - name: negotiation_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Negotiation Id
+      - name: action
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Action
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NegotiationResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v2/edc/transfers:
+    post:
+      summary: Create Transfer
+      operationId: create_transfer_api_v2_edc_transfers_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransferCreate'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransferResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v2/edc/transfers/{transfer_id}/actions/{action}:
+    post:
+      summary: Run Transfer Action
+      operationId: run_transfer_action_api_v2_edc_transfers__transfer_id__actions__action__post
+      parameters:
+      - name: transfer_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Transfer Id
+      - name: action
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Action
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransferResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v2/gamification/achievements:
+    get:
+      summary: List Achievements
+      operationId: list_achievements_api_v2_gamification_achievements_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AchievementListResponse'
+  /api/v2/gamification/leaderboard:
+    get:
+      summary: Get Leaderboard
+      operationId: get_leaderboard_api_v2_gamification_leaderboard_get
+      parameters:
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          default: 10
+          title: Limit
+      - name: offset
+        in: query
+        required: false
+        schema:
+          type: integer
+          default: 0
+          title: Offset
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LeaderboardResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v2/gamification/streaks:
+    get:
+      summary: Get Streaks
+      operationId: get_streaks_api_v2_gamification_streaks_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StreakResponse'
+  /api/v2/digital-twins/{dpp_id}:
+    get:
+      summary: Get Digital Twin
+      operationId: get_digital_twin_api_v2_digital_twins__dpp_id__get
+      parameters:
+      - name: dpp_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Dpp Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DigitalTwinResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v2/collaboration/annotations:
+    get:
+      summary: List Annotations
+      operationId: list_annotations_api_v2_collaboration_annotations_get
+      parameters:
+      - name: story_id
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Story Id
+      - name: status
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Status
+      - name: target_element
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Target Element
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          default: 50
+          title: Limit
+      - name: offset
+        in: query
+        required: false
+        schema:
+          type: integer
+          default: 0
+          title: Offset
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnnotationListResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    post:
+      summary: Add Annotation
+      operationId: add_annotation_api_v2_collaboration_annotations_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AnnotationCreate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnnotationItem'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v2/collaboration/gaps:
+    get:
+      summary: List Gaps
+      operationId: list_gaps_api_v2_collaboration_gaps_get
+      parameters:
+      - name: story_id
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Story Id
+      - name: status
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Status
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          default: 50
+          title: Limit
+      - name: offset
+        in: query
+        required: false
+        schema:
+          type: integer
+          default: 0
+          title: Offset
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GapListResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    post:
+      summary: Add Gap
+      operationId: add_gap_api_v2_collaboration_gaps_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GapCreate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GapItem'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v2/collaboration/votes:
+    get:
+      summary: List Votes
+      operationId: list_votes_api_v2_collaboration_votes_get
+      parameters:
+      - name: target_id
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Target Id
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          default: 50
+          title: Limit
+      - name: offset
+        in: query
+        required: false
+        schema:
+          type: integer
+          default: 0
+          title: Offset
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VoteListResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    post:
+      summary: Vote
+      operationId: vote_api_v2_collaboration_votes_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VoteCreate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VoteItem'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v2/feedback/csat:
+    post:
+      summary: Submit Csat
+      operationId: submit_csat_api_v2_feedback_csat_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CsatFeedback'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CsatFeedbackResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+components:
+  schemas:
+    AasCreateRequest:
+      properties:
+        aas_identifier:
+          type: string
+          title: Aas Identifier
+        product_name:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Product Name
+        product_identifier:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Product Identifier
+        product_category:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Product Category
+        session_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Session Id
+      type: object
+      required:
+      - aas_identifier
+      title: AasCreateRequest
+    AasShellCreateResponse:
+      properties:
+        status:
+          type: string
+          title: Status
+        shell:
+          anyOf:
+          - type: object
+          - type: 'null'
+          title: Shell
+        error:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Error
+      type: object
+      required:
+      - status
+      title: AasShellCreateResponse
+    AasShellListResponse:
+      properties:
+        items:
+          items:
+            type: object
+          type: array
+          title: Items
+      type: object
+      title: AasShellListResponse
+    AasSubmodelCreateRequest:
+      properties:
+        submodel:
+          type: object
+          title: Submodel
+      type: object
+      title: AasSubmodelCreateRequest
+    AasSubmodelCreateResponse:
+      properties:
+        status:
+          type: string
+          title: Status
+        submodel:
+          anyOf:
+          - type: object
+          - type: 'null'
+          title: Submodel
+        error:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Error
+      type: object
+      required:
+      - status
+      title: AasSubmodelCreateResponse
+    AasSubmodelPatchRequest:
+      properties:
+        elements:
+          items:
+            type: object
+          type: array
+          title: Elements
+      type: object
+      title: AasSubmodelPatchRequest
+    AasSubmodelPatchResponse:
+      properties:
+        status:
+          type: string
+          title: Status
+        submodel_id:
+          type: string
+          title: Submodel Id
+        elements:
+          items:
+            type: object
+          type: array
+          title: Elements
+        error:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Error
+      type: object
+      required:
+      - status
+      - submodel_id
+      title: AasSubmodelPatchResponse
+    AasxUploadRequest:
+      properties:
+        filename:
+          type: string
+          title: Filename
+        content_base64:
+          type: string
+          title: Content Base64
+        session_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Session Id
+      type: object
+      required:
+      - filename
+      - content_base64
+      title: AasxUploadRequest
+    AasxUploadResponse:
+      properties:
+        status:
+          type: string
+          title: Status
+        filename:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Filename
+        bytes:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Bytes
+        storage:
+          anyOf:
+          - type: object
+          - type: 'null'
+          title: Storage
+      type: object
+      required:
+      - status
+      title: AasxUploadResponse
+    AchievementItem:
+      properties:
+        id:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Id
+        code:
+          type: string
+          title: Code
+        name:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Name
+        description:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Description
+        points:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Points
+        category:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Category
+        rarity:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Rarity
+        icon_url:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Icon Url
+      type: object
+      required:
+      - code
+      title: AchievementItem
+    AchievementListResponse:
+      properties:
+        items:
+          items:
+            $ref: '#/components/schemas/AchievementItem'
+          type: array
+          title: Items
+      type: object
+      title: AchievementListResponse
+    AnnotationCreate:
+      properties:
+        story_id:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Story Id
+        target_element:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Target Element
+        annotation_type:
+          type: string
+          title: Annotation Type
+          default: comment
+        content:
+          type: string
+          title: Content
+      type: object
+      required:
+      - content
+      title: AnnotationCreate
+    AnnotationItem:
+      properties:
+        id:
+          type: string
+          title: Id
+        story_id:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Story Id
+        target_element:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Target Element
+        annotation_type:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Annotation Type
+        content:
+          type: string
+          title: Content
+        status:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Status
+        votes_count:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Votes Count
+        created_at:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Created At
+      type: object
+      required:
+      - id
+      - content
+      title: AnnotationItem
+    AnnotationListResponse:
+      properties:
+        items:
+          items:
+            $ref: '#/components/schemas/AnnotationItem'
+          type: array
+          title: Items
+      type: object
+      title: AnnotationListResponse
+    AssetItem:
+      properties:
+        asset_id:
+          type: string
+          title: Asset Id
+        name:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Name
+        policy_odrl:
+          anyOf:
+          - type: object
+          - type: 'null'
+          title: Policy Odrl
+        data_address:
+          anyOf:
+          - type: object
+          - type: 'null'
+          title: Data Address
+      type: object
+      required:
+      - asset_id
+      title: AssetItem
+    AssetListResponse:
+      properties:
+        items:
+          items:
+            $ref: '#/components/schemas/AssetItem'
+          type: array
+          title: Items
+      type: object
+      title: AssetListResponse
+    CatalogAsset:
+      properties:
+        id:
+          type: string
+          title: Id
+        name:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Name
+        title:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Title
+        description:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Description
+      type: object
+      required:
+      - id
+      title: CatalogAsset
+    CatalogResponse:
+      properties:
+        dataset:
+          items:
+            $ref: '#/components/schemas/CatalogAsset'
+          type: array
+          title: Dataset
+      type: object
+      title: CatalogResponse
+    ComplianceFixRequest:
+      properties:
+        path:
+          type: string
+          title: Path
+        value:
+          title: Value
+      type: object
+      required:
+      - path
+      - value
+      title: ComplianceFixRequest
+    ComplianceFixResponse:
+      properties:
+        run_id:
+          type: string
+          title: Run Id
+        status:
+          type: string
+          title: Status
+        payload:
+          type: object
+          title: Payload
+      type: object
+      required:
+      - run_id
+      - status
+      title: ComplianceFixResponse
+    ComplianceIssue:
+      properties:
+        id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Id
+        message:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Message
+        regulation:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Regulation
+        jsonpath:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Jsonpath
+        severity:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Severity
+        level:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Level
+        path:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Path
+      type: object
+      title: ComplianceIssue
+    ComplianceReportDetail:
+      properties:
+        id:
+          type: string
+          title: Id
+        session_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Session Id
+        story_code:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Story Code
+        status:
+          type: string
+          title: Status
+        regulations:
+          anyOf:
+          - items:
+              type: string
+            type: array
+          - type: 'null'
+          title: Regulations
+        created_at:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Created At
+        report:
+          type: object
+          title: Report
+      type: object
+      required:
+      - id
+      - status
+      title: ComplianceReportDetail
+    ComplianceReportListResponse:
+      properties:
+        reports:
+          items:
+            $ref: '#/components/schemas/ComplianceReportSummary'
+          type: array
+          title: Reports
+      type: object
+      title: ComplianceReportListResponse
+    ComplianceReportSummary:
+      properties:
+        id:
+          type: string
+          title: Id
+        session_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Session Id
+        story_code:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Story Code
+        status:
+          type: string
+          title: Status
+        regulations:
+          anyOf:
+          - items:
+              type: string
+            type: array
+          - type: 'null'
+          title: Regulations
+        created_at:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Created At
+      type: object
+      required:
+      - id
+      - status
+      title: ComplianceReportSummary
+    ComplianceRunCreate:
+      properties:
+        dpp_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Dpp Id
+        regulations:
+          items:
+            type: string
+          type: array
+          title: Regulations
+        payload:
+          type: object
+          title: Payload
+      type: object
+      title: ComplianceRunCreate
+    ComplianceRunResponse:
+      properties:
+        id:
+          type: string
+          title: Id
+        status:
+          type: string
+          title: Status
+        dpp_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Dpp Id
+        regulations:
+          items:
+            type: string
+          type: array
+          title: Regulations
+        payload:
+          type: object
+          title: Payload
+        violations:
+          items:
+            $ref: '#/components/schemas/ComplianceIssue'
+          type: array
+          title: Violations
+        warnings:
+          items:
+            $ref: '#/components/schemas/ComplianceIssue'
+          type: array
+          title: Warnings
+        recommendations:
+          items:
+            $ref: '#/components/schemas/ComplianceIssue'
+          type: array
+          title: Recommendations
+        summary:
+          anyOf:
+          - $ref: '#/components/schemas/ComplianceSummary'
+          - type: 'null'
+        created_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: string
+          title: Created At
+        updated_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: string
+          title: Updated At
+      type: object
+      required:
+      - id
+      - status
+      - created_at
+      - updated_at
+      title: ComplianceRunResponse
+    ComplianceSummary:
+      properties:
+        violations:
+          type: integer
+          title: Violations
+          default: 0
+        warnings:
+          type: integer
+          title: Warnings
+          default: 0
+        recommendations:
+          type: integer
+          title: Recommendations
+          default: 0
+      type: object
+      title: ComplianceSummary
+    CsatFeedback:
+      properties:
+        score:
+          type: integer
+          maximum: 5.0
+          minimum: 1.0
+          title: Score
+        locale:
+          type: string
+          title: Locale
+          default: en
+        role:
+          type: string
+          title: Role
+          default: manufacturer
+        flow:
+          type: string
+          title: Flow
+          default: manufacturer-core-e2e
+        comment:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Comment
+      type: object
+      required:
+      - score
+      title: CsatFeedback
+    CsatFeedbackResponse:
+      properties:
+        id:
+          type: string
+          title: Id
+        score:
+          type: integer
+          title: Score
+        locale:
+          type: string
+          title: Locale
+        role:
+          type: string
+          title: Role
+        flow:
+          type: string
+          title: Flow
+        comment:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Comment
+        created_at:
+          type: string
+          title: Created At
+      type: object
+      required:
+      - id
+      - score
+      - locale
+      - role
+      - flow
+      - created_at
+      title: CsatFeedbackResponse
+    DigitalTwinEdge:
+      properties:
+        id:
+          type: string
+          title: Id
+        source:
+          type: string
+          title: Source
+        target:
+          type: string
+          title: Target
+      type: object
+      required:
+      - id
+      - source
+      - target
+      title: DigitalTwinEdge
+    DigitalTwinNode:
+      properties:
+        id:
+          type: string
+          title: Id
+        label:
+          type: string
+          title: Label
+        type:
+          type: string
+          title: Type
+      type: object
+      required:
+      - id
+      - label
+      - type
+      title: DigitalTwinNode
+    DigitalTwinResponse:
+      properties:
+        dpp_id:
+          type: string
+          title: Dpp Id
+        nodes:
+          items:
+            $ref: '#/components/schemas/DigitalTwinNode'
+          type: array
+          title: Nodes
+        edges:
+          items:
+            $ref: '#/components/schemas/DigitalTwinEdge'
+          type: array
+          title: Edges
+        timeline:
+          items:
+            type: object
+          type: array
+          title: Timeline
+      type: object
+      required:
+      - dpp_id
+      title: DigitalTwinResponse
+    EDCStateTransition:
+      properties:
+        state:
+          type: string
+          title: State
+        timestamp:
+          type: string
+          title: Timestamp
+      type: object
+      required:
+      - state
+      - timestamp
+      title: EDCStateTransition
+    EpicProgressItem:
+      properties:
+        epic_id:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Epic Id
+        total_stories:
+          type: integer
+          title: Total Stories
+        completed_stories:
+          type: integer
+          title: Completed Stories
+        completion_percentage:
+          type: integer
+          title: Completion Percentage
+      type: object
+      required:
+      - total_stories
+      - completed_stories
+      - completion_percentage
+      title: EpicProgressItem
+    EpicProgressResponse:
+      properties:
+        epics:
+          items:
+            $ref: '#/components/schemas/EpicProgressItem'
+          type: array
+          title: Epics
+      type: object
+      title: EpicProgressResponse
+    GapCreate:
+      properties:
+        story_id:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Story Id
+        description:
+          type: string
+          title: Description
+      type: object
+      required:
+      - description
+      title: GapCreate
+    GapItem:
+      properties:
+        id:
+          type: string
+          title: Id
+        story_id:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Story Id
+        description:
+          type: string
+          title: Description
+        status:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Status
+        votes_count:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Votes Count
+        created_at:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Created At
+      type: object
+      required:
+      - id
+      - description
+      title: GapItem
+    GapListResponse:
+      properties:
+        items:
+          items:
+            $ref: '#/components/schemas/GapItem'
+          type: array
+          title: Items
+      type: object
+      title: GapListResponse
+    HTTPValidationError:
+      properties:
+        detail:
+          items:
+            $ref: '#/components/schemas/ValidationError'
+          type: array
+          title: Detail
+      type: object
+      title: HTTPValidationError
+    HealthResponse:
+      properties:
+        status:
+          type: string
+          title: Status
+        service:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Service
+      type: object
+      required:
+      - status
+      title: HealthResponse
+    JourneyRunCreate:
+      properties:
+        template_code:
+          type: string
+          title: Template Code
+          default: manufacturer-core-e2e
+        role:
+          type: string
+          title: Role
+          default: manufacturer
+        locale:
+          type: string
+          title: Locale
+          default: en
+        metadata:
+          type: object
+          title: Metadata
+      type: object
+      title: JourneyRunCreate
+    JourneyRunResponse:
+      properties:
+        id:
+          type: string
+          title: Id
+        template_code:
+          type: string
+          title: Template Code
+        role:
+          type: string
+          title: Role
+        locale:
+          type: string
+          title: Locale
+        status:
+          type: string
+          title: Status
+        current_step:
+          type: string
+          title: Current Step
+        steps:
+          items:
+            $ref: '#/components/schemas/JourneyStepResult'
+          type: array
+          title: Steps
+        metadata:
+          type: object
+          title: Metadata
+        created_at:
+          type: string
+          title: Created At
+        updated_at:
+          type: string
+          title: Updated At
+      type: object
+      required:
+      - id
+      - template_code
+      - role
+      - locale
+      - status
+      - current_step
+      - created_at
+      - updated_at
+      title: JourneyRunResponse
+    JourneyStepExecuteResponse:
+      properties:
+        run_id:
+          type: string
+          title: Run Id
+        execution:
+          $ref: '#/components/schemas/JourneyStepResult'
+        next_step:
+          type: string
+          title: Next Step
+      type: object
+      required:
+      - run_id
+      - execution
+      - next_step
+      title: JourneyStepExecuteResponse
+    JourneyStepExecution:
+      properties:
+        payload:
+          type: object
+          title: Payload
+        metadata:
+          type: object
+          title: Metadata
+      type: object
+      title: JourneyStepExecution
+    JourneyStepResult:
+      properties:
+        step_id:
+          type: string
+          title: Step Id
+        status:
+          type: string
+          title: Status
+        payload:
+          type: object
+          title: Payload
+        metadata:
+          type: object
+          title: Metadata
+        executed_at:
+          type: string
+          title: Executed At
+      type: object
+      required:
+      - step_id
+      - status
+      - executed_at
+      title: JourneyStepResult
+    LeaderboardEntry:
+      properties:
+        user_id:
+          type: string
+          title: User Id
+        total_points:
+          type: integer
+          title: Total Points
+        level:
+          type: integer
+          title: Level
+      type: object
+      required:
+      - user_id
+      - total_points
+      - level
+      title: LeaderboardEntry
+    LeaderboardResponse:
+      properties:
+        items:
+          items:
+            $ref: '#/components/schemas/LeaderboardEntry'
+          type: array
+          title: Items
+      type: object
+      title: LeaderboardResponse
+    NegotiationCreate:
+      properties:
+        asset_id:
+          type: string
+          title: Asset Id
+        consumer_id:
+          type: string
+          title: Consumer Id
+        provider_id:
+          type: string
+          title: Provider Id
+        policy:
+          type: object
+          title: Policy
+      type: object
+      required:
+      - asset_id
+      - consumer_id
+      - provider_id
+      title: NegotiationCreate
+    NegotiationResponse:
+      properties:
+        id:
+          type: string
+          title: Id
+        state:
+          type: string
+          title: State
+        policy:
+          type: object
+          title: Policy
+        asset_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Asset Id
+        consumer_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Consumer Id
+        provider_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Provider Id
+        state_history:
+          items:
+            $ref: '#/components/schemas/EDCStateTransition'
+          type: array
+          title: State History
+        session_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Session Id
+      type: object
+      required:
+      - id
+      - state
+      title: NegotiationResponse
+    ParticipantItem:
+      properties:
+        participant_id:
+          type: string
+          title: Participant Id
+        name:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Name
+        metadata:
+          type: object
+          title: Metadata
+      type: object
+      required:
+      - participant_id
+      title: ParticipantItem
+    ParticipantListResponse:
+      properties:
+        items:
+          items:
+            $ref: '#/components/schemas/ParticipantItem'
+          type: array
+          title: Items
+      type: object
+      title: ParticipantListResponse
+    ProgressItem:
+      properties:
+        id:
+          type: string
+          title: Id
+        story_id:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Story Id
+        status:
+          type: string
+          title: Status
+        completion_percentage:
+          type: integer
+          title: Completion Percentage
+        steps_completed:
+          items:
+            type: integer
+          type: array
+          title: Steps Completed
+      type: object
+      required:
+      - id
+      - status
+      - completion_percentage
+      title: ProgressItem
+    ProgressResponse:
+      properties:
+        progress:
+          items:
+            $ref: '#/components/schemas/ProgressItem'
+          type: array
+          title: Progress
+      type: object
+      title: ProgressResponse
+    SessionCreateRequest:
+      properties:
+        role:
+          type: string
+          title: Role
+        state:
+          type: object
+          title: State
+      type: object
+      required:
+      - role
+      title: SessionCreateRequest
+    SessionResponse:
+      properties:
+        id:
+          type: string
+          title: Id
+        user_id:
+          type: string
+          title: User Id
+        role:
+          type: string
+          title: Role
+        state:
+          type: object
+          title: State
+      type: object
+      required:
+      - id
+      - user_id
+      - role
+      title: SessionResponse
+    SessionUpdateRequest:
+      properties:
+        role:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Role
+        state:
+          anyOf:
+          - type: object
+          - type: 'null'
+          title: State
+        is_active:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          title: Is Active
+      type: object
+      title: SessionUpdateRequest
+    StepExecuteRequest:
+      properties:
+        payload:
+          type: object
+          title: Payload
+        metadata:
+          type: object
+          title: Metadata
+      type: object
+      title: StepExecuteRequest
+    StepExecuteResponse:
+      properties:
+        result:
+          type: object
+          title: Result
+      type: object
+      title: StepExecuteResponse
+    StoryItem:
+      properties:
+        code:
+          type: string
+          title: Code
+        title:
+          type: string
+          title: Title
+        description:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Description
+        steps:
+          items:
+            $ref: '#/components/schemas/StoryStep'
+          type: array
+          title: Steps
+        epic_code:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Epic Code
+        order_index:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Order Index
+        roles:
+          items:
+            type: string
+          type: array
+          title: Roles
+        difficulty:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Difficulty
+      type: object
+      required:
+      - code
+      - title
+      title: StoryItem
+    StoryListResponse:
+      properties:
+        items:
+          items:
+            $ref: '#/components/schemas/StoryItem'
+          type: array
+          title: Items
+      type: object
+      title: StoryListResponse
+    StoryStartResponse:
+      properties:
+        session_id:
+          type: string
+          title: Session Id
+        story:
+          $ref: '#/components/schemas/StoryItem'
+        status:
+          type: string
+          title: Status
+        progress_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Progress Id
+      type: object
+      required:
+      - session_id
+      - story
+      - status
+      title: StoryStartResponse
+    StoryStep:
+      properties:
+        action:
+          type: string
+          title: Action
+        params:
+          anyOf:
+          - type: object
+          - type: 'null'
+          title: Params
+      type: object
+      required:
+      - action
+      title: StoryStep
+    StoryValidateRequest:
+      properties:
+        data:
+          type: object
+          title: Data
+        regulations:
+          items:
+            type: string
+          type: array
+          title: Regulations
+      type: object
+      title: StoryValidateRequest
+    StoryValidateResponse:
+      properties:
+        session_id:
+          type: string
+          title: Session Id
+        story_code:
+          type: string
+          title: Story Code
+        result:
+          type: object
+          title: Result
+      type: object
+      required:
+      - session_id
+      - story_code
+      title: StoryValidateResponse
+    StreakEntry:
+      properties:
+        user_id:
+          type: string
+          title: User Id
+        current_streak_days:
+          type: integer
+          title: Current Streak Days
+        longest_streak_days:
+          type: integer
+          title: Longest Streak Days
+      type: object
+      required:
+      - user_id
+      - current_streak_days
+      - longest_streak_days
+      title: StreakEntry
+    StreakResponse:
+      properties:
+        items:
+          items:
+            $ref: '#/components/schemas/StreakEntry'
+          type: array
+          title: Items
+      type: object
+      title: StreakResponse
+    TransferCreate:
+      properties:
+        asset_id:
+          type: string
+          title: Asset Id
+        consumer_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Consumer Id
+        provider_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Provider Id
+      type: object
+      required:
+      - asset_id
+      title: TransferCreate
+    TransferResponse:
+      properties:
+        id:
+          type: string
+          title: Id
+        state:
+          type: string
+          title: State
+        asset_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Asset Id
+        consumer_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Consumer Id
+        provider_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Provider Id
+        state_history:
+          items:
+            $ref: '#/components/schemas/EDCStateTransition'
+          type: array
+          title: State History
+        session_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Session Id
+      type: object
+      required:
+      - id
+      - state
+      title: TransferResponse
+    ValidationError:
+      properties:
+        loc:
+          items:
+            anyOf:
+            - type: string
+            - type: integer
+          type: array
+          title: Location
+        msg:
+          type: string
+          title: Message
+        type:
+          type: string
+          title: Error Type
+        input:
+          title: Input
+        ctx:
+          type: object
+          title: Context
+      type: object
+      required:
+      - loc
+      - msg
+      - type
+      title: ValidationError
+    VoteCreate:
+      properties:
+        target_id:
+          type: string
+          title: Target Id
+        value:
+          type: integer
+          title: Value
+      type: object
+      required:
+      - target_id
+      - value
+      title: VoteCreate
+    VoteItem:
+      properties:
+        id:
+          type: string
+          title: Id
+        target_id:
+          type: string
+          title: Target Id
+        value:
+          type: integer
+          title: Value
+        created_at:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Created At
+      type: object
+      required:
+      - id
+      - target_id
+      - value
+      title: VoteItem
+    VoteListResponse:
+      properties:
+        items:
+          items:
+            $ref: '#/components/schemas/VoteItem'
+          type: array
+          title: Items
+      type: object
+      title: VoteListResponse

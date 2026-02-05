@@ -1,4 +1,5 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { useEffect } from "react";
 import {
   checkCompliance as checkComplianceRequest,
   listReports,
@@ -15,12 +16,13 @@ export function useCompliance() {
   const reports = useQuery({
     queryKey: ["compliance-reports"],
     queryFn: () => listReports(),
-    onSuccess: (data) => {
-      if (data?.reports) {
-        setReports(data.reports);
-      }
-    },
   });
+
+  useEffect(() => {
+    if (reports.data?.reports) {
+      setReports(reports.data.reports);
+    }
+  }, [reports.data, setReports]);
 
   return { checkCompliance, reports };
 }

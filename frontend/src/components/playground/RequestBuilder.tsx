@@ -3,7 +3,7 @@ import { apiRequest } from "../../services/api";
 import MonacoWrapper from "./MonacoWrapper";
 
 export default function RequestBuilder() {
-  const [path, setPath] = useState("/api/v1/health");
+  const [path, setPath] = useState("/api/v2/health");
   const [method, setMethod] = useState("GET");
   const [headers, setHeaders] = useState('{\n  "Content-Type": "application/json"\n}');
   const [body, setBody] = useState("{}");
@@ -58,7 +58,7 @@ export default function RequestBuilder() {
       </div>
       <div className="card" style={{ marginTop: 16 }}>
         <h4>Response</h4>
-        <pre style={{ background: "#0b1a2a", color: "#e2e8f0", padding: 12, borderRadius: 8 }}>
+        <pre className="mono-panel">
           {response}
         </pre>
       </div>

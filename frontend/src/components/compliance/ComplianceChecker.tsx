@@ -29,12 +29,14 @@ export default function ComplianceChecker() {
     <div>
       <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
         <input
+          className="input"
           placeholder="Session ID (optional)"
           value={sessionId}
           onChange={(e) => setSessionId(e.target.value)}
           style={{ flex: 1 }}
         />
         <input
+          className="input"
           placeholder="Story Code (optional)"
           value={storyCode}
           onChange={(e) => setStoryCode(e.target.value)}
@@ -44,7 +46,7 @@ export default function ComplianceChecker() {
       <textarea className="textarea" value={payload} onChange={(e) => setPayload(e.target.value)} rows={6} />
       <button className="btn btn-primary" onClick={run}>Run Compliance Check</button>
       <div className="card" style={{ marginTop: 12 }}>
-        <pre>{result}</pre>
+        <pre className="mono-panel">{result}</pre>
       </div>
     </div>
   );

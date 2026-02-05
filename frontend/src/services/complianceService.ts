@@ -2,7 +2,7 @@ import { apiGet, apiPost } from "./api";
 import type { ComplianceResult, ComplianceReportList } from "../types/api.types";
 
 export function checkCompliance(payload: Record<string, unknown>) {
-  return apiPost<ComplianceResult>("/api/v1/compliance/check", payload);
+  return apiPost<ComplianceResult>("/api/v2/compliance/runs", { payload });
 }
 
 export function listReports(params?: { session_id?: string; story_code?: string; status?: string; limit?: number }) {
@@ -12,5 +12,5 @@ export function listReports(params?: { session_id?: string; story_code?: string;
   if (params?.status) search.set("status", params.status);
   if (params?.limit) search.set("limit", String(params.limit));
   const query = search.toString();
-  return apiGet<ComplianceReportList>(`/api/v1/reports${query ? `?${query}` : ""}`);
+  return apiGet<ComplianceReportList>(`/api/v2/compliance/reports${query ? `?${query}` : ""}`);
 }

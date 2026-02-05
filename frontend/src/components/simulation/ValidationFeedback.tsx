@@ -16,7 +16,7 @@ export default function ValidationFeedback({ result }: { result: unknown }) {
         <h3>Validation Feedback</h3>
         <span className={`pill ${badgeClass}`}>{status || "unknown"}</span>
       </div>
-      <pre>{JSON.stringify(result, null, 2)}</pre>
+      <pre className="mono-panel">{JSON.stringify(result, null, 2)}</pre>
     </div>
   );
 }

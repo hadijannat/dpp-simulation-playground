@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: platform-core
+  namespace: dpp-playground
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: platform-core
+  template:
+    metadata:
+      labels:
+        app: platform-core
+    spec:
+      containers:
+        - name: platform-core
+          image: dpp/platform-core:latest
+          ports:
+            - containerPort: 8007
+          envFrom:
+            - configMapRef:
+                name: app-config
+            - secretRef:
+                name: database-secrets
+          readinessProbe:
+            httpGet:
+              path: /api/v2/health
+              port: 8007
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /api/v2/health
+              port: 8007
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"

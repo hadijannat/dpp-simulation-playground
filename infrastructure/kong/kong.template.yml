@@ -70,6 +70,30 @@ services:
         paths:
           - /api/v1/health/collaboration
         strip_path: false
+  - name: platform-api
+    url: http://platform-api:8006
+    routes:
+      - name: platform-api-v2
+        paths:
+          - /api/v2
+        strip_path: false
+      - name: platform-api-health
+        paths:
+          - /api/v2/health
+          - /api/v2/health/platform-api
+        strip_path: false
+  - name: aas-adapter
+    url: http://aas-adapter:8008
+    routes:
+      - name: aas-adapter-v2
+        paths:
+          - /api/v2/aas
+          - /api/v2/aasx
+        strip_path: false
+      - name: aas-adapter-health
+        paths:
+          - /api/v2/health/aas-adapter
+        strip_path: false
 
 consumers:
   - username: keycloak

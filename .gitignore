@@ -22,6 +22,8 @@ coverage.xml
 # Node / Frontend
 node_modules/
 frontend/dist/
+frontend/playwright-report/
+frontend/test-results/
 frontend/.vite/
 *.tsbuildinfo
 .eslintcache

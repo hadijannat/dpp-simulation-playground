@@ -2,7 +2,7 @@ import { apiPost } from "../../services/api";
 
 export default function VotingWidget({ targetId }: { targetId: string }) {
   async function vote(value: number) {
-    await apiPost("/api/v1/votes", { target_id: targetId, value });
+    await apiPost("/api/v2/collaboration/votes", { target_id: targetId, value });
   }
 
   return (
