@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Request, HTTPException, Depends
+import logging
 from sqlalchemy.orm import Session
 from uuid import uuid4
 from datetime import datetime, timezone
@@ -13,11 +14,13 @@ from ...auth import require_roles
 from services.shared import events
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 def _safe_publish(payload: dict):
     try:
         publish_event("simulation.events", payload)
-    except Exception:
+    except Exception as exc:
+        logger.warning("Failed to publish event", exc_info=exc)
         return
 
 @router.post("/sessions/{session_id}/stories/{code}/steps/{idx}/execute")
@@ -130,8 +133,8 @@ def execute(
                 status="completed",
             )
         )
-    if step.get("action") == "compliance.check" and result.get("status") == "ok":
-        status = result.get("data", {}).get("status")
+    if step.get("action") == "compliance.check":
+        status = result.get("status")
         if status == "compliant":
             _safe_publish(
                 events.build_event(
@@ -140,7 +143,7 @@ def execute(
                     session_id=session_id,
                     story_code=code,
                     step_idx=idx,
-                    status="compliant",
+                    status=status,
                 )
             )
     if step.get("action") == "aas.create" and result.get("status") == "created":

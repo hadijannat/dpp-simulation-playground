@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { Navigate } from "react-router-dom";
 import AccessDenied from "./AccessDenied";
 import { useAuth } from "../../hooks/useAuth";
@@ -6,12 +7,12 @@ import { useRoleStore } from "../../stores/roleStore";
 
 interface GuardProps {
   roles?: string[];
-  children: React.ReactNode;
+  children: ReactNode;
 }
 
 export default function RouteGuard({ roles, children }: GuardProps) {
   const { initialized, authenticated } = useAuth();
-  const allowed = roles ? useHasRole(roles) : true;
+  const allowed = useHasRole(roles ?? []);
   const { role } = useRoleStore();
   const authMode = import.meta.env.VITE_AUTH_MODE || "auto";
   const allowBypass = authMode !== "keycloak";
@@ -28,7 +29,7 @@ export default function RouteGuard({ roles, children }: GuardProps) {
     }
     return <Navigate to="/login" replace />;
   }
-  if (!allowed) {
+  if (roles && !allowed) {
     return <AccessDenied />;
   }
   return <>{children}</>;

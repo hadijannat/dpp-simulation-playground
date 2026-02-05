@@ -1,38 +1,53 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { apiGet, apiPost } from "../services/api";
+import {
+  advanceNegotiation as advanceNegotiationRequest,
+  advanceTransfer as advanceTransferRequest,
+  createNegotiation as createNegotiationRequest,
+  createTransfer as createTransferRequest,
+  getAssets,
+  getCatalog,
+  getParticipants,
+} from "../services/edcService";
+import { useEdcStore } from "../stores/edcStore";
 
 export function useEDC() {
+  const setLastNegotiation = useEdcStore((state) => state.setLastNegotiation);
+  const setLastTransfer = useEdcStore((state) => state.setLastTransfer);
   const catalog = useQuery({
     queryKey: ["edc-catalog"],
-    queryFn: () => apiGet("/api/v1/edc/catalog"),
+    queryFn: () => getCatalog(),
   });
 
   const participants = useQuery({
     queryKey: ["edc-participants"],
-    queryFn: () => apiGet("/api/v1/edc/participants"),
+    queryFn: () => getParticipants(),
   });
 
   const assets = useQuery({
     queryKey: ["edc-assets"],
-    queryFn: () => apiGet("/api/v1/edc/assets"),
+    queryFn: () => getAssets(),
   });
 
   const createNegotiation = useMutation({
-    mutationFn: (payload: Record<string, unknown>) => apiPost("/api/v1/edc/negotiations", payload),
+    mutationFn: (payload: Record<string, unknown>) => createNegotiationRequest(payload),
+    onSuccess: (data) => setLastNegotiation(data),
   });
 
   const advanceNegotiation = useMutation({
     mutationFn: (payload: { id: string; action: string }) =>
-      apiPost(`/api/v1/edc/negotiations/${payload.id}/${payload.action}`, {}),
+      advanceNegotiationRequest(payload.id, payload.action),
+    onSuccess: (data) => setLastNegotiation(data),
   });
 
   const createTransfer = useMutation({
-    mutationFn: (payload: Record<string, unknown>) => apiPost("/api/v1/edc/transfers", payload),
+    mutationFn: (payload: Record<string, unknown>) => createTransferRequest(payload),
+    onSuccess: (data) => setLastTransfer(data),
   });
 
   const advanceTransfer = useMutation({
     mutationFn: (payload: { id: string; action: string }) =>
-      apiPost(`/api/v1/edc/transfers/${payload.id}/${payload.action}`, {}),
+      advanceTransferRequest(payload.id, payload.action),
+    onSuccess: (data) => setLastTransfer(data),
   });
 
   return {

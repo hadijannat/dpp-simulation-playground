@@ -5,6 +5,7 @@ from typing import Any, Dict, Optional
 
 STORY_STEP_COMPLETED = "story_step_completed"
 STORY_COMPLETED = "story_completed"
+STORY_FAILED = "story_failed"
 EPIC_COMPLETED = "epic_completed"
 COMPLIANCE_CHECK_PASSED = "compliance_check_passed"
 API_CALL_SUCCESS = "api_call_success"
