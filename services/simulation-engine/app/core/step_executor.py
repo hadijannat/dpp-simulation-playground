@@ -8,6 +8,16 @@ from ..models.dpp_instance import DppInstance
 from uuid import uuid4
 
 
+def _default_payload(payload: Dict[str, Any], params: Dict[str, Any]) -> Dict[str, Any]:
+    if payload:
+        return payload
+    if not params:
+        return {}
+    if params.get("payload") is not None:
+        return params.get("payload") or {}
+    return params
+
+
 def execute_step(
     db: Session,
     action: str,
@@ -22,8 +32,8 @@ def execute_step(
     if action == "compliance.check":
         regulations = payload.get("regulations") or params.get("regulations") or []
         data = payload.get("data") if isinstance(payload, dict) else payload
-        if data is None:
-            data = payload
+        if not data:
+            data = params.get("data")
         body = {
             "data": data,
             "regulations": regulations,
@@ -42,6 +52,7 @@ def execute_step(
         except requests.RequestException as exc:
             return {"status": "error", "error": str(exc)}
     if action == "edc.negotiate":
+        payload = _default_payload(payload, params)
         try:
             resp = requests.post(
                 f"{EDC_URL}/api/v1/edc/negotiations",
@@ -54,6 +65,7 @@ def execute_step(
         except requests.RequestException as exc:
             return {"status": "error", "error": str(exc)}
     if action == "aas.create":
+        payload = _default_payload(payload, params)
         client = BasyxClient(base_url=BASYX_BASE_URL)
         try:
             shell = client.create_shell(payload)
@@ -75,7 +87,9 @@ def execute_step(
             db.rollback()
         return {"status": "created", "data": shell}
     if action == "aas.update":
+        payload = _default_payload(payload, params)
         return {"status": "updated", "data": payload}
     if action == "api.call":
+        payload = _default_payload(payload, params)
         return {"status": "called", "data": payload}
     return {"status": "unknown_action", "action": action}

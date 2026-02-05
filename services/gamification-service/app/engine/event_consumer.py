@@ -1,5 +1,6 @@
 import json
 import threading
+import time
 from datetime import date
 from typing import Dict, Any
 from redis import Redis
@@ -75,7 +76,11 @@ def _worker():
     point_rules = _load_point_rules()
     achievements = _load_achievement_defs()
     while True:
-        result = client.xread({STREAM: last_id}, block=5000, count=10)
+        try:
+            result = client.xread({STREAM: last_id}, block=5000, count=10)
+        except Exception:
+            time.sleep(2)
+            continue
         if not result:
             continue
         for _, messages in result:

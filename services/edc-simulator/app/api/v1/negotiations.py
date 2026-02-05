@@ -5,6 +5,8 @@ from uuid import uuid4
 from datetime import datetime, timezone
 from ...dsp.negotiation_state_machine import can_transition
 from ...store import save_item, load_item
+from ...config import REDIS_URL
+from redis import Redis
 from ...auth import require_roles
 
 router = APIRouter()
@@ -130,6 +132,17 @@ def finalize(request: Request, negotiation_id: str):
     if not can_transition(item["state"], "FINALIZED"):
         raise HTTPException(status_code=400, detail="Invalid transition")
     save_item(_key(negotiation_id), _set_state(item, "FINALIZED"))
+    try:
+        Redis.from_url(REDIS_URL).xadd(
+            "simulation.events",
+            {
+                "event_type": "edc_negotiation_completed",
+                "user_id": request.state.user.get("sub"),
+                "negotiation_id": negotiation_id,
+            },
+        )
+    except Exception:
+        pass
     return item
 
 

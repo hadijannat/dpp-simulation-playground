@@ -41,7 +41,14 @@ export default function SimulationPage() {
 
   async function runStep(idx: number) {
     if (!sessionId || !story) return;
-    const body = { payload: JSON.parse(payload) };
+    let parsed: Record<string, unknown> = {};
+    try {
+        parsed = JSON.parse(payload);
+    } catch {
+        setResult("Invalid JSON payload");
+        return;
+    }
+    const body = { payload: parsed };
     const data = await apiPost(
       `/api/v1/sessions/${sessionId}/stories/${story.code}/steps/${idx}/execute`,
       body

@@ -8,8 +8,15 @@ export default function ComplianceChecker() {
   const [storyCode, setStoryCode] = useState("");
 
   async function run() {
+    let parsed: Record<string, unknown> = {};
+    try {
+      parsed = JSON.parse(payload);
+    } catch {
+      setResult("Invalid JSON payload");
+      return;
+    }
     const data = await apiPost("/api/v1/compliance/check", {
-      data: JSON.parse(payload),
+      data: parsed,
       regulations: ["ESPR"],
       session_id: sessionId || undefined,
       story_code: storyCode || undefined,

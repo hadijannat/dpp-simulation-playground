@@ -130,4 +130,17 @@ def execute(
                 "metadata": {},
             }
         )
+    if step.get("action") == "api.call" and result.get("status") == "called":
+        _safe_publish(
+            {
+                "event_type": "api_call_success",
+                "user_id": str(session.user_id),
+                "session_id": session_id,
+                "story_code": code,
+                "step_idx": idx,
+                "status": "called",
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "metadata": {},
+            }
+        )
     return {"result": result}

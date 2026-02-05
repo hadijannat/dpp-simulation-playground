@@ -68,13 +68,13 @@ def validate_aas(request: Request, payload: AasValidateRequest, db: Session = De
     env_dir = os.getenv("IDTA_TEMPLATES_DIR")
     if env_dir:
         candidate_dirs.append(Path(env_dir))
-    candidate_dirs.extend(
-        [
-            Path(__file__).resolve().parents[5] / "data" / "idta-templates",
-            Path(__file__).resolve().parents[3] / "data" / "idta-templates",
-        ]
-    )
-    templates_dir = next((p for p in candidate_dirs if p.exists()), candidate_dirs[-1])
+    resolved = Path(__file__).resolve()
+    for idx in (5, 3):
+        try:
+            candidate_dirs.append(resolved.parents[idx] / "data" / "idta-templates")
+        except IndexError:
+            continue
+    templates_dir = next((p for p in candidate_dirs if p.exists()), Path("/app/data/idta-templates"))
     missing_templates = []
     for template in payload.templates:
         if not (templates_dir / template).exists():

@@ -4,6 +4,8 @@ from uuid import uuid4
 from sqlalchemy.orm import Session
 from ...core.db import get_db
 from ...models.gap_report import GapReport
+from ...config import REDIS_URL
+from redis import Redis
 from ...auth import require_roles
 
 router = APIRouter()
@@ -50,4 +52,15 @@ def create_report(request: Request, payload: GapReportCreate, db: Session = Depe
     )
     db.add(item)
     db.commit()
+    try:
+        Redis.from_url(REDIS_URL).xadd(
+            "simulation.events",
+            {
+                "event_type": "gap_reported",
+                "user_id": request.state.user.get("sub"),
+                "story_id": payload.story_id or "",
+            },
+        )
+    except Exception:
+        pass
     return {"id": str(item.id), "story_id": item.story_id, "description": item.description, "status": item.status}
