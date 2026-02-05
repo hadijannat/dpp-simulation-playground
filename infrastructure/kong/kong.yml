@@ -1,0 +1,17 @@
+_format_version: "3.0"
+services:
+  - name: simulation-engine
+    url: http://simulation-engine:8001
+    routes:
+      - name: sim
+        paths: ["/api/v1"]
+plugins:
+  - name: cors
+    config:
+      origins: ["*"]
+      methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"]
+      headers: ["Authorization", "Content-Type"]
+  - name: rate-limiting
+    config:
+      minute: 100
+      policy: local

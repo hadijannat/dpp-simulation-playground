@@ -1,0 +1,10 @@
+version: '3.8'
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      - POSTGRES_DB=dpp_playground_test
+      - POSTGRES_USER=test
+      - POSTGRES_PASSWORD=test
+  redis:
+    image: redis:7.2-alpine

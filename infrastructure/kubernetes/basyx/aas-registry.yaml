@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aas-registry
+  namespace: dpp-playground
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: aas-registry
+  template:
+    metadata:
+      labels:
+        app: aas-registry
+    spec:
+      containers:
+        - name: aas-registry
+          image: eclipsebasyx/aas-registry-log-mongodb:2.0.0-SNAPSHOT
+          ports:
+            - containerPort: 8080

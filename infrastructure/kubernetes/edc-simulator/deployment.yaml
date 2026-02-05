@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: edc-simulator
+  namespace: dpp-playground
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: edc-simulator
+  template:
+    metadata:
+      labels:
+        app: edc-simulator
+    spec:
+      containers:
+        - name: edc-simulator
+          image: dpp/edc-simulator:latest
+          ports:
+            - containerPort: 8000

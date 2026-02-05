@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aas-environment
+  namespace: dpp-playground
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: aas-environment
+  template:
+    metadata:
+      labels:
+        app: aas-environment
+    spec:
+      containers:
+        - name: aas-environment
+          image: eclipsebasyx/aas-environment:2.0.0-SNAPSHOT
+          ports:
+            - containerPort: 8081

@@ -1,0 +1,5 @@
+version: '3.8'
+services:
+  frontend:
+    environment:
+      - VITE_API_URL=http://localhost:8000

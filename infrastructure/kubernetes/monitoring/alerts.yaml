@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: alert-rules
+  namespace: dpp-playground
+data:
+  alerts.yml: |
+    groups: []

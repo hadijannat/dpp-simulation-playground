@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gamification-service
+  namespace: dpp-playground
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gamification-service
+  template:
+    metadata:
+      labels:
+        app: gamification-service
+    spec:
+      containers:
+        - name: gamification-service
+          image: dpp/gamification-service:latest
+          ports:
+            - containerPort: 8000

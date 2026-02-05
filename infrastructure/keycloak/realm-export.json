@@ -1,0 +1,8 @@
+{
+  "realm": "dpp",
+  "enabled": true,
+  "clients": [],
+  "roles": {
+    "realm": []
+  }
+}

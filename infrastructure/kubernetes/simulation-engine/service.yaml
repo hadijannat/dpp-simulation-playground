@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: simulation-engine
+  namespace: dpp-playground
+spec:
+  selector:
+    app: simulation-engine
+  ports:
+    - port: 80
+      targetPort: 8000

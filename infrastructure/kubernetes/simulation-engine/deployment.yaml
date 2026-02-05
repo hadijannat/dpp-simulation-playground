@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: simulation-engine
+  namespace: dpp-playground
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: simulation-engine
+  template:
+    metadata:
+      labels:
+        app: simulation-engine
+    spec:
+      containers:
+        - name: simulation-engine
+          image: dpp/simulation-engine:latest
+          ports:
+            - containerPort: 8000

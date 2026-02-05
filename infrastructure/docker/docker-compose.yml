@@ -1,0 +1,99 @@
+version: '3.8'
+services:
+  frontend:
+    build: ../frontend
+    ports: ["3000:3000"]
+    environment:
+      - VITE_API_URL=http://localhost:8000
+    depends_on:
+      - api-gateway
+
+  api-gateway:
+    image: kong:3.6
+    ports: ["8000:8000", "8443:8443"]
+    environment:
+      KONG_DATABASE: "off"
+      KONG_DECLARATIVE_CONFIG: /kong/declarative/kong.yml
+    volumes:
+      - ../kong/kong.yml:/kong/declarative/kong.yml:ro
+
+  simulation-engine:
+    build: ../services/simulation-engine
+    ports: ["8001:8001"]
+    environment:
+      - DATABASE_URL=postgresql://dpp:dpp@postgres:5432/dpp_playground
+      - REDIS_URL=redis://redis:6379/0
+    depends_on: [postgres, redis, mongodb]
+
+  compliance-service:
+    build: ../services/compliance-service
+    ports: ["8002:8002"]
+    environment:
+      - DATABASE_URL=postgresql://dpp:dpp@postgres:5432/dpp_playground
+      - REDIS_URL=redis://redis:6379/0
+
+  gamification-service:
+    build: ../services/gamification-service
+    ports: ["8003:8003"]
+    environment:
+      - DATABASE_URL=postgresql://dpp:dpp@postgres:5432/dpp_playground
+      - REDIS_URL=redis://redis:6379/0
+    depends_on: [postgres, redis]
+
+  edc-simulator:
+    build: ../services/edc-simulator
+    ports: ["8004:8004"]
+    environment:
+      - DATABASE_URL=postgresql://dpp:dpp@postgres:5432/dpp_playground
+      - REDIS_URL=redis://redis:6379/0
+
+  collaboration-service:
+    build: ../services/collaboration-service
+    ports: ["8005:8005"]
+    environment:
+      - DATABASE_URL=postgresql://dpp:dpp@postgres:5432/dpp_playground
+      - REDIS_URL=redis://redis:6379/0
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:24.0
+    ports: ["8080:8080"]
+    environment:
+      - KEYCLOAK_ADMIN=admin
+      - KEYCLOAK_ADMIN_PASSWORD=admin
+    command: start-dev
+
+  aas-environment:
+    image: eclipsebasyx/aas-environment:2.0.0-SNAPSHOT
+    ports: ["8081:8081"]
+    depends_on: [mongodb]
+
+  aas-registry:
+    image: eclipsebasyx/aas-registry-log-mongodb:2.0.0-SNAPSHOT
+    ports: ["8082:8080"]
+
+  submodel-registry:
+    image: eclipsebasyx/aas-registry-log-mongodb:2.0.0-SNAPSHOT
+    ports: ["8083:8080"]
+
+  postgres:
+    image: postgres:16
+    environment:
+      - POSTGRES_DB=dpp_playground
+      - POSTGRES_USER=dpp
+      - POSTGRES_PASSWORD=dpp
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7.2-alpine
+
+  mongodb:
+    image: mongo:7.0
+
+  minio:
+    image: minio/minio
+    command: server /data --console-address ":9001"
+    ports: ["9000:9000", "9001:9001"]
+
+volumes:
+  postgres_data:

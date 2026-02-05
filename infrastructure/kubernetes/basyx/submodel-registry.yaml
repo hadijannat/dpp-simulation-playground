@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: submodel-registry
+  namespace: dpp-playground
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: submodel-registry
+  template:
+    metadata:
+      labels:
+        app: submodel-registry
+    spec:
+      containers:
+        - name: submodel-registry
+          image: eclipsebasyx/aas-registry-log-mongodb:2.0.0-SNAPSHOT
+          ports:
+            - containerPort: 8080

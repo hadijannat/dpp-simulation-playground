@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: collaboration-service
+  namespace: dpp-playground
+spec:
+  selector:
+    app: collaboration-service
+  ports:
+    - port: 80
+      targetPort: 8000
