@@ -1,0 +1,11 @@
+{
+  "name": "DPP Playground",
+  "dockerComposeFile": [
+    "../infrastructure/docker/docker-compose.yml",
+    "../infrastructure/docker/docker-compose.dev.yml"
+  ],
+  "service": "frontend",
+  "workspaceFolder": "/workspace",
+  "postCreateCommand": "make up",
+  "forwardPorts": [3000, 8000, 8080, 5432, 27017, 6379]
+}
