@@ -51,6 +51,14 @@ def _to_dict(item: EdcNegotiation) -> dict:
     }
 
 
+def _enforce_policy(item: EdcNegotiation, payload: NegotiationAction | None) -> None:
+    if not payload or not payload.purpose:
+        return
+    allowed = evaluate_policy(item.policy_odrl or {}, payload.purpose)
+    if not allowed:
+        raise HTTPException(status_code=403, detail="Policy does not allow this purpose")
+
+
 @router.post("/negotiations")
 def create_negotiation(request: Request, payload: NegotiationCreate, db: Session = Depends(get_db)):
     require_roles(request.state.user, ["developer", "manufacturer", "admin"])
@@ -93,88 +101,121 @@ def accept_offer(
         raise HTTPException(status_code=404, detail="Not found")
     if not can_transition(item.current_state, "ACCEPTED"):
         raise HTTPException(status_code=400, detail="Invalid transition")
-    if payload and payload.purpose:
-        allowed = evaluate_policy(item.policy_odrl or {}, payload.purpose)
-        if not allowed:
-            raise HTTPException(status_code=403, detail="Policy does not allow this purpose")
+    _enforce_policy(item, payload)
     _set_state(item, "ACCEPTED")
     db.commit()
     return _to_dict(item)
 
 
 @router.post("/negotiations/{negotiation_id}/request")
-def request_offer(request: Request, negotiation_id: str, db: Session = Depends(get_db)):
+def request_offer(
+    request: Request,
+    negotiation_id: str,
+    payload: NegotiationAction | None = None,
+    db: Session = Depends(get_db),
+):
     require_roles(request.state.user, ["developer", "manufacturer", "admin"])
     item = db.query(EdcNegotiation).filter(EdcNegotiation.negotiation_id == negotiation_id).first()
     if not item:
         raise HTTPException(status_code=404, detail="Not found")
     if not can_transition(item.current_state, "REQUESTING"):
         raise HTTPException(status_code=400, detail="Invalid transition")
+    _enforce_policy(item, payload)
     _set_state(item, "REQUESTING")
     db.commit()
     return _to_dict(item)
 
 
 @router.post("/negotiations/{negotiation_id}/requested")
-def mark_requested(request: Request, negotiation_id: str, db: Session = Depends(get_db)):
+def mark_requested(
+    request: Request,
+    negotiation_id: str,
+    payload: NegotiationAction | None = None,
+    db: Session = Depends(get_db),
+):
     require_roles(request.state.user, ["developer", "manufacturer", "admin"])
     item = db.query(EdcNegotiation).filter(EdcNegotiation.negotiation_id == negotiation_id).first()
     if not item:
         raise HTTPException(status_code=404, detail="Not found")
     if not can_transition(item.current_state, "REQUESTED"):
         raise HTTPException(status_code=400, detail="Invalid transition")
+    _enforce_policy(item, payload)
     _set_state(item, "REQUESTED")
     db.commit()
     return _to_dict(item)
 
 
 @router.post("/negotiations/{negotiation_id}/offer")
-def offer(request: Request, negotiation_id: str, db: Session = Depends(get_db)):
+def offer(
+    request: Request,
+    negotiation_id: str,
+    payload: NegotiationAction | None = None,
+    db: Session = Depends(get_db),
+):
     require_roles(request.state.user, ["developer", "manufacturer", "admin"])
     item = db.query(EdcNegotiation).filter(EdcNegotiation.negotiation_id == negotiation_id).first()
     if not item:
         raise HTTPException(status_code=404, detail="Not found")
     if not can_transition(item.current_state, "OFFERED"):
         raise HTTPException(status_code=400, detail="Invalid transition")
+    _enforce_policy(item, payload)
     _set_state(item, "OFFERED")
     db.commit()
     return _to_dict(item)
 
 
 @router.post("/negotiations/{negotiation_id}/agree")
-def agree(request: Request, negotiation_id: str, db: Session = Depends(get_db)):
+def agree(
+    request: Request,
+    negotiation_id: str,
+    payload: NegotiationAction | None = None,
+    db: Session = Depends(get_db),
+):
     require_roles(request.state.user, ["developer", "manufacturer", "admin"])
     item = db.query(EdcNegotiation).filter(EdcNegotiation.negotiation_id == negotiation_id).first()
     if not item:
         raise HTTPException(status_code=404, detail="Not found")
     if not can_transition(item.current_state, "AGREED"):
         raise HTTPException(status_code=400, detail="Invalid transition")
+    _enforce_policy(item, payload)
     _set_state(item, "AGREED")
     db.commit()
     return _to_dict(item)
 
 
 @router.post("/negotiations/{negotiation_id}/verify")
-def verify(request: Request, negotiation_id: str, db: Session = Depends(get_db)):
+def verify(
+    request: Request,
+    negotiation_id: str,
+    payload: NegotiationAction | None = None,
+    db: Session = Depends(get_db),
+):
     require_roles(request.state.user, ["developer", "manufacturer", "admin"])
     item = db.query(EdcNegotiation).filter(EdcNegotiation.negotiation_id == negotiation_id).first()
     if not item:
         raise HTTPException(status_code=404, detail="Not found")
     if not can_transition(item.current_state, "VERIFIED"):
         raise HTTPException(status_code=400, detail="Invalid transition")
+    _enforce_policy(item, payload)
     _set_state(item, "VERIFIED")
     db.commit()
     return _to_dict(item)
 
 
 @router.post("/negotiations/{negotiation_id}/finalize")
-def finalize(request: Request, negotiation_id: str, db: Session = Depends(get_db)):
+def finalize(
+    request: Request,
+    negotiation_id: str,
+    payload: NegotiationAction | None = None,
+    db: Session = Depends(get_db),
+):
     require_roles(request.state.user, ["developer", "manufacturer", "admin"])
     item = db.query(EdcNegotiation).filter(EdcNegotiation.negotiation_id == negotiation_id).first()
     if not item:
         raise HTTPException(status_code=404, detail="Not found")
     if not can_transition(item.current_state, "FINALIZED"):
         raise HTTPException(status_code=400, detail="Invalid transition")
+    _enforce_policy(item, payload)
     _set_state(item, "FINALIZED")
     db.commit()
     try:

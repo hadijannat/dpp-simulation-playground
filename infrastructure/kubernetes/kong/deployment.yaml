@@ -27,5 +27,7 @@ spec:
               value: "dpp"
             - name: KONG_ALLOW_ANONYMOUS
               value: "false"
+            - name: KONG_CORS_ORIGINS
+              value: "https://dpp.local"
           ports:
             - containerPort: 8000

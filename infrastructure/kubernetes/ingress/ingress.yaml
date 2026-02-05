@@ -4,10 +4,21 @@ metadata:
   name: dpp-ingress
   namespace: dpp-playground
 spec:
+  tls:
+    - hosts:
+        - dpp.local
+      secretName: dpp-tls
   rules:
     - host: dpp.local
       http:
         paths:
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: kong
+                port:
+                  number: 8000
           - path: /
             pathType: Prefix
             backend:

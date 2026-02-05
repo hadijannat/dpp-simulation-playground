@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { initKeycloak, keycloak } from "../services/keycloak";
 
@@ -17,7 +18,7 @@ const AuthContext = createContext<AuthContextValue>({
   logout: () => {},
 });
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
+export function AuthProvider({ children }: { children: ReactNode }) {
   const [initialized, setInitialized] = useState(false);
   const [authenticated, setAuthenticated] = useState(false);
   const [user, setUser] = useState<Record<string, unknown> | null>(null);
