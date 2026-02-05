@@ -24,5 +24,16 @@
       "clientId": "dpp-api",
       "bearerOnly": true
     }
+  ],
+  "users": [
+    {
+      "username": "demo@example.com",
+      "email": "demo@example.com",
+      "enabled": true,
+      "credentials": [
+        {"type": "password", "value": "demo1234", "temporary": false}
+      ],
+      "realmRoles": ["developer"]
+    }
   ]
 }

@@ -16,9 +16,26 @@ cp infrastructure/docker/.env.example infrastructure/docker/.env
 make up
 ```
 
-3. Open the UI:
+3. Run migrations:
+
+```bash
+make migrate
+```
+
+4. Seed initial data:
+
+```bash
+make seed
+```
+
+5. Open the UI:
 
 - http://localhost:3000
+
+## Default Credentials
+
+- Username: `demo@example.com`
+- Password: `demo1234`
 
 ## Services
 
