@@ -10,6 +10,7 @@ services:
           - /api/v1/stories
           - /api/v1/steps
           - /api/v1/aas
+          - /api/v1/aasx
           - /api/v1/progress
         strip_path: false
       - name: sim-health

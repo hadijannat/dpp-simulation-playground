@@ -1,4 +1,4 @@
-.PHONY: help up down logs restart test seed migrate clean health load-test
+.PHONY: help up down logs restart test seed migrate clean health load-test openapi
 
 COMPOSE_FILE := infrastructure/docker/docker-compose.yml
 COMPOSE_DEV  := infrastructure/docker/docker-compose.dev.yml
@@ -39,3 +39,6 @@ health: ## Check health of all services
 
 load-test: ## Run load tests
 	python scripts/load-test.py
+
+openapi: ## Export OpenAPI specs
+	python scripts/export-openapi.py

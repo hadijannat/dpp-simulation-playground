@@ -50,9 +50,11 @@ Simulation Engine uses Keycloak client credentials:
 - `KEYCLOAK_ISSUERS` (comma-separated; defaults to localhost + docker host issuers)
 - `KEYCLOAK_JWKS_URL` (override JWKS endpoint)
 - `DEV_BYPASS_AUTH` (set `true` for local header-based auth)
+- `AUTH_MODE` (`keycloak`, `bypass`, or `auto`; default: `auto`)
 - `BASYX_BASE_URL` (default: `http://aas-environment:8081`)
 - `AAS_REGISTRY_URL` (optional)
 - `SUBMODEL_REGISTRY_URL` (optional)
+- `MINIO_ENDPOINT`, `MINIO_ACCESS_KEY`, `MINIO_SECRET_KEY`, `MINIO_BUCKET`, `MINIO_PUBLIC_URL`
 
 ## Services
 
@@ -73,3 +75,9 @@ Simulation Engine uses Keycloak client credentials:
 ## Documentation
 
 See `docs/` for architecture, APIs, compliance, and guides.
+
+Generate OpenAPI specs with:
+
+```bash
+make openapi
+```
