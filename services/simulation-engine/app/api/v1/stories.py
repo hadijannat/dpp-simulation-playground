@@ -40,22 +40,40 @@ def start_story(request: Request, session_id: str, code: str, db: Session = Depe
     except KeyError:
         raise HTTPException(status_code=404, detail="Story not found")
     story_record = db.query(UserStory).filter(UserStory.code == code).first()
-    progress = StoryProgress(
-        id=uuid4(),
-        user_id=session.user_id,
-        story_id=story_record.id if story_record else None,
-        role_type=session.active_role,
-        status="in_progress",
-        completion_percentage=0,
-        steps_completed=[],
-        started_at=datetime.now(timezone.utc),
-    )
-    db.add(progress)
+    story_id = story_record.id if story_record else None
+    progress = db.query(StoryProgress).filter(
+        StoryProgress.user_id == session.user_id,
+        StoryProgress.story_id == story_id,
+        StoryProgress.role_type == session.active_role,
+    ).first()
+    existing = progress is not None
+    if progress:
+        # Restart story progress to avoid unique constraint violations.
+        progress.status = "in_progress"
+        progress.completion_percentage = 0
+        progress.steps_completed = []
+        progress.validation_results = None
+        progress.started_at = datetime.now(timezone.utc)
+        progress.completed_at = None
+        progress.time_spent_seconds = 0
+    else:
+        progress = StoryProgress(
+            id=uuid4(),
+            user_id=session.user_id,
+            story_id=story_id,
+            role_type=session.active_role,
+            status="in_progress",
+            completion_percentage=0,
+            steps_completed=[],
+            started_at=datetime.now(timezone.utc),
+        )
+        db.add(progress)
     session.current_story_id = story_record.id if story_record else None
     session.session_state = {**(session.session_state or {}), "story_code": code}
     session.last_activity = datetime.now(timezone.utc)
     db.commit()
-    return {"session_id": session_id, "story": story, "status": "started", "progress_id": str(progress.id)}
+    status = "restarted" if existing else "started"
+    return {"session_id": session_id, "story": story, "status": status, "progress_id": str(progress.id)}
 
 
 class StoryValidateRequest(BaseModel):
