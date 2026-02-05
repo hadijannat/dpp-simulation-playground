@@ -16,6 +16,8 @@ services:
       KONG_DECLARATIVE_CONFIG: /kong/declarative/kong.yml
       KEYCLOAK_URL: http://keycloak:8080
       KEYCLOAK_REALM: dpp
+      KONG_ALLOW_ANONYMOUS: ${KONG_ALLOW_ANONYMOUS:-false}
+      KONG_CORS_ORIGINS: ${KONG_CORS_ORIGINS:-http://localhost:3000}
 
   simulation-engine:
     build:
@@ -25,10 +27,10 @@ services:
     environment:
       - KEYCLOAK_URL=http://keycloak:8080
       - KEYCLOAK_REALM=dpp
-      - AUTH_MODE=auto
-      - DEV_BYPASS_AUTH=true
-      - SERVICE_CLIENT_ID=dpp-services
-      - SERVICE_CLIENT_SECRET=dev-services-secret
+      - AUTH_MODE=${AUTH_MODE:-keycloak}
+      - DEV_BYPASS_AUTH=${DEV_BYPASS_AUTH:-false}
+      - SERVICE_CLIENT_ID=${SERVICE_CLIENT_ID:-dpp-services}
+      - SERVICE_CLIENT_SECRET=${SERVICE_CLIENT_SECRET:-dev-services-secret}
       - DATABASE_URL=postgresql://dpp:dpp@postgres:5432/dpp_playground
       - REDIS_URL=redis://redis:6379/0
       - MINIO_ENDPOINT=minio:9000
@@ -46,8 +48,8 @@ services:
     environment:
       - KEYCLOAK_URL=http://keycloak:8080
       - KEYCLOAK_REALM=dpp
-      - AUTH_MODE=auto
-      - DEV_BYPASS_AUTH=true
+      - AUTH_MODE=${AUTH_MODE:-keycloak}
+      - DEV_BYPASS_AUTH=${DEV_BYPASS_AUTH:-false}
       - DATABASE_URL=postgresql://dpp:dpp@postgres:5432/dpp_playground
       - REDIS_URL=redis://redis:6379/0
     depends_on: [keycloak]
@@ -60,8 +62,8 @@ services:
     environment:
       - KEYCLOAK_URL=http://keycloak:8080
       - KEYCLOAK_REALM=dpp
-      - AUTH_MODE=auto
-      - DEV_BYPASS_AUTH=true
+      - AUTH_MODE=${AUTH_MODE:-keycloak}
+      - DEV_BYPASS_AUTH=${DEV_BYPASS_AUTH:-false}
       - DATABASE_URL=postgresql://dpp:dpp@postgres:5432/dpp_playground
       - REDIS_URL=redis://redis:6379/0
     depends_on: [postgres, redis, keycloak]
@@ -74,8 +76,8 @@ services:
     environment:
       - KEYCLOAK_URL=http://keycloak:8080
       - KEYCLOAK_REALM=dpp
-      - AUTH_MODE=auto
-      - DEV_BYPASS_AUTH=true
+      - AUTH_MODE=${AUTH_MODE:-keycloak}
+      - DEV_BYPASS_AUTH=${DEV_BYPASS_AUTH:-false}
       - DATABASE_URL=postgresql://dpp:dpp@postgres:5432/dpp_playground
       - REDIS_URL=redis://redis:6379/0
     depends_on: [keycloak]
@@ -88,8 +90,8 @@ services:
     environment:
       - KEYCLOAK_URL=http://keycloak:8080
       - KEYCLOAK_REALM=dpp
-      - AUTH_MODE=auto
-      - DEV_BYPASS_AUTH=true
+      - AUTH_MODE=${AUTH_MODE:-keycloak}
+      - DEV_BYPASS_AUTH=${DEV_BYPASS_AUTH:-false}
       - DATABASE_URL=postgresql://dpp:dpp@postgres:5432/dpp_playground
       - REDIS_URL=redis://redis:6379/0
     depends_on: [keycloak]
@@ -98,8 +100,8 @@ services:
     build: ../keycloak
     ports: ["8080:8080"]
     environment:
-      - KEYCLOAK_ADMIN=admin
-      - KEYCLOAK_ADMIN_PASSWORD=admin
+      - KEYCLOAK_ADMIN=${KEYCLOAK_ADMIN:-admin}
+      - KEYCLOAK_ADMIN_PASSWORD=${KEYCLOAK_ADMIN_PASSWORD:-admin}
     command: start-dev --import-realm
 
   aas-environment:
