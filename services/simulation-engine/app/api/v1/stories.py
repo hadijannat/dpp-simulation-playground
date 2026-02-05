@@ -142,17 +142,17 @@ def validate_story(
     db.commit()
 
     if session:
-        publish_event(
-            "simulation.events",
-            events.build_event(
-                events.STORY_COMPLETED,
-                user_id=str(session.user_id),
-                session_id=session_id,
-                story_code=code,
-                status=result.get("status"),
-            ),
-        )
         if result.get("status") == "compliant":
+            publish_event(
+                "simulation.events",
+                events.build_event(
+                    events.STORY_COMPLETED,
+                    user_id=str(session.user_id),
+                    session_id=session_id,
+                    story_code=code,
+                    status=result.get("status"),
+                ),
+            )
             publish_event(
                 "simulation.events",
                 events.build_event(
@@ -160,6 +160,19 @@ def validate_story(
                     user_id=str(session.user_id),
                     session_id=session_id,
                     story_code=code,
+                    status="compliant",
+                ),
+            )
+        else:
+            publish_event(
+                "simulation.events",
+                events.build_event(
+                    events.STORY_FAILED,
+                    user_id=str(session.user_id),
+                    session_id=session_id,
+                    story_code=code,
+                    status=result.get("status", "error"),
+                    metadata={"error": result.get("error")},
                 ),
             )
     return {"session_id": session_id, "story_code": code, "result": result}

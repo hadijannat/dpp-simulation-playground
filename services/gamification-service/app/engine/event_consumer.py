@@ -13,8 +13,11 @@ from ..core.db import SessionLocal
 from ..models.user_achievement import UserAchievement
 from ..models.achievement import Achievement
 from .points_engine import add_points
+from services.shared.redis_client import ensure_stream_group, xadd_with_retry
 
 STREAM = "simulation.events"
+DLQ_STREAM = "simulation.events.dlq"
+RETRY_LIMIT = 3
 
 
 def _load_point_rules() -> Dict[str, int]:
@@ -84,14 +87,31 @@ def _process_event(event: Dict[str, Any], point_rules: Dict[str, int], achieveme
         db.close()
 
 
+def _handle_failure(client: Redis, msg_id: str, event: Dict[str, Any], error: Exception) -> None:
+    retry = int(event.get("retry", 0)) if event.get("retry") is not None else 0
+    if retry < RETRY_LIMIT:
+        next_event = dict(event)
+        next_event["retry"] = retry + 1
+        next_event["last_error"] = str(error)
+        xadd_with_retry(client, STREAM, next_event)
+        time.sleep(min(2 ** retry, 4))
+    else:
+        payload = {
+            "event": json.dumps(event),
+            "error": str(error),
+        }
+        xadd_with_retry(client, DLQ_STREAM, payload)
+    try:
+        client.xack(STREAM, "gamification", msg_id)
+    except Exception:
+        return
+
+
 def _worker():
     client = Redis.from_url(REDIS_URL)
     group = "gamification"
     consumer = f"consumer-{uuid4()}"
-    try:
-        client.xgroup_create(STREAM, group, id="0-0", mkstream=True)
-    except Exception:
-        pass
+    ensure_stream_group(client, STREAM, group)
     point_rules = _load_point_rules()
     achievements = _load_achievement_defs()
     while True:
@@ -105,11 +125,11 @@ def _worker():
         for _, messages in result:
             for msg_id, data in messages:
                 decoded = {_decode(k): _maybe_json(_decode(v)) for k, v in data.items()}
-                _process_event(decoded, point_rules, achievements)
                 try:
+                    _process_event(decoded, point_rules, achievements)
                     client.xack(STREAM, group, msg_id)
-                except Exception:
-                    continue
+                except Exception as exc:
+                    _handle_failure(client, msg_id, decoded, exc)
 
 
 def start_consumer():

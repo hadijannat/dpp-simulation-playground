@@ -53,7 +53,8 @@ def execute_step(
                 timeout=8,
             )
             resp.raise_for_status()
-            return {"status": "ok", "data": resp.json()}
+            result = resp.json()
+            return {"status": result.get("status", "unknown"), "data": result}
         except requests.RequestException as exc:
             return {"status": "error", "error": str(exc)}
     if action == "edc.negotiate":
