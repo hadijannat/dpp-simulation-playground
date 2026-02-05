@@ -51,6 +51,7 @@ Simulation Engine uses Keycloak client credentials:
 - EDC Simulator: http://localhost:8004
 - Collaboration Service: http://localhost:8005
 - Keycloak: http://localhost:8080
+- MinIO: http://localhost:9100 (console 9101)
 
 ## Development
 
