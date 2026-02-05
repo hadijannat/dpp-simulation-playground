@@ -30,7 +30,7 @@ export async function getToken() {
   if (!keycloak.authenticated) return null;
   try {
     await keycloak.updateToken(30);
-  } catch (err) {
+  } catch {
     return null;
   }
   return keycloak.token ?? null;
