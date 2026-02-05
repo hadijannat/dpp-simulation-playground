@@ -1,0 +1,9 @@
+name: Bug Report
+description: Report a defect
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+    validations:
+      required: true

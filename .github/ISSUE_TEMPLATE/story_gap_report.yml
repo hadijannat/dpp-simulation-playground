@@ -1,0 +1,9 @@
+name: Story Gap Report
+description: Report a gap in a story simulation
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Gap Description
+    validations:
+      required: true
