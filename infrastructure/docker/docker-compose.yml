@@ -16,6 +16,7 @@ services:
       KONG_DECLARATIVE_CONFIG: /kong/declarative/kong.yml
       KEYCLOAK_URL: http://keycloak:8080
       KEYCLOAK_REALM: dpp
+      KONG_ALLOW_ANONYMOUS: "true"
 
   simulation-engine:
     build:

@@ -29,10 +29,18 @@ if [ -z "$PUB_KEY" ]; then
 fi
 
 python3 - <<PY
+import os
 from pathlib import Path
 pub = """$PUB_KEY"""
 text = Path("$TEMPLATE").read_text()
 text = text.replace("REPLACE_WITH_KEYCLOAK_REALM_PUBLIC_KEY", pub)
+allow = os.getenv("KONG_ALLOW_ANONYMOUS", "true").lower() in ("1", "true", "yes")
+if allow:
+    text = text.replace("__ANON_CONSUMER__", "  - username: anonymous\n")
+    text = text.replace("__ANON_CONFIG__", "      anonymous: anonymous\n")
+else:
+    text = text.replace("__ANON_CONSUMER__", "")
+    text = text.replace("__ANON_CONFIG__", "")
 Path("$OUTPUT").write_text(text)
 PY
 

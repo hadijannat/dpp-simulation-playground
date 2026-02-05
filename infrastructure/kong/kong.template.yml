@@ -80,7 +80,7 @@ consumers:
           -----BEGIN PUBLIC KEY-----
           REPLACE_WITH_KEYCLOAK_REALM_PUBLIC_KEY
           -----END PUBLIC KEY-----
-  - username: anonymous
+__ANON_CONSUMER__
 
 plugins:
   - name: cors
@@ -98,4 +98,4 @@ plugins:
       claims_to_verify:
         - exp
       run_on_preflight: false
-      anonymous: anonymous
+__ANON_CONFIG__

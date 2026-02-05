@@ -15,11 +15,17 @@ spec:
     spec:
       containers:
         - name: kong
-          image: kong:3.6
+          image: dpp/api-gateway:latest
           env:
             - name: KONG_DATABASE
               value: "off"
             - name: KONG_DECLARATIVE_CONFIG
               value: /kong/declarative/kong.yml
+            - name: KEYCLOAK_URL
+              value: "http://keycloak"
+            - name: KEYCLOAK_REALM
+              value: "dpp"
+            - name: KONG_ALLOW_ANONYMOUS
+              value: "false"
           ports:
             - containerPort: 8000
