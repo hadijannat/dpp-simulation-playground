@@ -1,3 +1,1 @@
-export function useAuth() {
-  return { user: null };
-}
+export { useAuth } from "../providers/AuthProvider";
