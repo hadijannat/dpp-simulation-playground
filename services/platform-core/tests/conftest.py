@@ -17,18 +17,18 @@ if str(SERVICE_DIR) not in sys.path:
     sys.path.insert(0, str(SERVICE_DIR))
 
 from services.shared.models.base import Base  # noqa: E402
-from services.shared.models.user import User  # noqa: E402
-from services.shared.models.session import SimulationSession  # noqa: E402
-from services.shared.models.story import UserStory  # noqa: E402
-from services.shared.models.dpp_instance import DppInstance  # noqa: E402
+from services.shared.models.user import User  # noqa: E402, F401
+from services.shared.models.session import SimulationSession  # noqa: E402, F401
+from services.shared.models.story import UserStory  # noqa: E402, F401
+from services.shared.models.dpp_instance import DppInstance  # noqa: E402, F401
 from services.shared.models.journey_template import JourneyTemplate  # noqa: E402
 from services.shared.models.journey_step import JourneyStep  # noqa: E402
-from services.shared.models.journey_run import JourneyRun  # noqa: E402
-from services.shared.models.journey_step_run import JourneyStepRun  # noqa: E402
-from services.shared.models.digital_twin_snapshot import DigitalTwinSnapshot  # noqa: E402
-from services.shared.models.digital_twin_node import DigitalTwinNode  # noqa: E402
-from services.shared.models.digital_twin_edge import DigitalTwinEdge  # noqa: E402
-from services.shared.models.ux_feedback import UxFeedback  # noqa: E402
+from services.shared.models.journey_run import JourneyRun  # noqa: E402, F401
+from services.shared.models.journey_step_run import JourneyStepRun  # noqa: E402, F401
+from services.shared.models.digital_twin_snapshot import DigitalTwinSnapshot  # noqa: E402, F401
+from services.shared.models.digital_twin_node import DigitalTwinNode  # noqa: E402, F401
+from services.shared.models.digital_twin_edge import DigitalTwinEdge  # noqa: E402, F401
+from services.shared.models.ux_feedback import UxFeedback  # noqa: E402, F401
 
 from app.core.db import get_db  # noqa: E402
 from app import main  # noqa: E402

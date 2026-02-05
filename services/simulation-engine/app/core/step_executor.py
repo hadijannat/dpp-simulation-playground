@@ -4,7 +4,6 @@ from sqlalchemy.orm import Session
 from ..config import COMPLIANCE_URL, EDC_URL, BASYX_BASE_URL, BASYX_API_PREFIX
 from .service_token import get_service_token
 from ..aas.basyx_client import BasyxClient
-from ..models.dpp_instance import DppInstance
 from ..models.session import SimulationSession
 from .aasx_storage import store_aasx_payload
 from datetime import datetime, timezone

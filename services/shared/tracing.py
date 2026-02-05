@@ -1,5 +1,4 @@
 """Shared OpenTelemetry + Prometheus instrumentation for all backend services."""
-import os
 
 def instrument_app(app, service_name: str = "unknown"):
     """Add OpenTelemetry tracing and Prometheus /metrics to a FastAPI app.
