@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import base64
+import binascii
 import io
 import os
 from uuid import uuid4
@@ -68,7 +69,10 @@ def store_aasx_payload(
     content_base64: str,
     metadata: dict,
 ) -> dict:
-    raw = base64.b64decode(content_base64)
+    try:
+        raw = base64.b64decode(content_base64)
+    except binascii.Error:
+        raw = content_base64.encode("utf-8")
     stored = _store_minio(filename, raw) or _store_local(filename, raw)
     if session_id:
         instance = (

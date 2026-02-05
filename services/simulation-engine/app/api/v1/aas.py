@@ -14,6 +14,8 @@ from ...aas.basyx_client import BasyxClient
 from ...models.dpp_instance import DppInstance
 from ...models.validation_result import ValidationResult
 from ...core.aasx_storage import store_aasx_payload
+from ...core.event_publisher import publish_event
+from services.shared import events
 from pathlib import Path
 import os
 from ...auth import require_roles
@@ -144,5 +146,14 @@ def upload_aasx(request: Request, payload: AasxUploadRequest, db: Session = Depe
         filename=payload.filename,
         content_base64=payload.content_base64,
         metadata={"source": "api"},
+    )
+    publish_event(
+        "simulation.events",
+        events.build_event(
+            events.AASX_UPLOADED,
+            user_id=str(request.state.user.get("sub") or request.state.user.get("preferred_username") or ""),
+            session_id=payload.session_id,
+            metadata={"source": "api"},
+        ),
     )
     return {"status": "stored", "storage": stored}

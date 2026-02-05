@@ -58,6 +58,8 @@ def execute_step(
             return {"status": "error", "error": str(exc)}
     if action == "edc.negotiate":
         payload = _default_payload(payload, params)
+        if isinstance(payload, dict) and context.get("session_id") and not payload.get("session_id"):
+            payload["session_id"] = context.get("session_id")
         try:
             resp = requests.post(
                 f"{EDC_URL}/api/v1/edc/negotiations",
@@ -71,6 +73,8 @@ def execute_step(
             return {"status": "error", "error": str(exc)}
     if action == "edc.transfer":
         payload = _default_payload(payload, params)
+        if isinstance(payload, dict) and context.get("session_id") and not payload.get("session_id"):
+            payload["session_id"] = context.get("session_id")
         try:
             resp = requests.post(
                 f"{EDC_URL}/api/v1/edc/transfers",

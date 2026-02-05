@@ -1,7 +1,6 @@
 import yaml
 import os
 from typing import List, Dict
-from uuid import uuid4
 from sqlalchemy.orm import Session
 from ..models.achievement import Achievement
 
@@ -23,7 +22,6 @@ def ensure_achievements(db: Session) -> None:
         if existing:
             continue
         record = Achievement(
-            id=uuid4(),
             code=code,
             name=definition.get("name"),
             description=definition.get("description"),

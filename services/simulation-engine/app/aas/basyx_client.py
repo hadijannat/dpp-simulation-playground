@@ -51,7 +51,7 @@ class BasyxClient:
             "endpoints": [
                 {
                     "protocolInformation": {
-                        "href": f"{self.base_url}/api/v3.0/shells/{shell.get('id')}"
+                        "href": f"{self.base_url}{self.api_prefix}/shells/{shell.get('id')}"
                     }
                 }
             ],
@@ -73,7 +73,7 @@ class BasyxClient:
             "endpoints": [
                 {
                     "protocolInformation": {
-                        "href": f"{self.base_url}/api/v3.0/submodels/{submodel.get('id')}"
+                        "href": f"{self.base_url}{self.api_prefix}/submodels/{submodel.get('id')}"
                     }
                 }
             ],
