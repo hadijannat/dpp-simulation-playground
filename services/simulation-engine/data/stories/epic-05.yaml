@@ -1,9 +1,38 @@
-- code: EPIC-05-STORY-01
-  title: Epic 05 Sample Story
+- code: US-05-01
+  title: "Initiate transfer"
   steps:
     - action: user.input
       params:
-        prompt: "Provide input"
-    - action: compliance.check
+        prompt: "Initiate ownership transfer"
+    - action: edc.negotiate
       params:
-        regulations: ["ESPR"]
+        payload:
+          consumer_id: "BPNL000000000001"
+          provider_id: "BPNL000000000002"
+          asset_id: "asset-001"
+          policy:
+            "@type": "odrl:Offer"
+- code: US-05-02
+  title: "Accept transfer"
+  steps:
+    - action: user.input
+      params:
+        prompt: "Accept ownership transfer"
+- code: US-05-03
+  title: "Record handover"
+  steps:
+    - action: user.input
+      params:
+        prompt: "Record handover details"
+- code: US-05-04
+  title: "Delegate access"
+  steps:
+    - action: user.input
+      params:
+        prompt: "Delegate access to another party"
+- code: US-05-05
+  title: "Audit transfer history"
+  steps:
+    - action: user.input
+      params:
+        prompt: "Review transfer history"

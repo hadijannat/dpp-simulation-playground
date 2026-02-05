@@ -1,9 +1,30 @@
-- code: EPIC-08-STORY-01
-  title: Epic 08 Sample Story
+- code: US-08-01
+  title: "View KPI dashboard"
   steps:
     - action: user.input
       params:
-        prompt: "Provide input"
-    - action: compliance.check
+        prompt: "View KPI dashboard"
+- code: US-08-02
+  title: "Lifecycle visualization"
+  steps:
+    - action: user.input
       params:
-        regulations: ["ESPR"]
+        prompt: "View lifecycle visualization"
+- code: US-08-03
+  title: "Material flow analysis"
+  steps:
+    - action: user.input
+      params:
+        prompt: "Run material flow analysis"
+- code: US-08-04
+  title: "Access heatmap"
+  steps:
+    - action: user.input
+      params:
+        prompt: "View access heatmap"
+- code: US-08-05
+  title: "Export analytics"
+  steps:
+    - action: user.input
+      params:
+        prompt: "Export analytics"

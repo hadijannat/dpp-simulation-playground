@@ -5,6 +5,8 @@ from ..config import COMPLIANCE_URL, EDC_URL, BASYX_BASE_URL
 from .service_token import get_service_token
 from ..aas.basyx_client import BasyxClient
 from ..models.dpp_instance import DppInstance
+from ..models.session import SimulationSession
+from datetime import datetime, timezone
 from uuid import uuid4
 
 
@@ -37,6 +39,7 @@ def execute_step(
         body = {
             "data": data,
             "regulations": regulations,
+            "user_id": context.get("user_id"),
             "session_id": context.get("session_id"),
             "story_code": context.get("story_code"),
         }
@@ -88,6 +91,26 @@ def execute_step(
         return {"status": "created", "data": shell}
     if action == "aas.update":
         payload = _default_payload(payload, params)
+        update_name = None
+        if isinstance(payload, dict):
+            update_name = payload.get("update")
+        if update_name and context.get("session_id"):
+            session = db.query(SimulationSession).filter(SimulationSession.id == context.get("session_id")).first()
+            if session:
+                current_state = session.session_state or {}
+                updates = current_state.get("aas_updates", [])
+                updates.append(
+                    {
+                        "update": update_name,
+                        "payload": payload,
+                        "timestamp": datetime.now(timezone.utc).isoformat(),
+                    }
+                )
+                session.session_state = {**current_state, "aas_updates": updates}
+                try:
+                    db.commit()
+                except Exception:
+                    db.rollback()
         return {"status": "updated", "data": payload}
     if action == "api.call":
         payload = _default_payload(payload, params)

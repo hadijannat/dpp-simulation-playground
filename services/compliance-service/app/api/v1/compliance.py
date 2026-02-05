@@ -6,16 +6,18 @@ from ...engine.rule_engine import evaluate_payload
 from ...core.db import get_db
 from ...models.compliance_report import ComplianceReport
 from ...auth import require_roles
+from services.shared.user_registry import resolve_user_id
 
 router = APIRouter()
 
 @router.post("/compliance/check")
 def check(request: Request, payload: ComplianceCheckRequest, db: Session = Depends(get_db)):
     require_roles(request.state.user, ["manufacturer", "regulator", "developer", "admin"])
+    user_id = payload.user_id or resolve_user_id(db, request.state.user)
     result = evaluate_payload(payload.data, payload.regulations)
     report = ComplianceReport(
         id=uuid4(),
-        user_id=request.state.user.get("sub"),
+        user_id=user_id,
         session_id=payload.session_id,
         story_code=payload.story_code,
         regulations=payload.regulations,

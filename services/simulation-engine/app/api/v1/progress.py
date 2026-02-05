@@ -3,13 +3,14 @@ from sqlalchemy.orm import Session
 from ...core.db import get_db
 from ...models.story_progress import StoryProgress
 from ...auth import require_roles
+from services.shared.user_registry import resolve_user_id
 
 router = APIRouter()
 
 @router.get("/progress")
 def get_progress(request: Request, db: Session = Depends(get_db)):
     require_roles(request.state.user, ["manufacturer", "developer", "admin", "regulator", "consumer", "recycler"])
-    user_id = request.state.user.get("sub")
+    user_id = resolve_user_id(db, request.state.user)
     if not user_id:
         return {"progress": []}
     items = (

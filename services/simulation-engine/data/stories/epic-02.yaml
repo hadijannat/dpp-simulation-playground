@@ -1,9 +1,70 @@
-- code: EPIC-02-STORY-01
-  title: Epic 02 Sample Story
+- code: US-02-01
+  title: "Create DPP shell"
   steps:
     - action: user.input
       params:
-        prompt: "Provide input"
+        prompt: "Provide DPP creation details"
+    - action: aas.create
+      params:
+        payload:
+          id: "urn:uuid:us-02-01"
+          idShort: "DPP-Create"
+          assetInformation:
+            assetKind: "Instance"
+            globalAssetId: "urn:example:asset:us-02-01"
+- code: US-02-02
+  title: "Add Digital Nameplate"
+  steps:
+    - action: user.input
+      params:
+        prompt: "Add digital nameplate data"
+    - action: aas.update
+      params:
+        payload:
+          submodel: "DigitalNameplate"
+- code: US-02-03
+  title: "Add Carbon Footprint"
+  steps:
+    - action: user.input
+      params:
+        prompt: "Add carbon footprint data"
+    - action: aas.update
+      params:
+        payload:
+          submodel: "CarbonFootprint"
+- code: US-02-04
+  title: "Upload AASX package"
+  steps:
+    - action: user.input
+      params:
+        prompt: "Upload AASX package"
+- code: US-02-05
+  title: "Register DPP in registry"
+  steps:
+    - action: user.input
+      params:
+        prompt: "Register the DPP in a registry"
+- code: US-02-06
+  title: "Generate QR code"
+  steps:
+    - action: user.input
+      params:
+        prompt: "Generate QR code for the DPP"
+- code: US-02-07
+  title: "Bulk import DPPs"
+  steps:
+    - action: user.input
+      params:
+        prompt: "Upload bulk DPP import file"
+- code: US-02-08
+  title: "Validate IDTA template"
+  steps:
+    - action: user.input
+      params:
+        prompt: "Select IDTA templates to validate"
     - action: compliance.check
       params:
-        regulations: ["ESPR"]
+        regulations:
+          - "ESPR"
+        data:
+          aas_identifier: "urn:uuid:us-02-08"

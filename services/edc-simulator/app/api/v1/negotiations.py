@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request, Depends
 from pydantic import BaseModel
 from typing import Dict
 from uuid import uuid4
@@ -8,6 +8,9 @@ from ...store import save_item, load_item
 from ...config import REDIS_URL
 from redis import Redis
 from ...auth import require_roles
+from ...core.db import get_db
+from sqlalchemy.orm import Session
+from services.shared.user_registry import resolve_user_id
 
 router = APIRouter()
 
@@ -124,7 +127,7 @@ def verify(request: Request, negotiation_id: str):
 
 
 @router.post("/negotiations/{negotiation_id}/finalize")
-def finalize(request: Request, negotiation_id: str):
+def finalize(request: Request, negotiation_id: str, db: Session = Depends(get_db)):
     require_roles(request.state.user, ["developer", "manufacturer", "admin"])
     item = load_item(_key(negotiation_id))
     if not item:
@@ -133,11 +136,12 @@ def finalize(request: Request, negotiation_id: str):
         raise HTTPException(status_code=400, detail="Invalid transition")
     save_item(_key(negotiation_id), _set_state(item, "FINALIZED"))
     try:
+        user_id = resolve_user_id(db, request.state.user)
         Redis.from_url(REDIS_URL).xadd(
             "simulation.events",
             {
                 "event_type": "edc_negotiation_completed",
-                "user_id": request.state.user.get("sub"),
+                "user_id": user_id or "",
                 "negotiation_id": negotiation_id,
             },
         )

@@ -6,6 +6,7 @@ from ...core.db import get_db
 from ...models.vote import Vote
 from ...models.annotation import Annotation
 from ...auth import require_roles
+from services.shared.user_registry import resolve_user_id
 
 router = APIRouter()
 
@@ -30,7 +31,9 @@ def list_votes(request: Request, target_id: str | None = None, db: Session = Dep
 @router.post("/votes")
 def create_vote(request: Request, payload: VoteCreate, db: Session = Depends(get_db)):
     require_roles(request.state.user, ["developer", "admin", "manufacturer", "regulator", "consumer", "recycler"])
-    user_id = request.state.user.get("sub")
+    user_id = resolve_user_id(db, request.state.user)
+    if not user_id:
+        raise HTTPException(status_code=400, detail="Missing user id")
     existing = db.query(Vote).filter(Vote.user_id == user_id, Vote.target_id == payload.target_id).first()
     if existing:
         return {"id": str(existing.id), "target_id": existing.target_id, "value": existing.value}

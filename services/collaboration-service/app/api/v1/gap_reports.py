@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Request, Depends
+from fastapi import APIRouter, Request, Depends, HTTPException
 from pydantic import BaseModel
 from uuid import uuid4
 from sqlalchemy.orm import Session
@@ -7,6 +7,7 @@ from ...models.gap_report import GapReport
 from ...config import REDIS_URL
 from redis import Redis
 from ...auth import require_roles
+from services.shared.user_registry import resolve_user_id
 
 router = APIRouter()
 
@@ -43,9 +44,12 @@ def list_reports(
 @router.post("/gap_reports")
 def create_report(request: Request, payload: GapReportCreate, db: Session = Depends(get_db)):
     require_roles(request.state.user, ["developer", "admin", "manufacturer", "regulator", "consumer", "recycler"])
+    user_id = resolve_user_id(db, request.state.user)
+    if not user_id:
+        raise HTTPException(status_code=400, detail="Missing user id")
     item = GapReport(
         id=uuid4(),
-        user_id=request.state.user.get("sub"),
+        user_id=user_id,
         story_id=payload.story_id,
         description=payload.description,
         status="open",
@@ -57,7 +61,7 @@ def create_report(request: Request, payload: GapReportCreate, db: Session = Depe
             "simulation.events",
             {
                 "event_type": "gap_reported",
-                "user_id": request.state.user.get("sub"),
+                "user_id": user_id,
                 "story_id": payload.story_id or "",
             },
         )

@@ -1,9 +1,36 @@
-- code: EPIC-01-STORY-01
-  title: Epic 01 Sample Story
+- code: US-01-01
+  title: "Register account"
   steps:
     - action: user.input
       params:
-        prompt: "Provide input"
-    - action: compliance.check
+        prompt: "Enter registration details"
+- code: US-01-02
+  title: "Login with credentials"
+  steps:
+    - action: user.input
       params:
-        regulations: ["ESPR"]
+        prompt: "Provide login credentials"
+- code: US-01-03
+  title: "SSO login"
+  steps:
+    - action: user.input
+      params:
+        prompt: "Complete SSO login"
+- code: US-01-04
+  title: "Select role"
+  steps:
+    - action: user.input
+      params:
+        prompt: "Select a role to continue"
+- code: US-01-05
+  title: "Refresh session"
+  steps:
+    - action: user.input
+      params:
+        prompt: "Refresh session token"
+- code: US-01-06
+  title: "Logout"
+  steps:
+    - action: user.input
+      params:
+        prompt: "Confirm logout"

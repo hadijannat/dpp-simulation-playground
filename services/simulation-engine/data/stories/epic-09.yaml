@@ -1,9 +1,41 @@
-- code: EPIC-09-STORY-01
-  title: Epic 09 Sample Story
+- code: US-09-01
+  title: "Browse EDC catalog"
   steps:
     - action: user.input
       params:
-        prompt: "Provide input"
-    - action: compliance.check
+        prompt: "Browse EDC catalog"
+- code: US-09-02
+  title: "Negotiate data contract"
+  steps:
+    - action: edc.negotiate
       params:
-        regulations: ["ESPR"]
+        payload:
+          consumer_id: "BPNL000000000001"
+          provider_id: "BPNL000000000002"
+          asset_id: "asset-001"
+          policy:
+            "@type": "odrl:Offer"
+- code: US-09-03
+  title: "Start data transfer"
+  steps:
+    - action: user.input
+      params:
+        prompt: "Start data transfer"
+- code: US-09-04
+  title: "Subscribe to webhook"
+  steps:
+    - action: user.input
+      params:
+        prompt: "Configure webhook subscription"
+- code: US-09-05
+  title: "ERP sync"
+  steps:
+    - action: user.input
+      params:
+        prompt: "Sync ERP data"
+- code: US-09-06
+  title: "DCAT export"
+  steps:
+    - action: user.input
+      params:
+        prompt: "Export DCAT catalog"

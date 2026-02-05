@@ -1,4 +1,5 @@
 from .base import Base
+from .user import User
 from .session import SimulationSession
 from .story import UserStory
 from .story_progress import StoryProgress
@@ -15,6 +16,7 @@ from .compliance_report import ComplianceReport
 
 __all__ = [
     "Base",
+    "User",
     "SimulationSession",
     "UserStory",
     "StoryProgress",

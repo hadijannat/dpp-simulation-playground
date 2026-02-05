@@ -13,6 +13,7 @@ services:
     ports: ["8000:8000", "8443:8443"]
     environment:
       KONG_DATABASE: "off"
+      KONG_DECLARATIVE_CONFIG: /kong/declarative/kong.yml
       KEYCLOAK_URL: http://keycloak:8080
       KEYCLOAK_REALM: dpp
 

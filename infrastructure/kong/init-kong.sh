@@ -5,6 +5,7 @@ KEYCLOAK_URL=${KEYCLOAK_URL:-http://keycloak:8080}
 KEYCLOAK_REALM=${KEYCLOAK_REALM:-dpp}
 TEMPLATE=/kong/kong.template.yml
 OUTPUT=/kong/declarative/kong.yml
+mkdir -p /kong/declarative
 
 # Wait for Keycloak
 until curl -sf "$KEYCLOAK_URL/realms/$KEYCLOAK_REALM" >/dev/null; do
