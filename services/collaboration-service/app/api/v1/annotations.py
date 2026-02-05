@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Request
-from ..schemas.annotation_schema import AnnotationCreate
+from ...schemas.annotation_schema import AnnotationCreate
 from uuid import uuid4
 from ...auth import require_roles
 
