@@ -45,11 +45,12 @@ Simulation Engine uses Keycloak client credentials:
 
 ## Services
 
-- Simulation Engine: http://localhost:8001
-- Compliance Service: http://localhost:8002
-- Gamification Service: http://localhost:8003
-- EDC Simulator: http://localhost:8004
-- Collaboration Service: http://localhost:8005
+- API Gateway: http://localhost:8000
+- Simulation Engine: http://localhost:8101
+- Compliance Service: http://localhost:8102
+- Gamification Service: http://localhost:8103
+- EDC Simulator: http://localhost:8104
+- Collaboration Service: http://localhost:8105
 - Keycloak: http://localhost:8080
 - MinIO: http://localhost:9100 (console 9101)
 

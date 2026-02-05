@@ -20,7 +20,7 @@ services:
     build:
       context: ../..
       dockerfile: services/simulation-engine/Dockerfile
-    ports: ["8001:8001"]
+    ports: ["8101:8001"]
     environment:
       - KEYCLOAK_URL=http://keycloak:8080
       - KEYCLOAK_REALM=dpp
@@ -34,7 +34,7 @@ services:
     build:
       context: ../..
       dockerfile: services/compliance-service/Dockerfile
-    ports: ["8002:8002"]
+    ports: ["8102:8002"]
     environment:
       - KEYCLOAK_URL=http://keycloak:8080
       - KEYCLOAK_REALM=dpp
@@ -46,7 +46,7 @@ services:
     build:
       context: ../..
       dockerfile: services/gamification-service/Dockerfile
-    ports: ["8003:8003"]
+    ports: ["8103:8003"]
     environment:
       - KEYCLOAK_URL=http://keycloak:8080
       - KEYCLOAK_REALM=dpp
@@ -58,7 +58,7 @@ services:
     build:
       context: ../..
       dockerfile: services/edc-simulator/Dockerfile
-    ports: ["8004:8004"]
+    ports: ["8104:8004"]
     environment:
       - KEYCLOAK_URL=http://keycloak:8080
       - KEYCLOAK_REALM=dpp
@@ -70,7 +70,7 @@ services:
     build:
       context: ../..
       dockerfile: services/collaboration-service/Dockerfile
-    ports: ["8005:8005"]
+    ports: ["8105:8005"]
     environment:
       - KEYCLOAK_URL=http://keycloak:8080
       - KEYCLOAK_REALM=dpp
