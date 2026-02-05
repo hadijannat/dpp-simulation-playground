@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+  namespace: dpp-playground
+data:
+  KEYCLOAK_URL: http://keycloak
+  KEYCLOAK_REALM: dpp
+  AUTH_MODE: keycloak
+  DEV_BYPASS_AUTH: "false"
+  REDIS_URL: redis://redis:6379/0
+  COMPLIANCE_URL: http://compliance-service
+  EDC_URL: http://edc-simulator
+  BASYX_BASE_URL: http://aas-environment:8081
+  BASYX_API_PREFIX: /api/v3.0
+  AAS_REGISTRY_URL: http://aas-registry:8080
+  SUBMODEL_REGISTRY_URL: http://submodel-registry:8080
+  MINIO_ENDPOINT: minio:9000
+  MINIO_BUCKET: dpp-aasx
+  MINIO_PUBLIC_URL: http://minio:9000
+  MINIO_SECURE: "false"

@@ -41,6 +41,10 @@ if allow:
 else:
     text = text.replace("__ANON_CONSUMER__", "")
     text = text.replace("__ANON_CONFIG__", "")
+origins = os.getenv("KONG_CORS_ORIGINS", "http://localhost:3000")
+items = [o.strip() for o in origins.split(",") if o.strip()]
+origin_list = "[" + ", ".join(f'\"{o}\"' for o in items) + "]" if items else "[]"
+text = text.replace("__CORS_ORIGINS__", origin_list)
 Path("$OUTPUT").write_text(text)
 PY
 

@@ -9,6 +9,9 @@ import EDCSimulatorPage from "./pages/EDCSimulatorPage";
 import DashboardPage from "./pages/DashboardPage";
 import AchievementsPage from "./pages/AchievementsPage";
 import LeaderboardPage from "./pages/LeaderboardPage";
+import GamificationPage from "./pages/GamificationPage";
+import ComplianceReportsPage from "./pages/ComplianceReportsPage";
+import SimulationSessionsPage from "./pages/SimulationSessionsPage";
 import ProfilePage from "./pages/ProfilePage";
 import SettingsPage from "./pages/SettingsPage";
 import LoginPage from "./pages/LoginPage";
@@ -29,6 +32,14 @@ export default function App() {
           }
         />
         <Route
+          path="/simulation/sessions"
+          element={
+            <RouteGuard>
+              <SimulationSessionsPage />
+            </RouteGuard>
+          }
+        />
+        <Route
           path="/playground"
           element={
             <RouteGuard>
@@ -45,6 +56,14 @@ export default function App() {
           }
         />
         <Route
+          path="/compliance/reports"
+          element={
+            <RouteGuard roles={["regulator", "developer", "admin"]}>
+              <ComplianceReportsPage />
+            </RouteGuard>
+          }
+        />
+        <Route
           path="/edc"
           element={
             <RouteGuard roles={["developer", "manufacturer", "admin"]}>
@@ -57,6 +76,14 @@ export default function App() {
           element={
             <RouteGuard>
               <DashboardPage />
+            </RouteGuard>
+          }
+        />
+        <Route
+          path="/gamification"
+          element={
+            <RouteGuard roles={["developer", "admin", "manufacturer", "consumer", "regulator", "recycler"]}>
+              <GamificationPage />
             </RouteGuard>
           }
         />

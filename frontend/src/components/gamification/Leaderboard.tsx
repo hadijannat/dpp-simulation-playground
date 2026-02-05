@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { apiGet } from "../../services/api";
+import { getLeaderboard } from "../../services/gamificationService";
 
 interface LeaderboardEntry {
   user_id: string;
@@ -9,7 +9,7 @@ interface LeaderboardEntry {
 export default function Leaderboard() {
   const { data } = useQuery({
     queryKey: ["leaderboard"],
-    queryFn: () => apiGet("/api/v1/leaderboard"),
+    queryFn: () => getLeaderboard(),
   });
   const items = (data?.items || []) as LeaderboardEntry[];
   return (

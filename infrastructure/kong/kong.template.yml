@@ -85,7 +85,7 @@ __ANON_CONSUMER__
 plugins:
   - name: cors
     config:
-      origins: ["*"]
+      origins: __CORS_ORIGINS__
       methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"]
       headers: ["Authorization", "Content-Type", "X-Dev-User", "X-Dev-Roles"]
   - name: rate-limiting
