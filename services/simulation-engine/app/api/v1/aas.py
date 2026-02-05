@@ -25,7 +25,12 @@ def create_shell(request: Request, payload: AasCreate, db: Session = Depends(get
             "globalAssetId": payload.product_identifier or payload.aas_identifier,
         },
     }
-    shell = client.create_shell(shell_payload)
+    status = "created"
+    try:
+        shell = client.create_shell(shell_payload)
+    except Exception as exc:
+        shell = {"error": str(exc), "payload": shell_payload}
+        status = "degraded"
     if AAS_REGISTRY_URL:
         try:
             client.register_shell_descriptor(AAS_REGISTRY_URL, shell_payload)
@@ -40,15 +45,21 @@ def create_shell(request: Request, payload: AasCreate, db: Session = Depends(get
         product_category=payload.product_category,
         compliance_status={},
     )
-    db.add(dpp)
-    db.commit()
-    return {"status": "created", "aas": shell}
+    try:
+        db.add(dpp)
+        db.commit()
+    except Exception:
+        db.rollback()
+    return {"status": status, "aas": shell}
 
 @router.get("/aas/shells")
 def list_shells(request: Request):
     require_roles(request.state.user, ["manufacturer", "developer", "admin", "regulator", "consumer", "recycler"])
     client = BasyxClient(base_url=BASYX_BASE_URL)
-    return client.list_shells()
+    try:
+        return client.list_shells()
+    except Exception as exc:
+        return {"items": [], "error": str(exc)}
 
 @router.post("/aas/validate")
 def validate_aas(request: Request, payload: AasValidateRequest, db: Session = Depends(get_db)):

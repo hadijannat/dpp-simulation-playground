@@ -15,12 +15,19 @@ router = APIRouter()
 @router.get("/stories")
 def get_stories(request: Request):
     require_roles(request.state.user, ["manufacturer", "developer", "admin", "regulator", "consumer", "recycler"])
-    return {"items": list_stories()}
+    try:
+        items = list_stories()
+    except KeyError:
+        items = []
+    return {"items": items}
 
 @router.get("/stories/{code}")
 def get_story(request: Request, code: str):
     require_roles(request.state.user, ["manufacturer", "developer", "admin", "regulator", "consumer", "recycler"])
-    return load_story(code)
+    try:
+        return load_story(code)
+    except KeyError:
+        raise HTTPException(status_code=404, detail="Story not found")
 
 @router.post("/sessions/{session_id}/stories/{code}/start")
 def start_story(request: Request, session_id: str, code: str, db: Session = Depends(get_db)):
@@ -28,7 +35,10 @@ def start_story(request: Request, session_id: str, code: str, db: Session = Depe
     session = db.query(SimulationSession).filter(SimulationSession.id == session_id).first()
     if not session:
         raise HTTPException(status_code=404, detail="Session not found")
-    story = load_story(code)
+    try:
+        story = load_story(code)
+    except KeyError:
+        raise HTTPException(status_code=404, detail="Story not found")
     story_record = db.query(UserStory).filter(UserStory.code == code).first()
     progress = StoryProgress(
         id=uuid4(),

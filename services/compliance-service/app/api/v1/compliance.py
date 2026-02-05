@@ -22,6 +22,9 @@ def check(request: Request, payload: ComplianceCheckRequest, db: Session = Depen
         status=result.get("status"),
         report=result,
     )
-    db.add(report)
-    db.commit()
+    try:
+        db.add(report)
+        db.commit()
+    except Exception:
+        db.rollback()
     return result

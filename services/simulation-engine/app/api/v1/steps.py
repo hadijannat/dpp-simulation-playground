@@ -29,7 +29,10 @@ def execute(
     db: Session = Depends(get_db),
 ):
     require_roles(request.state.user, ["manufacturer", "developer", "admin", "regulator", "consumer", "recycler"])
-    story = load_story(code)
+    try:
+        story = load_story(code)
+    except KeyError:
+        raise HTTPException(status_code=404, detail="Story not found")
     if idx < 0 or idx >= len(story.get("steps", [])):
         raise HTTPException(status_code=404, detail="Step not found")
     step = story["steps"][idx]
@@ -61,11 +64,12 @@ def execute(
         )
         db.add(progress)
         db.commit()
-    steps_completed = progress.steps_completed if progress else []
+    steps_completed = progress.steps_completed if progress and progress.steps_completed is not None else []
     if idx not in steps_completed:
         steps_completed.append(idx)
         progress.steps_completed = steps_completed
-        progress.completion_percentage = int(len(steps_completed) / len(story["steps"]) * 100)
+        total_steps = max(1, len(story["steps"]))
+        progress.completion_percentage = int(len(steps_completed) / total_steps * 100)
         progress.validation_results = {"last_step": idx, "result": result}
         if progress.completion_percentage >= 100:
             progress.status = "completed"

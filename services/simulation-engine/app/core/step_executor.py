@@ -22,6 +22,8 @@ def execute_step(
     if action == "compliance.check":
         regulations = payload.get("regulations") or params.get("regulations") or []
         data = payload.get("data") if isinstance(payload, dict) else payload
+        if data is None:
+            data = payload
         body = {
             "data": data,
             "regulations": regulations,
@@ -66,8 +68,11 @@ def execute_step(
             product_category=payload.get("product_category"),
             compliance_status={},
         )
-        db.add(dpp)
-        db.commit()
+        try:
+            db.add(dpp)
+            db.commit()
+        except Exception:
+            db.rollback()
         return {"status": "created", "data": shell}
     if action == "aas.update":
         return {"status": "updated", "data": payload}

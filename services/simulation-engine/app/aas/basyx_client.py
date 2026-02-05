@@ -9,17 +9,17 @@ class BasyxClient:
         self.base_url = base_url.rstrip("/")
 
     def create_shell(self, shell: Dict[str, Any]) -> Dict[str, Any]:
-        resp = requests.post(f"{self.base_url}/api/v3.0/shells", json=shell, timeout=10)
+        resp = requests.post(f"{self.base_url}/api/v3.0/shells", json=shell, timeout=5)
         resp.raise_for_status()
         return resp.json() if resp.content else shell
 
     def list_shells(self) -> Dict[str, Any]:
-        resp = requests.get(f"{self.base_url}/api/v3.0/shells", timeout=10)
+        resp = requests.get(f"{self.base_url}/api/v3.0/shells", timeout=5)
         resp.raise_for_status()
         return resp.json()
 
     def create_submodel(self, submodel: Dict[str, Any]) -> Dict[str, Any]:
-        resp = requests.post(f"{self.base_url}/api/v3.0/submodels", json=submodel, timeout=10)
+        resp = requests.post(f"{self.base_url}/api/v3.0/submodels", json=submodel, timeout=5)
         resp.raise_for_status()
         return resp.json() if resp.content else submodel
 
@@ -40,7 +40,7 @@ class BasyxClient:
         resp = requests.post(
             f"{registry_url.rstrip('/')}/api/v3.0/registry/shell-descriptors",
             json=descriptor,
-            timeout=10,
+            timeout=5,
         )
         resp.raise_for_status()
         return resp.json() if resp.content else descriptor
@@ -62,7 +62,7 @@ class BasyxClient:
         resp = requests.post(
             f"{registry_url.rstrip('/')}/api/v3.0/registry/submodel-descriptors",
             json=descriptor,
-            timeout=10,
+            timeout=5,
         )
         resp.raise_for_status()
         return resp.json() if resp.content else descriptor
