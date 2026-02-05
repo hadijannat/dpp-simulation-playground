@@ -198,6 +198,19 @@ p {
   margin-bottom: 12px;
 }
 
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.table th,
+.table td {
+  text-align: left;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--surface-3);
+}
+
 @media (max-width: 960px) {
   .app-shell {
     grid-template-columns: 1fr;

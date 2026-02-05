@@ -1,5 +1,897 @@
 openapi: 3.1.0
 info:
-  title: EDC Simulator API
+  title: EDC Simulator
   version: 0.1.0
-paths: {}
+paths:
+  /api/v1/health:
+    get:
+      summary: Health
+      operationId: health_api_v1_health_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+  /api/v1/health/{service_name}:
+    get:
+      summary: Health Named
+      operationId: health_named_api_v1_health__service_name__get
+      parameters:
+      - name: service_name
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Service Name
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/edc/catalog:
+    get:
+      summary: Get Catalog
+      operationId: get_catalog_api_v1_edc_catalog_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+  /api/v1/edc/assets:
+    get:
+      summary: List Assets
+      operationId: list_assets_api_v1_edc_assets_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+    post:
+      summary: Create Asset
+      operationId: create_asset_api_v1_edc_assets_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssetCreate'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/edc/assets/{asset_id}:
+    patch:
+      summary: Update Asset
+      operationId: update_asset_api_v1_edc_assets__asset_id__patch
+      parameters:
+      - name: asset_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Asset Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssetUpdate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/edc/negotiations:
+    post:
+      summary: Create Negotiation
+      operationId: create_negotiation_api_v1_edc_negotiations_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NegotiationCreate'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/edc/negotiations/{negotiation_id}:
+    get:
+      summary: Get Negotiation
+      operationId: get_negotiation_api_v1_edc_negotiations__negotiation_id__get
+      parameters:
+      - name: negotiation_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Negotiation Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/edc/negotiations/{negotiation_id}/accept:
+    post:
+      summary: Accept Offer
+      operationId: accept_offer_api_v1_edc_negotiations__negotiation_id__accept_post
+      parameters:
+      - name: negotiation_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Negotiation Id
+      requestBody:
+        content:
+          application/json:
+            schema:
+              anyOf:
+              - $ref: '#/components/schemas/NegotiationAction'
+              - type: 'null'
+              title: Payload
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/edc/negotiations/{negotiation_id}/request:
+    post:
+      summary: Request Offer
+      operationId: request_offer_api_v1_edc_negotiations__negotiation_id__request_post
+      parameters:
+      - name: negotiation_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Negotiation Id
+      requestBody:
+        content:
+          application/json:
+            schema:
+              anyOf:
+              - $ref: '#/components/schemas/NegotiationAction'
+              - type: 'null'
+              title: Payload
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/edc/negotiations/{negotiation_id}/requested:
+    post:
+      summary: Mark Requested
+      operationId: mark_requested_api_v1_edc_negotiations__negotiation_id__requested_post
+      parameters:
+      - name: negotiation_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Negotiation Id
+      requestBody:
+        content:
+          application/json:
+            schema:
+              anyOf:
+              - $ref: '#/components/schemas/NegotiationAction'
+              - type: 'null'
+              title: Payload
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/edc/negotiations/{negotiation_id}/offer:
+    post:
+      summary: Offer
+      operationId: offer_api_v1_edc_negotiations__negotiation_id__offer_post
+      parameters:
+      - name: negotiation_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Negotiation Id
+      requestBody:
+        content:
+          application/json:
+            schema:
+              anyOf:
+              - $ref: '#/components/schemas/NegotiationAction'
+              - type: 'null'
+              title: Payload
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/edc/negotiations/{negotiation_id}/agree:
+    post:
+      summary: Agree
+      operationId: agree_api_v1_edc_negotiations__negotiation_id__agree_post
+      parameters:
+      - name: negotiation_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Negotiation Id
+      requestBody:
+        content:
+          application/json:
+            schema:
+              anyOf:
+              - $ref: '#/components/schemas/NegotiationAction'
+              - type: 'null'
+              title: Payload
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/edc/negotiations/{negotiation_id}/verify:
+    post:
+      summary: Verify
+      operationId: verify_api_v1_edc_negotiations__negotiation_id__verify_post
+      parameters:
+      - name: negotiation_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Negotiation Id
+      requestBody:
+        content:
+          application/json:
+            schema:
+              anyOf:
+              - $ref: '#/components/schemas/NegotiationAction'
+              - type: 'null'
+              title: Payload
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/edc/negotiations/{negotiation_id}/finalize:
+    post:
+      summary: Finalize
+      operationId: finalize_api_v1_edc_negotiations__negotiation_id__finalize_post
+      parameters:
+      - name: negotiation_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Negotiation Id
+      requestBody:
+        content:
+          application/json:
+            schema:
+              anyOf:
+              - $ref: '#/components/schemas/NegotiationAction'
+              - type: 'null'
+              title: Payload
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/edc/negotiations/{negotiation_id}/terminate:
+    post:
+      summary: Terminate
+      operationId: terminate_api_v1_edc_negotiations__negotiation_id__terminate_post
+      parameters:
+      - name: negotiation_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Negotiation Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/edc/transfers:
+    post:
+      summary: Create Transfer
+      operationId: create_transfer_api_v1_edc_transfers_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransferCreate'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/edc/transfers/{transfer_id}:
+    get:
+      summary: Get Transfer
+      operationId: get_transfer_api_v1_edc_transfers__transfer_id__get
+      parameters:
+      - name: transfer_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Transfer Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/edc/transfers/{transfer_id}/provision:
+    post:
+      summary: Provision Transfer
+      operationId: provision_transfer_api_v1_edc_transfers__transfer_id__provision_post
+      parameters:
+      - name: transfer_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Transfer Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/edc/transfers/{transfer_id}/provisioned:
+    post:
+      summary: Provisioned
+      operationId: provisioned_api_v1_edc_transfers__transfer_id__provisioned_post
+      parameters:
+      - name: transfer_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Transfer Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/edc/transfers/{transfer_id}/request:
+    post:
+      summary: Request Transfer
+      operationId: request_transfer_api_v1_edc_transfers__transfer_id__request_post
+      parameters:
+      - name: transfer_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Transfer Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/edc/transfers/{transfer_id}/requested:
+    post:
+      summary: Requested
+      operationId: requested_api_v1_edc_transfers__transfer_id__requested_post
+      parameters:
+      - name: transfer_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Transfer Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/edc/transfers/{transfer_id}/start:
+    post:
+      summary: Start Transfer
+      operationId: start_transfer_api_v1_edc_transfers__transfer_id__start_post
+      parameters:
+      - name: transfer_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Transfer Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/edc/transfers/{transfer_id}/complete:
+    post:
+      summary: Complete
+      operationId: complete_api_v1_edc_transfers__transfer_id__complete_post
+      parameters:
+      - name: transfer_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Transfer Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/edc/transfers/{transfer_id}/terminate:
+    post:
+      summary: Terminate
+      operationId: terminate_api_v1_edc_transfers__transfer_id__terminate_post
+      parameters:
+      - name: transfer_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Transfer Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/edc/policies/build:
+    post:
+      summary: Build
+      operationId: build_api_v1_edc_policies_build_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PolicyRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/edc/policies/evaluate:
+    post:
+      summary: Evaluate
+      operationId: evaluate_api_v1_edc_policies_evaluate_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PolicyEvalRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/edc/participants:
+    get:
+      summary: List Participants
+      operationId: list_participants_api_v1_edc_participants_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+    post:
+      summary: Create Participant
+      operationId: create_participant_api_v1_edc_participants_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ParticipantCreate'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/edc/participants/{participant_id}:
+    patch:
+      summary: Update Participant
+      operationId: update_participant_api_v1_edc_participants__participant_id__patch
+      parameters:
+      - name: participant_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Participant Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ParticipantUpdate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+components:
+  schemas:
+    AssetCreate:
+      properties:
+        asset_id:
+          type: string
+          title: Asset Id
+        name:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Name
+        policy_odrl:
+          anyOf:
+          - type: object
+          - type: 'null'
+          title: Policy Odrl
+        data_address:
+          anyOf:
+          - type: object
+          - type: 'null'
+          title: Data Address
+      type: object
+      required:
+      - asset_id
+      title: AssetCreate
+    AssetUpdate:
+      properties:
+        name:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Name
+        policy_odrl:
+          anyOf:
+          - type: object
+          - type: 'null'
+          title: Policy Odrl
+        data_address:
+          anyOf:
+          - type: object
+          - type: 'null'
+          title: Data Address
+      type: object
+      title: AssetUpdate
+    HTTPValidationError:
+      properties:
+        detail:
+          items:
+            $ref: '#/components/schemas/ValidationError'
+          type: array
+          title: Detail
+      type: object
+      title: HTTPValidationError
+    NegotiationAction:
+      properties:
+        purpose:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Purpose
+      type: object
+      title: NegotiationAction
+    NegotiationCreate:
+      properties:
+        consumer_id:
+          type: string
+          title: Consumer Id
+        provider_id:
+          type: string
+          title: Provider Id
+        asset_id:
+          type: string
+          title: Asset Id
+        policy:
+          type: object
+          title: Policy
+        session_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Session Id
+        purpose:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Purpose
+      type: object
+      required:
+      - consumer_id
+      - provider_id
+      - asset_id
+      - policy
+      title: NegotiationCreate
+    ParticipantCreate:
+      properties:
+        participant_id:
+          type: string
+          title: Participant Id
+        name:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Name
+        metadata:
+          anyOf:
+          - type: object
+          - type: 'null'
+          title: Metadata
+      type: object
+      required:
+      - participant_id
+      title: ParticipantCreate
+    ParticipantUpdate:
+      properties:
+        name:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Name
+        metadata:
+          anyOf:
+          - type: object
+          - type: 'null'
+          title: Metadata
+      type: object
+      title: ParticipantUpdate
+    PolicyEvalRequest:
+      properties:
+        purpose:
+          type: string
+          title: Purpose
+        policy:
+          type: object
+          title: Policy
+      type: object
+      required:
+      - purpose
+      - policy
+      title: PolicyEvalRequest
+    PolicyRequest:
+      properties:
+        purpose:
+          type: string
+          title: Purpose
+      type: object
+      required:
+      - purpose
+      title: PolicyRequest
+    TransferCreate:
+      properties:
+        asset_id:
+          type: string
+          title: Asset Id
+        session_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Session Id
+        consumer_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Consumer Id
+        provider_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Provider Id
+      type: object
+      required:
+      - asset_id
+      title: TransferCreate
+    ValidationError:
+      properties:
+        loc:
+          items:
+            anyOf:
+            - type: string
+            - type: integer
+          type: array
+          title: Location
+        msg:
+          type: string
+          title: Message
+        type:
+          type: string
+          title: Error Type
+      type: object
+      required:
+      - loc
+      - msg
+      - type
+      title: ValidationError

@@ -17,4 +17,28 @@ spec:
         - name: collaboration-service
           image: dpp/collaboration-service:latest
           ports:
-            - containerPort: 8000
+            - containerPort: 8005
+          envFrom:
+            - configMapRef:
+                name: app-config
+            - secretRef:
+                name: database-secrets
+          readinessProbe:
+            httpGet:
+              path: /api/v1/health
+              port: 8005
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /api/v1/health
+              port: 8005
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
