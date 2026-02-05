@@ -1,121 +1,174 @@
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request, Depends
 from pydantic import BaseModel
 from uuid import uuid4
 from datetime import datetime, timezone
+from sqlalchemy.orm import Session
+from redis import Redis
+
 from ...dsp.transfer_state_machine import can_transition
-from ...store import save_item, load_item
 from ...auth import require_roles
+from ...core.db import get_db
+from ...models.transfer import EdcTransfer
+from ...config import REDIS_URL
+from services.shared.user_registry import resolve_user_id
+from services.shared import events
 
 router = APIRouter()
 
+
 class TransferCreate(BaseModel):
     asset_id: str
+    session_id: str | None = None
+    consumer_id: str | None = None
+    provider_id: str | None = None
 
-def _key(transfer_id: str) -> str:
-    return f\"edc:transfer:{transfer_id}\"
 
-def _set_state(item: dict, state: str) -> dict:
-    item[\"state\"] = state
-    item.setdefault(\"state_history\", []).append(
-        {\"state\": state, \"timestamp\": datetime.now(timezone.utc).isoformat()}
-    )
-    return item
+def _set_state(item: EdcTransfer, state: str) -> None:
+    history = item.state_history or []
+    history.append({"state": state, "timestamp": datetime.now(timezone.utc).isoformat()})
+    item.state_history = history
+    item.current_state = state
+
+
+def _to_dict(item: EdcTransfer) -> dict:
+    return {
+        "id": str(item.transfer_id),
+        "state": item.current_state,
+        "asset_id": item.asset_id,
+        "consumer_id": item.consumer_participant_id,
+        "provider_id": item.provider_participant_id,
+        "state_history": item.state_history or [],
+        "session_id": str(item.session_id) if item.session_id else None,
+    }
+
 
 @router.post("/transfers")
-def create_transfer(request: Request, payload: TransferCreate):
+def create_transfer(request: Request, payload: TransferCreate, db: Session = Depends(get_db)):
     require_roles(request.state.user, ["developer", "manufacturer", "admin"])
     tid = str(uuid4())
-    item = {"id": tid, "state": "INITIAL", "asset_id": payload.asset_id, "state_history": []}
-    save_item(_key(tid), _set_state(item, "INITIAL"))
-    return item
+    item = EdcTransfer(
+        id=uuid4(),
+        transfer_id=tid,
+        asset_id=payload.asset_id,
+        session_id=payload.session_id,
+        consumer_participant_id=payload.consumer_id,
+        provider_participant_id=payload.provider_id,
+    )
+    _set_state(item, "INITIAL")
+    db.add(item)
+    db.commit()
+    db.refresh(item)
+    return _to_dict(item)
+
 
 @router.get("/transfers/{transfer_id}")
-def get_transfer(request: Request, transfer_id: str):
+def get_transfer(request: Request, transfer_id: str, db: Session = Depends(get_db)):
     require_roles(request.state.user, ["developer", "manufacturer", "admin", "regulator"])
-    item = load_item(_key(transfer_id))
+    item = db.query(EdcTransfer).filter(EdcTransfer.transfer_id == transfer_id).first()
     if not item:
         return {"error": "not found"}
-    return item
+    return _to_dict(item)
+
 
 @router.post("/transfers/{transfer_id}/provision")
-def provision_transfer(request: Request, transfer_id: str):
+def provision_transfer(request: Request, transfer_id: str, db: Session = Depends(get_db)):
     require_roles(request.state.user, ["developer", "manufacturer", "admin"])
-    item = load_item(_key(transfer_id))
+    item = db.query(EdcTransfer).filter(EdcTransfer.transfer_id == transfer_id).first()
     if not item:
         raise HTTPException(status_code=404, detail="Not found")
-    if not can_transition(item["state"], "PROVISIONING"):
+    if not can_transition(item.current_state, "PROVISIONING"):
         raise HTTPException(status_code=400, detail="Invalid transition")
-    save_item(_key(transfer_id), _set_state(item, "PROVISIONING"))
-    return item
+    _set_state(item, "PROVISIONING")
+    db.commit()
+    return _to_dict(item)
 
 
 @router.post("/transfers/{transfer_id}/provisioned")
-def provisioned(request: Request, transfer_id: str):
+def provisioned(request: Request, transfer_id: str, db: Session = Depends(get_db)):
     require_roles(request.state.user, ["developer", "manufacturer", "admin"])
-    item = load_item(_key(transfer_id))
+    item = db.query(EdcTransfer).filter(EdcTransfer.transfer_id == transfer_id).first()
     if not item:
         raise HTTPException(status_code=404, detail="Not found")
-    if not can_transition(item["state"], "PROVISIONED"):
+    if not can_transition(item.current_state, "PROVISIONED"):
         raise HTTPException(status_code=400, detail="Invalid transition")
-    save_item(_key(transfer_id), _set_state(item, "PROVISIONED"))
-    return item
+    _set_state(item, "PROVISIONED")
+    db.commit()
+    return _to_dict(item)
 
 
 @router.post("/transfers/{transfer_id}/request")
-def request_transfer(request: Request, transfer_id: str):
+def request_transfer(request: Request, transfer_id: str, db: Session = Depends(get_db)):
     require_roles(request.state.user, ["developer", "manufacturer", "admin"])
-    item = load_item(_key(transfer_id))
+    item = db.query(EdcTransfer).filter(EdcTransfer.transfer_id == transfer_id).first()
     if not item:
         raise HTTPException(status_code=404, detail="Not found")
-    if not can_transition(item["state"], "REQUESTING"):
+    if not can_transition(item.current_state, "REQUESTING"):
         raise HTTPException(status_code=400, detail="Invalid transition")
-    save_item(_key(transfer_id), _set_state(item, "REQUESTING"))
-    return item
+    _set_state(item, "REQUESTING")
+    db.commit()
+    return _to_dict(item)
 
 
 @router.post("/transfers/{transfer_id}/requested")
-def requested(request: Request, transfer_id: str):
+def requested(request: Request, transfer_id: str, db: Session = Depends(get_db)):
     require_roles(request.state.user, ["developer", "manufacturer", "admin"])
-    item = load_item(_key(transfer_id))
+    item = db.query(EdcTransfer).filter(EdcTransfer.transfer_id == transfer_id).first()
     if not item:
         raise HTTPException(status_code=404, detail="Not found")
-    if not can_transition(item["state"], "REQUESTED"):
+    if not can_transition(item.current_state, "REQUESTED"):
         raise HTTPException(status_code=400, detail="Invalid transition")
-    save_item(_key(transfer_id), _set_state(item, "REQUESTED"))
-    return item
+    _set_state(item, "REQUESTED")
+    db.commit()
+    return _to_dict(item)
 
 
 @router.post("/transfers/{transfer_id}/start")
-def start_transfer(request: Request, transfer_id: str):
+def start_transfer(request: Request, transfer_id: str, db: Session = Depends(get_db)):
     require_roles(request.state.user, ["developer", "manufacturer", "admin"])
-    item = load_item(_key(transfer_id))
+    item = db.query(EdcTransfer).filter(EdcTransfer.transfer_id == transfer_id).first()
     if not item:
         raise HTTPException(status_code=404, detail="Not found")
-    if not can_transition(item["state"], "STARTED"):
+    if not can_transition(item.current_state, "STARTED"):
         raise HTTPException(status_code=400, detail="Invalid transition")
-    save_item(_key(transfer_id), _set_state(item, "STARTED"))
-    return item
+    _set_state(item, "STARTED")
+    db.commit()
+    return _to_dict(item)
 
 
 @router.post("/transfers/{transfer_id}/complete")
-def complete(request: Request, transfer_id: str):
+def complete(request: Request, transfer_id: str, db: Session = Depends(get_db)):
     require_roles(request.state.user, ["developer", "manufacturer", "admin"])
-    item = load_item(_key(transfer_id))
+    item = db.query(EdcTransfer).filter(EdcTransfer.transfer_id == transfer_id).first()
     if not item:
         raise HTTPException(status_code=404, detail="Not found")
-    if not can_transition(item["state"], "COMPLETED"):
+    if not can_transition(item.current_state, "COMPLETED"):
         raise HTTPException(status_code=400, detail="Invalid transition")
-    save_item(_key(transfer_id), _set_state(item, "COMPLETED"))
-    return item
+    _set_state(item, "COMPLETED")
+    db.commit()
+    try:
+        user_id = resolve_user_id(db, request.state.user)
+        Redis.from_url(REDIS_URL).xadd(
+            "simulation.events",
+            events.build_event(
+                events.EDC_TRANSFER_COMPLETED,
+                user_id=user_id or "",
+                transfer_id=transfer_id,
+                session_id=str(item.session_id) if item.session_id else None,
+            ),
+        )
+    except Exception:
+        pass
+    return _to_dict(item)
 
 
 @router.post("/transfers/{transfer_id}/terminate")
-def terminate(request: Request, transfer_id: str):
+def terminate(request: Request, transfer_id: str, db: Session = Depends(get_db)):
     require_roles(request.state.user, ["developer", "manufacturer", "admin"])
-    item = load_item(_key(transfer_id))
+    item = db.query(EdcTransfer).filter(EdcTransfer.transfer_id == transfer_id).first()
     if not item:
         raise HTTPException(status_code=404, detail="Not found")
-    if not can_transition(item["state"], "TERMINATED"):
+    if not can_transition(item.current_state, "TERMINATED"):
         raise HTTPException(status_code=400, detail="Invalid transition")
-    save_item(_key(transfer_id), _set_state(item, "TERMINATED"))
-    return item
+    _set_state(item, "TERMINATED")
+    db.commit()
+    return _to_dict(item)

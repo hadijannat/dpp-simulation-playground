@@ -18,9 +18,10 @@
 - code: US-09-03
   title: "Start data transfer"
   steps:
-    - action: user.input
+    - action: edc.transfer
       params:
-        prompt: "Start data transfer"
+        payload:
+          asset_id: "asset-001"
 - code: US-09-04
   title: "Subscribe to webhook"
   steps:
