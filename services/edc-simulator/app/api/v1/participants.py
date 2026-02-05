@@ -26,7 +26,12 @@ def list_participants(request: Request, db: Session = Depends(get_db)):
     items = db.query(EdcParticipant).all()
     return {
         "items": [
-            {"id": str(item.id), "participant_id": item.participant_id, "name": item.name, "metadata": item.metadata}
+            {
+                "id": str(item.id),
+                "participant_id": item.participant_id,
+                "name": item.name,
+                "metadata": item.metadata_json,
+            }
             for item in items
         ]
     }
@@ -42,7 +47,7 @@ def create_participant(request: Request, payload: ParticipantCreate, db: Session
         id=uuid4(),
         participant_id=payload.participant_id,
         name=payload.name,
-        metadata=payload.metadata or {},
+        metadata_json=payload.metadata or {},
     )
     db.add(item)
     db.commit()
@@ -58,6 +63,6 @@ def update_participant(request: Request, participant_id: str, payload: Participa
     if payload.name is not None:
         item.name = payload.name
     if payload.metadata is not None:
-        item.metadata = payload.metadata
+        item.metadata_json = payload.metadata
     db.commit()
     return {"id": str(item.id), "participant_id": item.participant_id, "name": item.name}
