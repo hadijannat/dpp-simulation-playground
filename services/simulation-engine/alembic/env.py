@@ -12,7 +12,7 @@ BASE_DIR = Path(__file__).resolve().parents[1]
 if str(BASE_DIR) not in sys.path:
     sys.path.append(str(BASE_DIR))
 
-from app.models.base import Base
+from app.models.base import Base  # noqa: E402
 
 target_metadata = Base.metadata
 
