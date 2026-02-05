@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import AppShell from "./components/layout/AppShell";
+import RouteGuard from "./components/common/RouteGuard";
 import HomePage from "./pages/HomePage";
 import SimulationPage from "./pages/SimulationPage";
 import PlaygroundPage from "./pages/PlaygroundPage";
@@ -19,15 +20,78 @@ export default function App() {
     <AppShell>
       <Routes>
         <Route path="/" element={<HomePage />} />
-        <Route path="/simulation" element={<SimulationPage />} />
-        <Route path="/playground" element={<PlaygroundPage />} />
-        <Route path="/compliance" element={<CompliancePage />} />
-        <Route path="/edc" element={<EDCSimulatorPage />} />
-        <Route path="/dashboard" element={<DashboardPage />} />
-        <Route path="/achievements" element={<AchievementsPage />} />
-        <Route path="/leaderboard" element={<LeaderboardPage />} />
-        <Route path="/profile" element={<ProfilePage />} />
-        <Route path="/settings" element={<SettingsPage />} />
+        <Route
+          path="/simulation"
+          element={
+            <RouteGuard>
+              <SimulationPage />
+            </RouteGuard>
+          }
+        />
+        <Route
+          path="/playground"
+          element={
+            <RouteGuard>
+              <PlaygroundPage />
+            </RouteGuard>
+          }
+        />
+        <Route
+          path="/compliance"
+          element={
+            <RouteGuard roles={["manufacturer", "regulator", "developer", "admin"]}>
+              <CompliancePage />
+            </RouteGuard>
+          }
+        />
+        <Route
+          path="/edc"
+          element={
+            <RouteGuard roles={["developer", "manufacturer", "admin"]}>
+              <EDCSimulatorPage />
+            </RouteGuard>
+          }
+        />
+        <Route
+          path="/dashboard"
+          element={
+            <RouteGuard>
+              <DashboardPage />
+            </RouteGuard>
+          }
+        />
+        <Route
+          path="/achievements"
+          element={
+            <RouteGuard roles={["developer", "admin", "manufacturer", "consumer", "regulator", "recycler"]}>
+              <AchievementsPage />
+            </RouteGuard>
+          }
+        />
+        <Route
+          path="/leaderboard"
+          element={
+            <RouteGuard roles={["developer", "admin", "manufacturer", "consumer", "regulator", "recycler"]}>
+              <LeaderboardPage />
+            </RouteGuard>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <RouteGuard>
+              <ProfilePage />
+            </RouteGuard>
+          }
+        />
+        <Route
+          path="/settings"
+          element={
+            <RouteGuard>
+              <SettingsPage />
+            </RouteGuard>
+          }
+        />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/callback" element={<CallbackPage />} />
         <Route path="/404" element={<NotFoundPage />} />
