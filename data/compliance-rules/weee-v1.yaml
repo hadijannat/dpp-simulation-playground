@@ -1,0 +1,4 @@
+- id: weee.category
+  severity: warning
+  jsonpath: "$.category"
+  required: false

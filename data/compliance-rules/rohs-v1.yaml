@@ -1,0 +1,4 @@
+- id: rohs.declaration
+  severity: warning
+  jsonpath: "$.compliance.declaration"
+  required: false

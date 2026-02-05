@@ -1,0 +1,4 @@
+- id: espr.unique_identifier
+  severity: error
+  jsonpath: "$.aas_identifier"
+  required: true
