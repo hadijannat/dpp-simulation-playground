@@ -13,6 +13,12 @@ from ...auth import require_roles
 
 router = APIRouter()
 
+def _safe_publish(payload: dict):
+    try:
+        publish_event("simulation.events", payload)
+    except Exception:
+        return
+
 @router.post("/sessions/{session_id}/stories/{code}/steps/{idx}/execute")
 def execute(
     request: Request,
@@ -42,8 +48,21 @@ def execute(
     if session.current_story_id:
         progress_query = progress_query.filter(StoryProgress.story_id == session.current_story_id)
     progress = progress_query.order_by(StoryProgress.started_at.desc()).first()
+    if not progress:
+        progress = StoryProgress(
+            id=uuid4(),
+            user_id=session.user_id,
+            story_id=session.current_story_id,
+            role_type=session.active_role,
+            status="in_progress",
+            completion_percentage=0,
+            steps_completed=[],
+            started_at=datetime.now(timezone.utc),
+        )
+        db.add(progress)
+        db.commit()
     steps_completed = progress.steps_completed if progress else []
-    if progress and idx not in steps_completed:
+    if idx not in steps_completed:
         steps_completed.append(idx)
         progress.steps_completed = steps_completed
         progress.completion_percentage = int(len(steps_completed) / len(story["steps"]) * 100)
@@ -51,10 +70,10 @@ def execute(
         if progress.completion_percentage >= 100:
             progress.status = "completed"
             progress.completed_at = datetime.now(timezone.utc)
+        session.last_activity = datetime.now(timezone.utc)
         db.commit()
 
-    publish_event(
-        "simulation.events",
+    _safe_publish(
         {
             "event_type": "story_step_completed",
             "user_id": str(session.user_id),
@@ -64,11 +83,10 @@ def execute(
             "status": result.get("status"),
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "metadata": {"action": step.get("action")},
-        },
+        }
     )
     if progress and progress.status == "completed":
-        publish_event(
-            "simulation.events",
+        _safe_publish(
             {
                 "event_type": "story_completed",
                 "user_id": str(session.user_id),
@@ -78,13 +96,12 @@ def execute(
                 "status": "completed",
                 "timestamp": datetime.now(timezone.utc).isoformat(),
                 "metadata": {},
-            },
+            }
         )
     if step.get("action") == "compliance.check" and result.get("status") == "ok":
         status = result.get("data", {}).get("status")
         if status == "compliant":
-            publish_event(
-                "simulation.events",
+            _safe_publish(
                 {
                     "event_type": "compliance_check_passed",
                     "user_id": str(session.user_id),
@@ -94,11 +111,10 @@ def execute(
                     "status": "compliant",
                     "timestamp": datetime.now(timezone.utc).isoformat(),
                     "metadata": {},
-                },
+                }
             )
     if step.get("action") == "aas.create" and result.get("status") == "created":
-        publish_event(
-            "simulation.events",
+        _safe_publish(
             {
                 "event_type": "aas_created",
                 "user_id": str(session.user_id),
@@ -108,6 +124,6 @@ def execute(
                 "status": "created",
                 "timestamp": datetime.now(timezone.utc).isoformat(),
                 "metadata": {},
-            },
+            }
         )
     return {"result": result}
