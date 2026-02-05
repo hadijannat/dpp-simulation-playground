@@ -24,7 +24,7 @@ export default function AchievementPanel() {
         {items.map((ach) => (
           <div key={ach.code} className="card-subtle">
             <strong>{ach.name}</strong>
-            <div style={{ color: "#64748b" }}>{ach.description || ach.code}</div>
+            <div style={{ color: "var(--text-muted-light)" }}>{ach.description || ach.code}</div>
             <div className="pill">+{ach.points} pts</div>
           </div>
         ))}

@@ -1,71 +1,66 @@
-from datetime import datetime, timezone
-from typing import Dict, Any, List
-from uuid import uuid4
+from __future__ import annotations
 
-from fastapi import APIRouter, HTTPException, Request
+from typing import Any
+
+from fastapi import APIRouter, Request
+from pydantic import BaseModel, Field
 
 from ...auth import require_roles
-from ...schemas.v2 import (
-    JourneyRunCreate,
-    JourneyRunResponse,
-    JourneyStepExecuteResponse,
-    JourneyStepExecution,
-    JourneyStepResult,
-)
+from ...config import PLATFORM_CORE_URL
+from ...core.proxy import request_json
 
 router = APIRouter()
 
+ALL_ROLES = ["manufacturer", "developer", "admin", "regulator", "consumer", "recycler"]
 
-RUNS: Dict[str, Dict[str, Any]] = {}
+
+class JourneyRunCreate(BaseModel):
+    template_code: str = "manufacturer-core-e2e"
+    role: str = "manufacturer"
+    locale: str = "en"
+    metadata: dict[str, Any] = Field(default_factory=dict)
 
 
-@router.post("/journeys/runs", response_model=JourneyRunResponse)
+class JourneyStepExecution(BaseModel):
+    payload: dict[str, Any] = Field(default_factory=dict)
+    metadata: dict[str, Any] = Field(default_factory=dict)
+
+
+@router.post("/journeys/runs")
 def create_run(request: Request, payload: JourneyRunCreate):
-    require_roles(request.state.user, ["manufacturer", "developer", "admin", "regulator", "consumer", "recycler"])
-    run_id = str(uuid4())
-    now = datetime.now(timezone.utc).isoformat()
-    run = {
-        "id": run_id,
-        "template_code": payload.template_code,
-        "role": payload.role,
-        "locale": payload.locale,
-        "status": "active",
-        "current_step": "step-1",
-        "steps": [],
-        "metadata": payload.metadata,
-        "created_at": now,
-        "updated_at": now,
-    }
-    RUNS[run_id] = run
-    return run
-
-
-@router.get("/journeys/runs/{run_id}", response_model=JourneyRunResponse)
-def get_run(request: Request, run_id: str):
-    require_roles(request.state.user, ["manufacturer", "developer", "admin", "regulator", "consumer", "recycler"])
-    run = RUNS.get(run_id)
-    if not run:
-        raise HTTPException(status_code=404, detail="Run not found")
-    return run
-
-
-@router.post("/journeys/runs/{run_id}/steps/{step_id}/execute", response_model=JourneyStepExecuteResponse)
-def execute_step(request: Request, run_id: str, step_id: str, payload: JourneyStepExecution):
-    require_roles(request.state.user, ["manufacturer", "developer", "admin", "regulator", "consumer", "recycler"])
-    run = RUNS.get(run_id)
-    if not run:
-        raise HTTPException(status_code=404, detail="Run not found")
-
-    execution = JourneyStepResult(
-        step_id=step_id,
-        status="completed",
-        payload=payload.payload,
-        metadata=payload.metadata,
-        executed_at=datetime.now(timezone.utc).isoformat(),
+    require_roles(request.state.user, ALL_ROLES)
+    return request_json(
+        request,
+        "POST",
+        f"{PLATFORM_CORE_URL}/api/v2/core/journeys/runs",
+        json_body=payload.model_dump(),
     )
-    steps: List[Dict[str, Any]] = run.get("steps", [])
-    steps.append(execution.model_dump())
-    run["steps"] = steps
-    run["current_step"] = f"step-{len(steps) + 1}"
-    run["updated_at"] = execution.executed_at
-    return {"run_id": run_id, "execution": execution, "next_step": run["current_step"]}
+
+
+@router.get("/journeys/runs/{run_id}")
+def get_run(request: Request, run_id: str):
+    require_roles(request.state.user, ALL_ROLES)
+    return request_json(request, "GET", f"{PLATFORM_CORE_URL}/api/v2/core/journeys/runs/{run_id}")
+
+
+@router.post("/journeys/runs/{run_id}/steps/{step_id}/execute")
+def execute_step(request: Request, run_id: str, step_id: str, payload: JourneyStepExecution):
+    require_roles(request.state.user, ALL_ROLES)
+    return request_json(
+        request,
+        "POST",
+        f"{PLATFORM_CORE_URL}/api/v2/core/journeys/runs/{run_id}/steps/{step_id}/execute",
+        json_body=payload.model_dump(),
+    )
+
+
+@router.get("/journeys/templates")
+def list_templates(request: Request):
+    require_roles(request.state.user, ALL_ROLES)
+    return request_json(request, "GET", f"{PLATFORM_CORE_URL}/api/v2/core/journeys/templates")
+
+
+@router.get("/journeys/templates/{code}")
+def get_template(request: Request, code: str):
+    require_roles(request.state.user, ALL_ROLES)
+    return request_json(request, "GET", f"{PLATFORM_CORE_URL}/api/v2/core/journeys/templates/{code}")

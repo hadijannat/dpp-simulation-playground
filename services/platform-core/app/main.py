@@ -5,6 +5,12 @@ from .auth import verify_request
 
 app = FastAPI(title="Platform Core", version="0.2.0")
 
+try:
+    from services.shared.tracing import instrument_app
+    instrument_app(app, service_name="platform-core")
+except ImportError:
+    pass
+
 
 @app.middleware("http")
 async def auth_middleware(request: Request, call_next):

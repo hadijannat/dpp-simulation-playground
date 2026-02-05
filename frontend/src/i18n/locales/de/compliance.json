@@ -1,4 +1,14 @@
 {
   "title": "Compliance",
-  "runCheck": "Compliance-Prüfung ausführen"
+  "runCheck": "Compliance-Prüfung ausführen",
+  "reports": "Berichte",
+  "violations": "Verstöße",
+  "warnings": "Warnungen",
+  "recommendations": "Empfehlungen",
+  "status": "Status",
+  "compliant": "Konform",
+  "nonCompliant": "Nicht konform",
+  "applyFix": "Korrektur anwenden",
+  "regulations": "Vorschriften",
+  "checker": "Compliance-Prüfer"
 }

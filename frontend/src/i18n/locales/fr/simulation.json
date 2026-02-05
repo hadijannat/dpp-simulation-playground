@@ -2,5 +2,16 @@
   "title": "Espace de simulation",
   "createSession": "Créer une session",
   "resumeSession": "Reprendre la dernière session",
-  "runValidation": "Lancer la validation"
+  "runValidation": "Exécuter la validation",
+  "workspace": "Espace de travail",
+  "sessions": "Sessions",
+  "stories": "Stories",
+  "steps": "Étapes",
+  "progress": "Progression",
+  "epicProgress": "Progression Epic",
+  "scenarios": "Scénarios",
+  "storyNavigator": "Navigateur de Story",
+  "stepExecutor": "Exécuteur d'étapes",
+  "validationFeedback": "Retour de validation",
+  "canvas": "Canevas"
 }

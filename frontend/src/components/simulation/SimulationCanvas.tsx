@@ -17,9 +17,9 @@ export default function SimulationCanvas({
     position: { x: idx * 200, y: 0 },
     data: { label: `${idx + 1}. ${step.action}` },
     style: {
-      border: "1px solid #cbd5f5",
+      border: "1px solid var(--canvas-node-border)",
       padding: 10,
-      background: completed.includes(idx) ? "#dcfce7" : "#fff",
+      background: completed.includes(idx) ? "var(--canvas-node-completed)" : "var(--canvas-node-bg)",
       borderRadius: 12,
     },
   }));
@@ -31,7 +31,7 @@ export default function SimulationCanvas({
   }));
 
   return (
-    <div style={{ height: 260, border: "1px solid #e2e8f0", borderRadius: 12 }}>
+    <div style={{ height: 260, border: "1px solid var(--canvas-border)", borderRadius: 12 }}>
       <ReactFlow nodes={nodes} edges={edges} fitView>
         <Background />
         <Controls />

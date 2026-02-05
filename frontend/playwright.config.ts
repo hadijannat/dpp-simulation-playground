@@ -29,5 +29,10 @@ export default defineConfig({
         ...devices["Pixel 7"],
       },
     },
+    {
+      name: "integration-chromium",
+      use: { ...devices["Desktop Chrome"] },
+      testMatch: /.*integration.*\.spec\.ts/,
+    },
   ],
 });

@@ -1,4 +1,14 @@
 {
   "title": "Compliance",
-  "runCheck": "Run Compliance Check"
+  "runCheck": "Run Compliance Check",
+  "reports": "Reports",
+  "violations": "Violations",
+  "warnings": "Warnings",
+  "recommendations": "Recommendations",
+  "status": "Status",
+  "compliant": "Compliant",
+  "nonCompliant": "Non-Compliant",
+  "applyFix": "Apply Fix",
+  "regulations": "Regulations",
+  "checker": "Compliance Checker"
 }

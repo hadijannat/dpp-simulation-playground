@@ -6,6 +6,12 @@ from .auth import verify_request
 app = FastAPI(title="Simulation Engine", version="0.1.0")
 configure_logging("simulation-engine")
 
+try:
+    from services.shared.tracing import instrument_app
+    instrument_app(app, service_name="simulation-engine")
+except ImportError:
+    pass
+
 @app.middleware("http")
 async def auth_middleware(request: Request, call_next):
     if request.url.path.endswith("/health") or request.method == "OPTIONS":

@@ -2,36 +2,49 @@ import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useMutation } from "@tanstack/react-query";
 import { useJourneyCompliance, useJourneyRun, useDigitalTwin, useCsatFeedback } from "../hooks/useJourney";
+import { useJourneyTemplate } from "../hooks/useJourneyTemplate";
 import { createNegotiation, createTransfer, runNegotiationAction, runTransferAction } from "../services/platformV2Service";
 import { useRoleStore } from "../stores/roleStore";
 import { useSessionStore } from "../stores/sessionStore";
+import type { JourneyStepDefinition } from "../types/v2.types";
 
 type DraftState = {
   past: string[];
   present: string;
 };
 
-const DEFAULT_DPP = {
-  aas_identifier: "urn:example:manufacturer:001",
-  product_name: "FutureCell Pack",
-  product_identifier: "FC-2026-001",
-};
+const TEMPLATE_CODE = "manufacturer-core-e2e";
 
 export default function JourneyPage() {
-  const { t, i18n } = useTranslation(["simulation", "common"]);
+  const { t, i18n } = useTranslation(["journey", "simulation", "common"]);
   const { role } = useRoleStore();
   const currentJourneyRunId = useSessionStore((state) => state.currentJourneyRunId);
   const setCurrentJourneyRunId = useSessionStore((state) => state.setCurrentJourneyRunId);
 
+  const template = useJourneyTemplate(TEMPLATE_CODE);
+  const steps: JourneyStepDefinition[] = template.data?.steps || [];
+
+  const defaultPayload = useMemo(() => {
+    const createStep = steps.find((s) => s.action === "aas.create");
+    return createStep?.default_payload || {};
+  }, [steps]);
+
   const [runId, setRunId] = useState<string | undefined>(currentJourneyRunId);
   const [dppDraft, setDppDraft] = useState<DraftState>({
     past: [],
-    present: JSON.stringify(DEFAULT_DPP, null, 2),
+    present: JSON.stringify(defaultPayload, null, 2),
   });
   const [complianceRunId, setComplianceRunId] = useState<string | undefined>();
   const [csatScore, setCsatScore] = useState(5);
   const [csatComment, setCsatComment] = useState("");
   const [isEditorOpen, setIsEditorOpen] = useState(false);
+
+  // Re-init draft when template loads
+  useMemo(() => {
+    if (Object.keys(defaultPayload).length > 0 && dppDraft.present === "{}") {
+      setDppDraft({ past: [], present: JSON.stringify(defaultPayload, null, 2) });
+    }
+  }, [defaultPayload]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const { run, createRun, executeStep } = useJourneyRun(runId);
   const { complianceRun, runCheck, applyFix } = useJourneyCompliance(complianceRunId);
@@ -52,29 +65,35 @@ export default function JourneyPage() {
   );
 
   const negotiation = useMutation({
-    mutationFn: () =>
-      createNegotiation({
-        asset_id: "asset-001",
-        consumer_id: "BPNL000000000001",
-        provider_id: "BPNL000000000002",
+    mutationFn: () => {
+      const negStep = steps.find((s) => s.action === "edc.negotiate");
+      const defaults = negStep?.default_payload || {};
+      return createNegotiation({
+        asset_id: (defaults.asset_id as string) || "asset-001",
+        consumer_id: (defaults.consumer_id as string) || "BPNL000000000001",
+        provider_id: (defaults.provider_id as string) || "BPNL000000000002",
         policy: {
           permission: [{ constraint: { leftOperand: "purpose", rightOperand: "dpp:simulation" } }],
         },
-      }),
+      });
+    },
   });
 
   const transfer = useMutation({
-    mutationFn: () =>
-      createTransfer({
-        asset_id: "asset-001",
-        consumer_id: "BPNL000000000001",
-        provider_id: "BPNL000000000002",
-      }),
+    mutationFn: () => {
+      const txStep = steps.find((s) => s.action === "edc.transfer");
+      const defaults = txStep?.default_payload || {};
+      return createTransfer({
+        asset_id: (defaults.asset_id as string) || "asset-001",
+        consumer_id: (defaults.consumer_id as string) || "BPNL000000000001",
+        provider_id: (defaults.provider_id as string) || "BPNL000000000002",
+      });
+    },
   });
 
   async function startRun() {
     const created = await createRun.mutateAsync({
-      template_code: "manufacturer-core-e2e",
+      template_code: TEMPLATE_CODE,
       role,
       locale: i18n.language,
       metadata: { source: "journey-page" },
@@ -107,10 +126,9 @@ export default function JourneyPage() {
 
   async function runComplianceCheck() {
     if (!parsedDpp) return;
-    const response = await runCheck.mutateAsync({
-      payload: parsedDpp,
-      regulations: ["ESPR", "Battery Regulation"],
-    });
+    const complianceStep = steps.find((s) => s.action === "compliance.check");
+    const regulations = (complianceStep?.default_payload?.regulations as string[]) || ["ESPR", "Battery Regulation"];
+    const response = await runCheck.mutateAsync({ payload: parsedDpp, regulations });
     setComplianceRunId(response.id);
   }
 
@@ -148,24 +166,29 @@ export default function JourneyPage() {
       score: csatScore,
       locale: i18n.language,
       role,
-      flow: "manufacturer-core-e2e",
+      flow: TEMPLATE_CODE,
       comment: csatComment || undefined,
     });
   }
+
+  const stepActions: Record<string, () => void> = {
+    "aas.create": () => parsedDpp && execute("create-dpp", parsedDpp),
+    "compliance.check": runComplianceCheck,
+    "edc.negotiate": progressNegotiation,
+    "edc.transfer": progressTransfer,
+  };
 
   return (
     <div style={{ display: "grid", gap: 12 }}>
       <div className="card hero-panel">
         <div className="section-title">
-          <h1>Manufacturer Journey</h1>
-          <span className="pill">v2 · {role}</span>
+          <h1>{template.data?.name || t("title")}</h1>
+          <span className="pill">{t("rolePill")} · {role}</span>
         </div>
-        <p>
-          Guided end-to-end path for DPP creation, compliance validation, EDC handover, and post-flow feedback.
-        </p>
+        <p>{template.data?.description || t("subtitle")}</p>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
           <button className="btn btn-primary" onClick={startRun}>
-            {t("createSession")}
+            {t("startJourney")}
           </button>
           {currentJourneyRunId && (
             <button
@@ -174,79 +197,92 @@ export default function JourneyPage() {
                 setRunId(currentJourneyRunId);
               }}
             >
-              {t("resumeSession")}
+              {t("continueJourney")}
             </button>
           )}
           <button className="btn btn-secondary" onClick={() => setIsEditorOpen(true)}>
-            Open Payload Editor
+            {t("openPayloadEditor")}
           </button>
         </div>
-        {runId && <div style={{ marginTop: 10, color: "var(--ink-muted)" }}>Journey Run ID: {runId}</div>}
+        {runId && <div style={{ marginTop: 10, color: "var(--ink-muted)" }}>{t("journeyRunId")}: {runId}</div>}
       </div>
 
       <div className="simulation-workspace">
         <div className="card">
-          <h3>Journey Steps</h3>
+          <h3>{t("journeySteps")}</h3>
           <div style={{ display: "grid", gap: 8 }}>
-            <button className="btn btn-secondary" onClick={() => parsedDpp && execute("create-dpp", parsedDpp)}>
-              1. Create DPP
-            </button>
-            <button className="btn btn-secondary" onClick={runComplianceCheck}>
-              2. Run Compliance
-            </button>
-            <button className="btn btn-secondary" onClick={progressNegotiation}>
-              3. Run EDC Negotiation
-            </button>
-            <button className="btn btn-secondary" onClick={progressTransfer}>
-              4. Run EDC Transfer
-            </button>
+            {steps.map((step, idx) => (
+              <button
+                key={step.step_key}
+                className="btn btn-secondary"
+                onClick={stepActions[step.action] || (() => execute(step.step_key, step.default_payload))}
+              >
+                {idx + 1}. {step.title}
+              </button>
+            ))}
+            {steps.length === 0 && (
+              <>
+                <button className="btn btn-secondary" onClick={() => parsedDpp && execute("create-dpp", parsedDpp)}>
+                  1. {t("createDpp")}
+                </button>
+                <button className="btn btn-secondary" onClick={runComplianceCheck}>
+                  2. {t("runCompliance")}
+                </button>
+                <button className="btn btn-secondary" onClick={progressNegotiation}>
+                  3. {t("runNegotiation")}
+                </button>
+                <button className="btn btn-secondary" onClick={progressTransfer}>
+                  4. {t("runTransfer")}
+                </button>
+              </>
+            )}
             <button className="btn btn-secondary" onClick={submitFeedback}>
-              5. Submit CSAT
+              {steps.length > 0 ? steps.length + 1 : 5}. {t("submitCsat")}
             </button>
           </div>
           <div style={{ marginTop: 12 }}>
-            <h4>Session Resume</h4>
+            <h4>{t("sessionResume")}</h4>
             <ul className="onboarding-list">
-              <li>Last run ID is persisted in local storage.</li>
-              <li>Use Resume button to continue where you left off.</li>
-              <li>Draft payload editor supports undo for safe edits.</li>
+              <li>{t("sessionResumeHint1")}</li>
+              <li>{t("sessionResumeHint2")}</li>
+              <li>{t("sessionResumeHint3")}</li>
             </ul>
           </div>
         </div>
 
         <div className="card workspace-panel-full">
           <div className="section-title">
-            <h3>Run State</h3>
-            <span className="pill">{run.data?.status || "idle"}</span>
+            <h3>{t("runState")}</h3>
+            <span className="pill">{run.data?.status || t("idle")}</span>
           </div>
           <div className="mono-panel">
-            <pre>{JSON.stringify(run.data || { status: "not-started" }, null, 2)}</pre>
+            <pre>{JSON.stringify(run.data || { status: t("notStarted") }, null, 2)}</pre>
           </div>
 
           <div style={{ marginTop: 14 }}>
             <div className="section-title">
-              <h3>Compliance State</h3>
+              <h3>{t("complianceState")}</h3>
               <button className="btn btn-secondary" onClick={autoFixFirstViolation}>
-                Apply First Fix
+                {t("applyFirstFix")}
               </button>
             </div>
             <div className="mono-panel">
-              <pre>{JSON.stringify(complianceRun.data || { status: "not-run" }, null, 2)}</pre>
+              <pre>{JSON.stringify(complianceRun.data || { status: t("notRun") }, null, 2)}</pre>
             </div>
           </div>
 
           <div style={{ marginTop: 14 }}>
-            <h3>Digital Twin Preview</h3>
+            <h3>{t("digitalTwinPreview")}</h3>
             <div className="mono-panel">
-              <pre>{JSON.stringify(twin.data || { status: "awaiting-dpp-id" }, null, 2)}</pre>
+              <pre>{JSON.stringify(twin.data || { status: t("awaitingDppId") }, null, 2)}</pre>
             </div>
           </div>
 
           <div style={{ marginTop: 14 }}>
-            <h3>CSAT</h3>
+            <h3>{t("csat")}</h3>
             <div className="grid-2">
               <label>
-                <div style={{ marginBottom: 6 }}>Score (1-5)</div>
+                <div style={{ marginBottom: 6 }}>{t("score")}</div>
                 <input
                   className="input"
                   type="number"
@@ -257,7 +293,7 @@ export default function JourneyPage() {
                 />
               </label>
               <label>
-                <div style={{ marginBottom: 6 }}>Comment</div>
+                <div style={{ marginBottom: 6 }}>{t("comment")}</div>
                 <input
                   className="input"
                   value={csatComment}
@@ -265,15 +301,15 @@ export default function JourneyPage() {
                 />
               </label>
             </div>
-            {csat.data && <div style={{ marginTop: 10 }} className="pill">Submitted at {csat.data.created_at}</div>}
+            {csat.data && <div style={{ marginTop: 10 }} className="pill">{t("submittedAt")} {csat.data.created_at}</div>}
           </div>
         </div>
 
         <div className="card desktop-only">
           <div className="section-title">
-            <h3>Payload Editor</h3>
+            <h3>{t("payloadEditor")}</h3>
             <button className="btn btn-secondary" onClick={undoDpp} disabled={dppDraft.past.length === 0}>
-              Undo
+              {t("undo")}
             </button>
           </div>
           <textarea
@@ -282,9 +318,9 @@ export default function JourneyPage() {
             value={dppDraft.present}
             onChange={(event) => updateDpp(event.target.value)}
           />
-          {!parsedDpp && <div className="error">Invalid JSON payload</div>}
+          {!parsedDpp && <div className="error">{t("invalidJson")}</div>}
           <div style={{ marginTop: 10 }} className="pill">
-            Inline hint: Include `aas_identifier` and `product_name` for best compliance results.
+            {t("payloadHint")}
           </div>
         </div>
       </div>
@@ -294,13 +330,13 @@ export default function JourneyPage() {
           <div className="bottom-sheet-overlay mobile-only" onClick={() => setIsEditorOpen(false)} role="presentation" />
           <div className="bottom-sheet mobile-only">
             <div className="section-title">
-              <h3>Payload Editor</h3>
+              <h3>{t("payloadEditor")}</h3>
               <div style={{ display: "flex", gap: 8 }}>
                 <button className="btn btn-secondary" onClick={undoDpp} disabled={dppDraft.past.length === 0}>
-                  Undo
+                  {t("undo")}
                 </button>
                 <button className="btn btn-secondary" onClick={() => setIsEditorOpen(false)}>
-                  Close
+                  {t("close")}
                 </button>
               </div>
             </div>
@@ -310,7 +346,7 @@ export default function JourneyPage() {
               value={dppDraft.present}
               onChange={(event) => updateDpp(event.target.value)}
             />
-            {!parsedDpp && <div className="error">Invalid JSON payload</div>}
+            {!parsedDpp && <div className="error">{t("invalidJson")}</div>}
           </div>
         </>
       )}

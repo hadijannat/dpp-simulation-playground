@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../hooks/useAuth";
 import { useRoleStore } from "../stores/roleStore";
 
@@ -23,6 +24,7 @@ function loadPreferences(): Preferences {
 }
 
 export default function ProfilePage() {
+  const { t } = useTranslation("common");
   const { user } = useAuth();
   const { role } = useRoleStore();
   const [preferences, setPreferences] = useState<Preferences>(() => loadPreferences());
@@ -41,24 +43,24 @@ export default function ProfilePage() {
   return (
     <div style={{ display: "grid", gap: 12 }}>
       <div className="card">
-        <h1>Profile</h1>
-        <p>Manage role-specific preferences and onboarding state for your DPP workflows.</p>
+        <h1>{t("profile")}</h1>
+        <p>{t("profileDescription")}</p>
       </div>
 
       <div className="grid-2">
         <div className="card">
-          <h3>Identity</h3>
+          <h3>{t("identity")}</h3>
           <div className="card-subtle">
-            <div><strong>User:</strong> {userId}</div>
-            <div><strong>Active role:</strong> {role}</div>
+            <div><strong>{t("user")}:</strong> {userId}</div>
+            <div><strong>{t("activeRole")}:</strong> {role}</div>
           </div>
         </div>
 
         <div className="card">
-          <h3>Preferences</h3>
+          <h3>{t("preferences")}</h3>
           <div style={{ display: "grid", gap: 10 }}>
             <label>
-              <div style={{ marginBottom: 6 }}>Organization</div>
+              <div style={{ marginBottom: 6 }}>{t("organization")}</div>
               <input
                 className="input"
                 value={preferences.organization}
@@ -69,7 +71,7 @@ export default function ProfilePage() {
             </label>
 
             <label>
-              <div style={{ marginBottom: 6 }}>Title</div>
+              <div style={{ marginBottom: 6 }}>{t("title")}</div>
               <input
                 className="input"
                 value={preferences.title}
@@ -90,11 +92,11 @@ export default function ProfilePage() {
                   }))
                 }
               />
-              Mark onboarding as completed
+              {t("onboardingCompleted")}
             </label>
 
-            <button className="btn btn-primary" onClick={savePreferences}>Save Preferences</button>
-            {savedAt && <span className="pill">Saved at {savedAt}</span>}
+            <button className="btn btn-primary" onClick={savePreferences}>{t("savePreferences")}</button>
+            {savedAt && <span className="pill">{t("savedAt")} {savedAt}</span>}
           </div>
         </div>
       </div>

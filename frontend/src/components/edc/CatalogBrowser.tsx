@@ -21,7 +21,7 @@ export default function CatalogBrowser() {
         {items.map((asset) => (
           <div key={asset.id} className="card-subtle">
             <div style={{ fontWeight: 600 }}>{asset.name || asset.title || asset.id}</div>
-            <div style={{ color: "#64748b" }}>{asset.description || "Policy attached"}</div>
+            <div style={{ color: "var(--text-muted-light)" }}>{asset.description || "Policy attached"}</div>
           </div>
         ))}
       </div>

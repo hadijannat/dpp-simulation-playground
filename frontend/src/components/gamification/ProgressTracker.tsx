@@ -16,12 +16,12 @@ export default function ProgressTracker() {
               <strong>Epic {epic.epic_id}</strong>
               <span>{epic.completion_percentage}%</span>
             </div>
-            <div style={{ height: 8, background: "#e2e8f0", borderRadius: 999, marginTop: 8 }}>
+            <div style={{ height: 8, background: "var(--progress-track-bg)", borderRadius: 999, marginTop: 8 }}>
               <div
                 style={{
                   height: "100%",
                   width: `${epic.completion_percentage}%`,
-                  background: "linear-gradient(90deg, #1d4ed8, #0ea5e9)",
+                  background: "linear-gradient(90deg, var(--progress-fill-start), var(--progress-fill-end))",
                   borderRadius: 999,
                 }}
               />

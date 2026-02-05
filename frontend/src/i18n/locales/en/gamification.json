@@ -1,3 +1,12 @@
 {
-  "title": "Gamification"
+  "title": "Gamification",
+  "achievements": "Achievements",
+  "leaderboard": "Leaderboard",
+  "streaks": "Streaks",
+  "points": "Points",
+  "level": "Level",
+  "progress": "Progress",
+  "longest": "Longest",
+  "days": "days",
+  "pts": "pts"
 }

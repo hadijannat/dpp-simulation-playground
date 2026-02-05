@@ -1,88 +1,59 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
 from typing import Any
-from uuid import uuid4
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, Request
+from pydantic import BaseModel, Field
 
 from ...auth import require_roles
-from ...config import COMPLIANCE_URL
+from ...config import COMPLIANCE_URL, PLATFORM_CORE_URL
 from ...core.proxy import request_json
-from ...schemas.v2 import (
-    ComplianceFixRequest,
-    ComplianceFixResponse,
-    ComplianceReportDetail,
-    ComplianceReportListResponse,
-    ComplianceRunCreate,
-    ComplianceRunResponse,
-)
 
 router = APIRouter()
 
-RUNS: dict[str, dict[str, Any]] = {}
+COMPLIANCE_ROLES = ["manufacturer", "developer", "admin", "regulator"]
 
 
-@router.post("/compliance/runs", response_model=ComplianceRunResponse)
+class ComplianceRunCreate(BaseModel):
+    dpp_id: str | None = None
+    regulations: list[str] = Field(default_factory=lambda: ["ESPR", "Battery Regulation", "WEEE", "RoHS"])
+    payload: dict[str, Any] = Field(default_factory=dict)
+
+
+class ComplianceFixRequest(BaseModel):
+    path: str
+    value: Any
+
+
+@router.post("/compliance/runs")
 def create_run(request: Request, payload: ComplianceRunCreate):
-    require_roles(request.state.user, ["manufacturer", "developer", "admin", "regulator"])
-
-    upstream = request_json(
+    require_roles(request.state.user, COMPLIANCE_ROLES)
+    return request_json(
         request,
         "POST",
-        f"{COMPLIANCE_URL}/api/v1/compliance/check",
-        json_body={
-            "data": payload.payload,
-            "regulations": payload.regulations,
-        },
+        f"{PLATFORM_CORE_URL}/api/v2/core/compliance/runs",
+        json_body=payload.model_dump(),
     )
-    now = datetime.now(timezone.utc).isoformat()
-    run_id = str(uuid4())
-    run = {
-        "id": run_id,
-        "status": upstream.get("status", "unknown"),
-        "dpp_id": payload.dpp_id,
-        "regulations": payload.regulations,
-        "payload": payload.payload,
-        "violations": upstream.get("violations", []),
-        "warnings": upstream.get("warnings", []),
-        "recommendations": upstream.get("recommendations", []),
-        "summary": upstream.get("summary"),
-        "created_at": now,
-        "updated_at": now,
-    }
-    RUNS[run_id] = run
-    return run
 
 
-@router.get("/compliance/runs/{run_id}", response_model=ComplianceRunResponse)
+@router.get("/compliance/runs/{run_id}")
 def get_run(request: Request, run_id: str):
-    require_roles(request.state.user, ["manufacturer", "developer", "admin", "regulator"])
-    run = RUNS.get(run_id)
-    if not run:
-        raise HTTPException(status_code=404, detail="Compliance run not found")
-    return run
+    require_roles(request.state.user, COMPLIANCE_ROLES)
+    return request_json(request, "GET", f"{PLATFORM_CORE_URL}/api/v2/core/compliance/runs/{run_id}")
 
 
-@router.post("/compliance/runs/{run_id}/apply-fix", response_model=ComplianceFixResponse)
+@router.post("/compliance/runs/{run_id}/apply-fix")
 def apply_fix(request: Request, run_id: str, payload: ComplianceFixRequest):
-    require_roles(request.state.user, ["manufacturer", "developer", "admin", "regulator"])
-    run = RUNS.get(run_id)
-    if not run:
-        raise HTTPException(status_code=404, detail="Compliance run not found")
-
-    run_payload = dict(run.get("payload") or {})
-    key = payload.path.strip().lstrip("$.")
-    run_payload[key] = payload.value
-    run["payload"] = run_payload
-    run["violations"] = [v for v in run.get("violations", []) if v.get("path") != payload.path]
-    run["status"] = "compliant" if not run["violations"] else "non-compliant"
-    run["updated_at"] = datetime.now(timezone.utc).isoformat()
-
-    return {"run_id": run_id, "status": run["status"], "payload": run_payload}
+    require_roles(request.state.user, COMPLIANCE_ROLES)
+    return request_json(
+        request,
+        "POST",
+        f"{PLATFORM_CORE_URL}/api/v2/core/compliance/runs/{run_id}/apply-fix",
+        json_body=payload.model_dump(),
+    )
 
 
-@router.get("/compliance/reports", response_model=ComplianceReportListResponse)
+@router.get("/compliance/reports")
 def list_reports(
     request: Request,
     session_id: str | None = None,
@@ -91,24 +62,13 @@ def list_reports(
     limit: int = 50,
 ):
     require_roles(request.state.user, ["regulator", "developer", "admin"])
-    params = {
-        "session_id": session_id,
-        "story_code": story_code,
-        "status": status,
-        "limit": limit,
-    }
+    params = {"session_id": session_id, "story_code": story_code, "status": status, "limit": limit}
     clean_params = {k: v for k, v in params.items() if v is not None}
-    payload = request_json(
-        request,
-        "GET",
-        f"{COMPLIANCE_URL}/api/v1/reports",
-        params=clean_params,
-    )
+    payload = request_json(request, "GET", f"{COMPLIANCE_URL}/api/v1/reports", params=clean_params)
     return {"reports": payload.get("reports", [])}
 
 
-@router.get("/compliance/reports/{report_id}", response_model=ComplianceReportDetail)
+@router.get("/compliance/reports/{report_id}")
 def get_report(request: Request, report_id: str):
     require_roles(request.state.user, ["regulator", "developer", "admin"])
-    payload = request_json(request, "GET", f"{COMPLIANCE_URL}/api/v1/reports/{report_id}")
-    return payload
+    return request_json(request, "GET", f"{COMPLIANCE_URL}/api/v1/reports/{report_id}")

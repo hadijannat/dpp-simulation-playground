@@ -27,3 +27,23 @@ export type DigitalTwin = Omit<Schemas["DigitalTwinResponse"], "timeline"> & {
 };
 
 export type CsatFeedback = Schemas["CsatFeedbackResponse"];
+
+export interface JourneyStepDefinition {
+  id: string;
+  step_key: string;
+  title: string;
+  action: string;
+  order_index: number;
+  help_text: string;
+  default_payload: Record<string, unknown>;
+}
+
+export interface JourneyTemplate {
+  id: string;
+  code: string;
+  name: string;
+  description: string;
+  target_role: string;
+  is_active: boolean;
+  steps?: JourneyStepDefinition[];
+}

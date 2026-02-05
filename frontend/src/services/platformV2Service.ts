@@ -1,5 +1,5 @@
 import { apiGet, apiPost } from "./api";
-import type { ComplianceRun, CsatFeedback, DigitalTwin, JourneyRun } from "../types/v2.types";
+import type { ComplianceRun, CsatFeedback, DigitalTwin, JourneyRun, JourneyTemplate } from "../types/v2.types";
 import type { components } from "../types/generated/platform-api";
 
 type Schemas = components["schemas"];
@@ -80,4 +80,12 @@ export function submitCsat(payload: {
   comment?: string;
 }) {
   return apiPost<CsatFeedback>("/api/v2/feedback/csat", payload);
+}
+
+export function getJourneyTemplates() {
+  return apiGet<{ items: JourneyTemplate[] }>("/api/v2/journeys/templates");
+}
+
+export function getJourneyTemplate(code: string) {
+  return apiGet<JourneyTemplate>(`/api/v2/journeys/templates/${code}`);
 }

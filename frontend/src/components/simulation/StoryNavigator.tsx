@@ -35,7 +35,7 @@ export default function StoryNavigator({
                 className="btn btn-secondary"
                 style={{
                   textAlign: "left",
-                  background: selectedCode === story.code ? "#dbeafe" : undefined,
+                  background: selectedCode === story.code ? "var(--canvas-node-selected)" : undefined,
                 }}
                 onClick={() => onSelect(story.code)}
               >

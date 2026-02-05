@@ -32,6 +32,8 @@ def execute_step(
     token = get_service_token()
     headers = {"Authorization": f"Bearer {token}"} if token else {}
     if action == "user.input":
+        if payload:
+            return {"status": "completed", "data": payload}
         return {"status": "awaiting_input", "prompt": params.get("prompt")}
     if action == "compliance.check":
         regulations = payload.get("regulations") or params.get("regulations") or []
@@ -54,6 +56,23 @@ def execute_step(
             )
             resp.raise_for_status()
             result = resp.json()
+            # Update digital twin compliance node if a session has DPP instances
+            try:
+                from services.shared.repositories import digital_twin_repo
+                from ..models.dpp_instance import DppInstance
+                session_id = context.get("session_id")
+                if session_id:
+                    dpp = db.query(DppInstance).filter(DppInstance.session_id == session_id).first()
+                    if dpp:
+                        graph = digital_twin_repo.get_graph(db, dpp.id)
+                        if graph:
+                            for node in graph["nodes"]:
+                                if node.node_key == "compliance":
+                                    node.payload = {"status": result.get("status", "unknown"), "result": result}
+                                    db.commit()
+                                    break
+            except Exception:
+                pass  # Non-critical
             return {"status": result.get("status", "unknown"), "data": result}
         except requests.RequestException as exc:
             return {"status": "error", "error": str(exc)}
@@ -108,6 +127,17 @@ def execute_step(
             db.commit()
         except Exception:
             db.rollback()
+        # Auto-populate digital twin graph for the new DPP
+        try:
+            from services.shared.repositories import digital_twin_repo
+            snapshot = digital_twin_repo.create_snapshot(db, dpp_instance_id=dpp.id, label="Initial DPP")
+            digital_twin_repo.add_node(db, snapshot.id, "product", "asset", payload.get("product_name") or "Product", {"aas_id": str(dpp.aas_identifier)})
+            digital_twin_repo.add_node(db, snapshot.id, "compliance", "status", "Compliance", {"status": "pending"})
+            digital_twin_repo.add_node(db, snapshot.id, "transfer", "dataspace", "Transfer", {})
+            digital_twin_repo.add_edge(db, snapshot.id, "product-compliance", "product", "compliance", "validates")
+            digital_twin_repo.add_edge(db, snapshot.id, "product-transfer", "product", "transfer", "transfers")
+        except Exception:
+            pass  # Non-critical: twin population failure shouldn't block AAS creation
         return {"status": "created", "data": shell}
     if action == "aas.submodel.add":
         payload = _default_payload(payload, params)

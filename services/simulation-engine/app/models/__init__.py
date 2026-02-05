@@ -1,18 +1,31 @@
-from .base import Base
-from .user import User
-from .session import SimulationSession
-from .story import UserStory
-from .story_progress import StoryProgress
-from .dpp_instance import DppInstance
-from .validation_result import ValidationResult
-from .achievement import Achievement
-from .user_achievement import UserAchievement
-from .user_points import UserPoints
-from .annotation import Annotation
-from .comment import Comment
-from .vote import Vote
-from .gap_report import GapReport
-from .compliance_report import ComplianceReport
+# Re-export all models from the shared package so existing imports continue to work.
+from services.shared.models import (  # noqa: F401
+    Base,
+    User,
+    SimulationSession,
+    UserStory,
+    StoryProgress,
+    DppInstance,
+    ValidationResult,
+    Achievement,
+    UserAchievement,
+    UserPoints,
+    Annotation,
+    Comment,
+    Vote,
+    GapReport,
+    ComplianceReport,
+    JourneyTemplate,
+    JourneyStep,
+    JourneyRun,
+    JourneyStepRun,
+    DigitalTwinSnapshot,
+    DigitalTwinNode,
+    DigitalTwinEdge,
+    UxFeedback,
+    ComplianceRuleVersion,
+    ComplianceRunFix,
+)
 
 __all__ = [
     "Base",
@@ -30,4 +43,14 @@ __all__ = [
     "Vote",
     "GapReport",
     "ComplianceReport",
+    "JourneyTemplate",
+    "JourneyStep",
+    "JourneyRun",
+    "JourneyStepRun",
+    "DigitalTwinSnapshot",
+    "DigitalTwinNode",
+    "DigitalTwinEdge",
+    "UxFeedback",
+    "ComplianceRuleVersion",
+    "ComplianceRunFix",
 ]

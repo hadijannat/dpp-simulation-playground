@@ -106,7 +106,8 @@ services:
       - KEYCLOAK_REALM=dpp
       - AUTH_MODE=${AUTH_MODE:-keycloak}
       - DEV_BYPASS_AUTH=${DEV_BYPASS_AUTH:-false}
-    depends_on: [keycloak]
+      - PLATFORM_CORE_URL=http://platform-core:8007
+    depends_on: [keycloak, platform-core]
 
   platform-core:
     build:
@@ -118,7 +119,9 @@ services:
       - KEYCLOAK_REALM=dpp
       - AUTH_MODE=${AUTH_MODE:-keycloak}
       - DEV_BYPASS_AUTH=${DEV_BYPASS_AUTH:-false}
-    depends_on: [keycloak]
+      - DATABASE_URL=postgresql://dpp:dpp@postgres:5432/dpp_playground
+      - COMPLIANCE_URL=http://compliance-service:8002
+    depends_on: [keycloak, postgres]
 
   aas-adapter:
     build:

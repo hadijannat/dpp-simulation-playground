@@ -1,3 +1,12 @@
 {
-  "title": "Gamification"
+  "title": "Gamification",
+  "achievements": "Erfolge",
+  "leaderboard": "Bestenliste",
+  "streaks": "Serien",
+  "points": "Punkte",
+  "level": "Stufe",
+  "progress": "Fortschritt",
+  "longest": "Längste",
+  "days": "Tage",
+  "pts": "Pkt"
 }

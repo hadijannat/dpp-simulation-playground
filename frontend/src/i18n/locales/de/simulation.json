@@ -1,6 +1,17 @@
 {
-  "title": "Simulations-Arbeitsbereich",
+  "title": "Simulationsarbeitsplatz",
   "createSession": "Sitzung erstellen",
   "resumeSession": "Letzte Sitzung fortsetzen",
-  "runValidation": "Validierung ausführen"
+  "runValidation": "Validierung ausführen",
+  "workspace": "Arbeitsbereich",
+  "sessions": "Sitzungen",
+  "stories": "Stories",
+  "steps": "Schritte",
+  "progress": "Fortschritt",
+  "epicProgress": "Epic-Fortschritt",
+  "scenarios": "Szenarien",
+  "storyNavigator": "Story-Navigator",
+  "stepExecutor": "Schritt-Executor",
+  "validationFeedback": "Validierungs-Feedback",
+  "canvas": "Canvas"
 }

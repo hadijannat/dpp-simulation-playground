@@ -21,7 +21,7 @@ function loadSettings(): UiSettings {
 }
 
 export default function SettingsPage() {
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation("common");
   const [settings, setSettings] = useState<UiSettings>(() => loadSettings());
   const [saved, setSaved] = useState(false);
 
@@ -36,15 +36,15 @@ export default function SettingsPage() {
   return (
     <div style={{ display: "grid", gap: 12 }}>
       <div className="card">
-        <h1>Settings</h1>
-        <p>Configure language and UI behavior for desktop, tablet, and mobile workflows.</p>
+        <h1>{t("settings")}</h1>
+        <p>{t("settingsDescription")}</p>
       </div>
 
       <div className="grid-2">
         <div className="card">
-          <h3>Localization</h3>
+          <h3>{t("localization")}</h3>
           <label>
-            <div style={{ marginBottom: 6 }}>Language</div>
+            <div style={{ marginBottom: 6 }}>{t("language")}</div>
             <select className="input" value={i18n.language} onChange={(event) => i18n.changeLanguage(event.target.value)}>
               <option value="en">English</option>
               <option value="de">Deutsch</option>
@@ -54,7 +54,7 @@ export default function SettingsPage() {
         </div>
 
         <div className="card">
-          <h3>Accessibility & UX</h3>
+          <h3>{t("accessibilityUx")}</h3>
           <div style={{ display: "grid", gap: 8 }}>
             <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <input
@@ -64,7 +64,7 @@ export default function SettingsPage() {
                   setSettings((current) => ({ ...current, reduceMotion: event.target.checked }))
                 }
               />
-              Reduce motion
+              {t("reduceMotion")}
             </label>
 
             <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -75,10 +75,10 @@ export default function SettingsPage() {
                   setSettings((current) => ({ ...current, compactDensity: event.target.checked }))
                 }
               />
-              Compact density
+              {t("compactDensity")}
             </label>
-            <button className="btn btn-primary" onClick={save}>Save Settings</button>
-            {saved && <span className="pill">Settings saved</span>}
+            <button className="btn btn-primary" onClick={save}>{t("saveSettings")}</button>
+            {saved && <span className="pill">{t("settingsSaved")}</span>}
           </div>
         </div>
       </div>

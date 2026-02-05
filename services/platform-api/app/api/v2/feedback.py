@@ -1,30 +1,31 @@
-from datetime import datetime, timezone
-from typing import Dict
-from uuid import uuid4
+from __future__ import annotations
 
 from fastapi import APIRouter, Request
+from pydantic import BaseModel, Field
 
 from ...auth import require_roles
-from ...schemas.v2 import CsatFeedback, CsatFeedbackResponse
+from ...config import PLATFORM_CORE_URL
+from ...core.proxy import request_json
 
 router = APIRouter()
 
+ALL_ROLES = ["manufacturer", "developer", "admin", "regulator", "consumer", "recycler"]
 
-FEEDBACK: Dict[str, dict] = {}
+
+class CsatFeedback(BaseModel):
+    score: int = Field(ge=1, le=5)
+    locale: str = "en"
+    role: str = "manufacturer"
+    flow: str = "manufacturer-core-e2e"
+    comment: str | None = None
 
 
-@router.post("/feedback/csat", response_model=CsatFeedbackResponse)
+@router.post("/feedback/csat")
 def submit_csat(request: Request, payload: CsatFeedback):
-    require_roles(request.state.user, ["manufacturer", "developer", "admin", "regulator", "consumer", "recycler"])
-    feedback_id = str(uuid4())
-    item = {
-        "id": feedback_id,
-        "score": payload.score,
-        "locale": payload.locale,
-        "role": payload.role,
-        "flow": payload.flow,
-        "comment": payload.comment,
-        "created_at": datetime.now(timezone.utc).isoformat(),
-    }
-    FEEDBACK[feedback_id] = item
-    return item
+    require_roles(request.state.user, ALL_ROLES)
+    return request_json(
+        request,
+        "POST",
+        f"{PLATFORM_CORE_URL}/api/v2/core/feedback/csat",
+        json_body=payload.model_dump(),
+    )

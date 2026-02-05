@@ -21,7 +21,7 @@ export default function StreakIndicator() {
               <span>{item.user_id}</span>
               <strong>{item.current_streak_days} days</strong>
             </div>
-            <div style={{ color: "#64748b" }}>Longest: {item.longest_streak_days}</div>
+            <div style={{ color: "var(--text-muted-light)" }}>Longest: {item.longest_streak_days}</div>
           </div>
         ))}
       </div>

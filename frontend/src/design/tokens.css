@@ -37,6 +37,17 @@
   --motion-fast: 140ms;
   --motion-medium: 220ms;
 
+  /* Components */
+  --canvas-node-bg: #ffffff;
+  --canvas-node-completed: #dcfce7;
+  --canvas-node-selected: #dbeafe;
+  --canvas-node-border: #cbd5f5;
+  --canvas-border: #e2e8f0;
+  --progress-track-bg: rgba(226, 232, 240, 0.2);
+  --progress-fill-start: #1d4ed8;
+  --progress-fill-end: #0ea5e9;
+  --text-muted-light: #64748b;
+
   /* Layout */
   --topbar-height: 72px;
   --sidebar-width: 284px;

@@ -1,9 +1,11 @@
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useRoleStore } from "../stores/roleStore";
 import { useSessionStore } from "../stores/sessionStore";
 
 export default function HomePage() {
   const navigate = useNavigate();
+  const { t } = useTranslation(["common", "simulation", "compliance", "edc"]);
   const { role } = useRoleStore();
   const currentSession = useSessionStore((state) => state.currentSession);
   const currentJourneyRunId = useSessionStore((state) => state.currentJourneyRunId);
@@ -11,7 +13,7 @@ export default function HomePage() {
   return (
     <div style={{ display: "grid", gap: 12 }}>
       <div className="card hero-panel">
-        <h1>DPP Simulation Playground</h1>
+        <h1>{t("appTitle")}</h1>
         <p>
           Manufacturer-first DPP simulation with role switching, compliance workflows, and dataspace negotiation flows.
         </p>
@@ -20,7 +22,7 @@ export default function HomePage() {
             Start Manufacturer Journey
           </button>
           <button className="btn btn-secondary" onClick={() => navigate("/simulation")}>
-            Open Simulation Workspace
+            {t("simulation:title")}
           </button>
           {currentJourneyRunId && (
             <button className="btn btn-secondary" onClick={() => navigate("/journey")}>
@@ -29,7 +31,7 @@ export default function HomePage() {
           )}
           {currentSession && (
             <button className="btn btn-secondary" onClick={() => navigate("/simulation")}>
-              Continue Session
+              {t("simulation:resumeSession")}
             </button>
           )}
         </div>
@@ -38,7 +40,7 @@ export default function HomePage() {
       <div className="card">
         <div className="section-title">
           <h3>First-Run Onboarding</h3>
-          <span className="pill">Role: {role}</span>
+          <span className="pill">{t("role")}: {role}</span>
         </div>
         <ol className="onboarding-list">
           <li>Start with the Manufacturer Journey to generate a DPP shell and payload baseline.</li>
@@ -53,15 +55,15 @@ export default function HomePage() {
       </p>
       <div className="grid-3" style={{ marginTop: 16 }}>
         <div className="card-subtle">
-          <h3>Simulation</h3>
+          <h3>{t("simulation:title")}</h3>
           <p>Run end-to-end stories across roles and track progress.</p>
         </div>
         <div className="card-subtle">
-          <h3>Compliance</h3>
+          <h3>{t("compliance:title")}</h3>
           <p>Evaluate ESPR, Battery Regulation, WEEE, and RoHS checks.</p>
         </div>
         <div className="card-subtle">
-          <h3>EDC</h3>
+          <h3>{t("edc:title")}</h3>
           <p>Negotiate contracts and model data transfer state machines.</p>
         </div>
       </div>

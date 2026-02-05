@@ -1,4 +1,14 @@
 {
   "title": "Conformité",
-  "runCheck": "Exécuter le contrôle de conformité"
+  "runCheck": "Exécuter la vérification de conformité",
+  "reports": "Rapports",
+  "violations": "Violations",
+  "warnings": "Avertissements",
+  "recommendations": "Recommandations",
+  "status": "Statut",
+  "compliant": "Conforme",
+  "nonCompliant": "Non conforme",
+  "applyFix": "Appliquer la correction",
+  "regulations": "Réglementations",
+  "checker": "Vérificateur de conformité"
 }

@@ -1,3 +1,13 @@
 {
-  "title": "EDC Simulator"
+  "title": "EDC Simulator",
+  "catalog": "Catalog",
+  "negotiations": "Negotiations",
+  "transfers": "Transfers",
+  "assets": "Assets",
+  "participants": "Participants",
+  "policies": "Policies",
+  "negotiate": "Negotiate",
+  "transfer": "Transfer",
+  "policyEditor": "Policy Editor",
+  "catalogBrowser": "Catalog Browser"
 }

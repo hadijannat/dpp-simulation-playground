@@ -2,5 +2,16 @@
   "title": "Simulation Workspace",
   "createSession": "Create Session",
   "resumeSession": "Resume Last Session",
-  "runValidation": "Run Validation"
+  "runValidation": "Run Validation",
+  "workspace": "Workspace",
+  "sessions": "Sessions",
+  "stories": "Stories",
+  "steps": "Steps",
+  "progress": "Progress",
+  "epicProgress": "Epic Progress",
+  "scenarios": "Scenarios",
+  "storyNavigator": "Story Navigator",
+  "stepExecutor": "Step Executor",
+  "validationFeedback": "Validation Feedback",
+  "canvas": "Canvas"
 }

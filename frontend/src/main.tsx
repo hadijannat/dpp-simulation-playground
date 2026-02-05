@@ -20,3 +20,6 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
     </QueryClientProvider>
   </React.StrictMode>
 );
+
+import { reportWebVitals } from "./vitals";
+reportWebVitals();

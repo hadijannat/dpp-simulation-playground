@@ -6,5 +6,52 @@ services:
       - POSTGRES_DB=dpp_playground_test
       - POSTGRES_USER=test
       - POSTGRES_PASSWORD=test
+    ports:
+      - "5432:5432"
+
   redis:
     image: redis:7.2-alpine
+    ports:
+      - "6379:6379"
+
+  platform-api:
+    build:
+      context: ../..
+      dockerfile: services/platform-api/Dockerfile
+    ports:
+      - "8106:8006"
+    environment:
+      - AUTH_MODE=dev
+      - DEV_BYPASS_AUTH=true
+      - PLATFORM_CORE_URL=http://platform-core:8007
+    depends_on:
+      - platform-core
+
+  platform-core:
+    build:
+      context: ../..
+      dockerfile: services/platform-core/Dockerfile
+    ports:
+      - "8107:8007"
+    environment:
+      - AUTH_MODE=dev
+      - DEV_BYPASS_AUTH=true
+      - DATABASE_URL=postgresql://test:test@postgres:5432/dpp_playground_test
+      - COMPLIANCE_URL=http://simulation-engine:8001
+    depends_on:
+      - postgres
+
+  simulation-engine:
+    build:
+      context: ../..
+      dockerfile: services/simulation-engine/Dockerfile
+    ports:
+      - "8101:8001"
+    environment:
+      - AUTH_MODE=dev
+      - DEV_BYPASS_AUTH=true
+      - DATABASE_URL=postgresql://test:test@postgres:5432/dpp_playground_test
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      - postgres
+      - redis
