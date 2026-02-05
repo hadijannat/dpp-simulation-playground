@@ -23,11 +23,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<Record<string, unknown> | null>(null);
 
   useEffect(() => {
-    initKeycloak().then((auth) => {
-      setInitialized(true);
-      setAuthenticated(auth);
-      setUser((keycloak.tokenParsed as Record<string, unknown>) || null);
-    });
+    initKeycloak()
+      .then((auth) => {
+        setAuthenticated(auth);
+        setUser((keycloak.tokenParsed as Record<string, unknown>) || null);
+      })
+      .catch(() => {
+        setAuthenticated(false);
+        setUser(null);
+      })
+      .finally(() => {
+        setInitialized(true);
+      });
 
     keycloak.onTokenExpired = () => {
       keycloak

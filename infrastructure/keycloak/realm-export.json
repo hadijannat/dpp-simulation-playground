@@ -1,5 +1,6 @@
 {
   "realm": "dpp",
+  "sslRequired": "NONE",
   "enabled": true,
   "displayName": "DPP Playground",
   "roles": {
@@ -43,6 +44,12 @@
         {"type": "password", "value": "demo1234", "temporary": false}
       ],
       "realmRoles": ["developer"]
+    },
+    {
+      "username": "service-account-dpp-services",
+      "enabled": true,
+      "serviceAccountClientId": "dpp-services",
+      "realmRoles": ["admin"]
     }
   ]
 }
