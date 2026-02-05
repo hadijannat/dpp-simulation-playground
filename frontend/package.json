@@ -9,7 +9,7 @@
     "preview": "vite preview",
     "lint": "eslint . --ext .ts,.tsx",
     "typecheck": "tsc --noEmit",
-    "test": "vitest"
+    "test": "vitest --run --passWithNoTests"
   },
   "dependencies": {
     "@monaco-editor/react": "4.6.0",

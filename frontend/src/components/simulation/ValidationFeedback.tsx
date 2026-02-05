@@ -1,6 +1,13 @@
-export default function ValidationFeedback({ result }: { result: any }) {
+type ValidationPayload = {
+  result?: { status?: string };
+  status?: string;
+  [key: string]: unknown;
+};
+
+export default function ValidationFeedback({ result }: { result: unknown }) {
   if (!result) return null;
-  const status = result?.result?.status || result?.status;
+  const payload = result as ValidationPayload;
+  const status = payload.result?.status || payload.status;
   const badgeClass =
     status === "compliant" || status === "ok" ? "status-ok" : status === "non-compliant" ? "status-bad" : "status-warn";
   return (

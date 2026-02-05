@@ -7,7 +7,8 @@ export function useRoles() {
   if (!user) {
     return [role];
   }
-  const roles = (user as any)?.realm_access?.roles || [];
+  const roleContainer = user as { realm_access?: { roles?: string[] } };
+  const roles = roleContainer.realm_access?.roles || [];
   return roles as string[];
 }
 

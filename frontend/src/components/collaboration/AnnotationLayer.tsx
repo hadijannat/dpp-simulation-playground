@@ -1,8 +1,15 @@
 import { useEffect, useState } from "react";
 import { apiGet, apiPost } from "../../services/api";
 
+interface AnnotationItem {
+  id: string;
+  annotation_type: string;
+  content: string;
+  votes_count?: number;
+}
+
 export default function AnnotationLayer({ storyId }: { storyId?: number }) {
-  const [items, setItems] = useState<any[]>([]);
+  const [items, setItems] = useState<AnnotationItem[]>([]);
   const [content, setContent] = useState("");
 
   async function load() {

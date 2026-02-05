@@ -1,15 +1,20 @@
 import { useProgress } from "../../hooks/useProgress";
 
+interface EpicProgress {
+  epic_id: number;
+  completion_percentage: number;
+}
+
 export default function ProgressTracker() {
   const { epics } = useProgress();
-  const items = epics.data?.epics || [];
+  const items = (epics.data?.epics || []) as EpicProgress[];
   return (
     <div className="card">
       <div className="section-title">
         <h3>Epic Progress</h3>
       </div>
       <div style={{ display: "grid", gap: 12 }}>
-        {items.map((epic: any) => (
+        {items.map((epic) => (
           <div key={epic.epic_id} className="card-subtle">
             <div style={{ display: "flex", justifyContent: "space-between" }}>
               <strong>Epic {epic.epic_id}</strong>

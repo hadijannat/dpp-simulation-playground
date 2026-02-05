@@ -30,8 +30,8 @@ export default function SimulationPage() {
   const [story, setStory] = useState<Story | null>(null);
   const [sessionId, setSessionId] = useState("");
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
-  const [result, setResult] = useState<any>(null);
-  const [validation, setValidation] = useState<any>(null);
+  const [result, setResult] = useState<unknown>(null);
+  const [validation, setValidation] = useState<unknown>(null);
 
   useEffect(() => {
     if (data?.items) {
@@ -75,10 +75,11 @@ export default function SimulationPage() {
 
   async function handleValidate() {
     if (!sessionId || !story) return;
+    const resultData = extractResultData(result);
     const response = await validateStory.mutateAsync({
       sessionId,
       code: story.code,
-      body: { data: result?.result?.data || {}, regulations: ["ESPR"] },
+      body: { data: resultData, regulations: ["ESPR"] },
     });
     setValidation(response);
   }
@@ -140,4 +141,11 @@ export default function SimulationPage() {
       )}
     </div>
   );
+}
+
+function extractResultData(value: unknown): Record<string, unknown> {
+  if (!value || typeof value !== "object") return {};
+  const result = (value as { result?: { data?: Record<string, unknown> } }).result;
+  if (!result || typeof result !== "object") return {};
+  return result.data || {};
 }

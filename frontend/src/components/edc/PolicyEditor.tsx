@@ -2,7 +2,16 @@ import { useState } from "react";
 import MonacoWrapper from "../playground/MonacoWrapper";
 
 export default function PolicyEditor() {
-  const [policy, setPolicy] = useState(`{\n  \"permission\": [\n    {\n      \"constraint\": {\n        \"leftOperand\": \"purpose\",\n        \"rightOperand\": \"dpp:simulation\"\n      }\n    }\n  ]\n}`);
+  const [policy, setPolicy] = useState(`{
+  "permission": [
+    {
+      "constraint": {
+        "leftOperand": "purpose",
+        "rightOperand": "dpp:simulation"
+      }
+    }
+  ]
+}`);
   return (
     <div className="card">
       <div className="section-title">

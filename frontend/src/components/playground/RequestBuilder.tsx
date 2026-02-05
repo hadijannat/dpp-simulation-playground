@@ -11,7 +11,7 @@ export default function RequestBuilder() {
 
   async function run() {
     let parsedHeaders: Record<string, string> = {};
-    let parsedBody: any = undefined;
+    let parsedBody: unknown = undefined;
     try {
       parsedHeaders = JSON.parse(headers);
     } catch {
