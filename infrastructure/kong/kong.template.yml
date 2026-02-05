@@ -15,6 +15,7 @@ services:
       - name: sim-health
         paths:
           - /api/v1/health
+          - /api/v1/health/simulation
         strip_path: false
   - name: compliance-service
     url: http://compliance-service:8002
@@ -24,6 +25,10 @@ services:
           - /api/v1/compliance
           - /api/v1/rules
           - /api/v1/reports
+        strip_path: false
+      - name: compliance-health
+        paths:
+          - /api/v1/health/compliance
         strip_path: false
   - name: gamification-service
     url: http://gamification-service:8003
@@ -35,12 +40,20 @@ services:
           - /api/v1/leaderboard
           - /api/v1/streaks
         strip_path: false
+      - name: gamification-health
+        paths:
+          - /api/v1/health/gamification
+        strip_path: false
   - name: edc-simulator
     url: http://edc-simulator:8004
     routes:
       - name: edc
         paths:
           - /api/v1/edc
+        strip_path: false
+      - name: edc-health
+        paths:
+          - /api/v1/health/edc
         strip_path: false
   - name: collaboration-service
     url: http://collaboration-service:8005
@@ -51,6 +64,10 @@ services:
           - /api/v1/gap_reports
           - /api/v1/votes
           - /api/v1/comments
+        strip_path: false
+      - name: collaboration-health
+        paths:
+          - /api/v1/health/collaboration
         strip_path: false
 
 consumers:
