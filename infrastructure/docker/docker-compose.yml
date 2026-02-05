@@ -26,6 +26,7 @@ services:
       - KEYCLOAK_URL=http://keycloak:8080
       - KEYCLOAK_REALM=dpp
       - AUTH_MODE=auto
+      - DEV_BYPASS_AUTH=true
       - SERVICE_CLIENT_ID=dpp-services
       - SERVICE_CLIENT_SECRET=dev-services-secret
       - DATABASE_URL=postgresql://dpp:dpp@postgres:5432/dpp_playground
@@ -46,6 +47,7 @@ services:
       - KEYCLOAK_URL=http://keycloak:8080
       - KEYCLOAK_REALM=dpp
       - AUTH_MODE=auto
+      - DEV_BYPASS_AUTH=true
       - DATABASE_URL=postgresql://dpp:dpp@postgres:5432/dpp_playground
       - REDIS_URL=redis://redis:6379/0
     depends_on: [keycloak]
@@ -59,6 +61,7 @@ services:
       - KEYCLOAK_URL=http://keycloak:8080
       - KEYCLOAK_REALM=dpp
       - AUTH_MODE=auto
+      - DEV_BYPASS_AUTH=true
       - DATABASE_URL=postgresql://dpp:dpp@postgres:5432/dpp_playground
       - REDIS_URL=redis://redis:6379/0
     depends_on: [postgres, redis, keycloak]
@@ -72,6 +75,7 @@ services:
       - KEYCLOAK_URL=http://keycloak:8080
       - KEYCLOAK_REALM=dpp
       - AUTH_MODE=auto
+      - DEV_BYPASS_AUTH=true
       - DATABASE_URL=postgresql://dpp:dpp@postgres:5432/dpp_playground
       - REDIS_URL=redis://redis:6379/0
     depends_on: [keycloak]
@@ -85,6 +89,7 @@ services:
       - KEYCLOAK_URL=http://keycloak:8080
       - KEYCLOAK_REALM=dpp
       - AUTH_MODE=auto
+      - DEV_BYPASS_AUTH=true
       - DATABASE_URL=postgresql://dpp:dpp@postgres:5432/dpp_playground
       - REDIS_URL=redis://redis:6379/0
     depends_on: [keycloak]

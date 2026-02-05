@@ -80,13 +80,14 @@ consumers:
           -----BEGIN PUBLIC KEY-----
           REPLACE_WITH_KEYCLOAK_REALM_PUBLIC_KEY
           -----END PUBLIC KEY-----
+  - username: anonymous
 
 plugins:
   - name: cors
     config:
       origins: ["*"]
       methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"]
-      headers: ["Authorization", "Content-Type"]
+      headers: ["Authorization", "Content-Type", "X-Dev-User", "X-Dev-Roles"]
   - name: rate-limiting
     config:
       minute: 100
@@ -96,4 +97,5 @@ plugins:
       key_claim_name: iss
       claims_to_verify:
         - exp
-      run_on_preflight: true
+      run_on_preflight: false
+      anonymous: anonymous

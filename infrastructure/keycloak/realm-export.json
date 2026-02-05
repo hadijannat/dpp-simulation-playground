@@ -5,20 +5,36 @@
   "displayName": "DPP Playground",
   "roles": {
     "realm": [
-      {"name": "manufacturer"},
-      {"name": "regulator"},
-      {"name": "consumer"},
-      {"name": "recycler"},
-      {"name": "developer"},
-      {"name": "admin"}
+      {
+        "name": "manufacturer"
+      },
+      {
+        "name": "regulator"
+      },
+      {
+        "name": "consumer"
+      },
+      {
+        "name": "recycler"
+      },
+      {
+        "name": "developer"
+      },
+      {
+        "name": "admin"
+      }
     ]
   },
   "clients": [
     {
       "clientId": "dpp-frontend",
       "publicClient": true,
-      "redirectUris": ["http://localhost:3000/*"],
-      "webOrigins": ["*"],
+      "redirectUris": [
+        "http://localhost:3000/*"
+      ],
+      "webOrigins": [
+        "*"
+      ],
       "standardFlowEnabled": true
     },
     {
@@ -41,15 +57,25 @@
       "email": "demo@example.com",
       "enabled": true,
       "credentials": [
-        {"type": "password", "value": "demo1234", "temporary": false}
+        {
+          "type": "password",
+          "value": "demo1234",
+          "temporary": false
+        }
       ],
-      "realmRoles": ["developer"]
+      "realmRoles": [
+        "developer"
+      ],
+      "firstName": "Demo",
+      "lastName": "User"
     },
     {
       "username": "service-account-dpp-services",
       "enabled": true,
       "serviceAccountClientId": "dpp-services",
-      "realmRoles": ["admin"]
+      "realmRoles": [
+        "admin"
+      ]
     }
   ]
 }
