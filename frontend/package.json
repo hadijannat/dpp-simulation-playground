@@ -12,19 +12,19 @@
     "test": "vitest --passWithNoTests"
   },
   "dependencies": {
-    "@monaco-editor/react": "4.6.0",
-    "@tanstack/react-query": "5.28.4",
+    "@monaco-editor/react": "4.7.0",
+    "@tanstack/react-query": "5.90.20",
     "monaco-editor": "0.48.0",
-    "react": "18.3.1",
-    "react-dom": "18.3.1",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
     "react-router-dom": "6.30.3",
     "reactflow": "11.10.1",
-    "zustand": "4.5.2",
+    "zustand": "5.0.11",
     "keycloak-js": "24.0.4"
   },
   "devDependencies": {
-    "@types/react": "18.2.64",
-    "@types/react-dom": "18.2.21",
+    "@types/react": "19.2.13",
+    "@types/react-dom": "19.2.3",
     "@typescript-eslint/eslint-plugin": "8.54.0",
     "@typescript-eslint/parser": "8.54.0",
     "eslint": "9.39.2",
