@@ -1,9 +1,24 @@
-- code: EPIC-10-STORY-01
-  title: Epic 10 Sample Story
+- code: US-10-01
+  title: "Verify sourcing"
   steps:
     - action: user.input
       params:
-        prompt: "Provide input"
-    - action: compliance.check
+        prompt: "Verify sourcing details"
+- code: US-10-02
+  title: "Disclose carbon footprint"
+  steps:
+    - action: user.input
       params:
-        regulations: ["ESPR"]
+        prompt: "Disclose carbon footprint"
+- code: US-10-03
+  title: "Calculate circularity metrics"
+  steps:
+    - action: user.input
+      params:
+        prompt: "Calculate circularity metrics"
+- code: US-10-04
+  title: "Publish transparency report"
+  steps:
+    - action: user.input
+      params:
+        prompt: "Publish transparency report"

@@ -1,9 +1,58 @@
-- code: EPIC-04-STORY-01
-  title: Epic 04 Sample Story
+- code: US-04-01
+  title: "Update repair record"
   steps:
     - action: user.input
       params:
-        prompt: "Provide input"
-    - action: compliance.check
+        prompt: "Enter repair record"
+    - action: aas.update
       params:
-        regulations: ["ESPR"]
+        payload:
+          update: "repair_record"
+- code: US-04-02
+  title: "Append inspection result"
+  steps:
+    - action: user.input
+      params:
+        prompt: "Enter inspection result"
+    - action: aas.update
+      params:
+        payload:
+          update: "inspection_result"
+- code: US-04-03
+  title: "Update carbon footprint"
+  steps:
+    - action: user.input
+      params:
+        prompt: "Update carbon footprint data"
+    - action: aas.update
+      params:
+        payload:
+          update: "carbon_footprint"
+- code: US-04-04
+  title: "Add certificate"
+  steps:
+    - action: user.input
+      params:
+        prompt: "Attach certificate"
+    - action: aas.update
+      params:
+        payload:
+          update: "certificate"
+- code: US-04-05
+  title: "View version history"
+  steps:
+    - action: user.input
+      params:
+        prompt: "Review version history"
+- code: US-04-06
+  title: "Deprecate submodel"
+  steps:
+    - action: user.input
+      params:
+        prompt: "Deprecate submodel"
+- code: US-04-07
+  title: "Notify stakeholders"
+  steps:
+    - action: user.input
+      params:
+        prompt: "Notify stakeholders of update"

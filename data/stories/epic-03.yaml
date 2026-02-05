@@ -1,9 +1,57 @@
-- code: EPIC-03-STORY-01
-  title: Epic 03 Sample Story
+- code: US-03-01
+  title: "Scan QR and retrieve DPP"
   steps:
     - action: user.input
       params:
-        prompt: "Provide input"
+        prompt: "Scan QR code"
+- code: US-03-02
+  title: "Search by product identifier"
+  steps:
+    - action: user.input
+      params:
+        prompt: "Search by product identifier"
+- code: US-03-03
+  title: "View compliance status"
+  steps:
     - action: compliance.check
       params:
-        regulations: ["ESPR"]
+        regulations:
+          - "ESPR"
+        data:
+          aas_identifier: "urn:uuid:us-03-03"
+- code: US-03-04
+  title: "Export DPP as JSON"
+  steps:
+    - action: user.input
+      params:
+        prompt: "Export DPP data"
+- code: US-03-05
+  title: "Read submodel elements"
+  steps:
+    - action: user.input
+      params:
+        prompt: "View submodel elements"
+- code: US-03-06
+  title: "Fetch lifecycle events"
+  steps:
+    - action: user.input
+      params:
+        prompt: "View lifecycle events"
+- code: US-03-07
+  title: "Compare versions"
+  steps:
+    - action: user.input
+      params:
+        prompt: "Compare DPP versions"
+- code: US-03-08
+  title: "Access as regulator"
+  steps:
+    - action: user.input
+      params:
+        prompt: "Access as regulator role"
+- code: US-03-09
+  title: "Offline export"
+  steps:
+    - action: user.input
+      params:
+        prompt: "Prepare offline export"

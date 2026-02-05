@@ -1,9 +1,36 @@
-- code: EPIC-07-STORY-01
-  title: Epic 07 Sample Story
+- code: US-07-01
+  title: "Run ESPR check"
+  steps:
+    - action: compliance.check
+      params:
+        regulations:
+          - "ESPR"
+        data:
+          aas_identifier: "urn:uuid:us-07-01"
+- code: US-07-02
+  title: "Run Battery regulation check"
+  steps:
+    - action: compliance.check
+      params:
+        regulations:
+          - "BATTERY_REGULATION"
+        data:
+          aas_identifier: "urn:uuid:us-07-02"
+- code: US-07-03
+  title: "Generate compliance report"
   steps:
     - action: user.input
       params:
-        prompt: "Provide input"
-    - action: compliance.check
+        prompt: "Generate compliance report"
+- code: US-07-04
+  title: "Notify violations"
+  steps:
+    - action: user.input
       params:
-        regulations: ["ESPR"]
+        prompt: "Notify compliance violations"
+- code: US-07-05
+  title: "Audit trail review"
+  steps:
+    - action: user.input
+      params:
+        prompt: "Review audit trail"

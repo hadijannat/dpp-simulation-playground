@@ -1,9 +1,40 @@
-- code: EPIC-06-STORY-01
-  title: Epic 06 Sample Story
+- code: US-06-01
+  title: "Mark product end-of-life"
   steps:
     - action: user.input
       params:
-        prompt: "Provide input"
+        prompt: "Mark product end-of-life"
+- code: US-06-02
+  title: "Provide disassembly instructions"
+  steps:
+    - action: user.input
+      params:
+        prompt: "Provide disassembly instructions"
+- code: US-06-03
+  title: "Record recycled materials"
+  steps:
+    - action: user.input
+      params:
+        prompt: "Record recycled materials"
+- code: US-06-04
+  title: "Archive DPP"
+  steps:
+    - action: user.input
+      params:
+        prompt: "Archive the DPP"
+- code: US-06-05
+  title: "Export compliance archive"
+  steps:
     - action: compliance.check
       params:
-        regulations: ["ESPR"]
+        regulations:
+          - "ESPR"
+          - "WEEE"
+        data:
+          aas_identifier: "urn:uuid:us-06-05"
+- code: US-06-06
+  title: "Deactivate DPP"
+  steps:
+    - action: user.input
+      params:
+        prompt: "Deactivate the DPP"
