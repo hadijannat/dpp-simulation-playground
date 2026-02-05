@@ -6,4 +6,4 @@ class ValidationResult(Base):
     __tablename__ = "validation_results"
 
     id = Column(String, primary_key=True)
-    result = Column(JSON, default={})
+    result = Column(JSON, default=dict)

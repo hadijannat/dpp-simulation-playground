@@ -18,3 +18,4 @@ run_psql data/seed/epics.sql
 run_psql data/seed/user_stories.sql
 run_psql data/seed/achievements.sql
 run_psql data/seed/levels.sql
+run_psql data/seed/edc_participants.sql
