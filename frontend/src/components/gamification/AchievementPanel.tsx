@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { apiGet } from "../../services/api";
+import { listAchievements } from "../../services/gamificationService";
 
 interface AchievementItem {
   code: string;
@@ -11,7 +11,7 @@ interface AchievementItem {
 export default function AchievementPanel() {
   const { data } = useQuery({
     queryKey: ["achievements"],
-    queryFn: () => apiGet("/api/v1/achievements"),
+    queryFn: () => listAchievements(),
   });
   const items = (data?.items || []) as AchievementItem[];
   return (
