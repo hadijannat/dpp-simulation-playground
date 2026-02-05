@@ -1,18 +1,11 @@
 from logging.config import fileConfig
-from pathlib import Path
-import sys
-from sqlalchemy import engine_from_config
-from sqlalchemy import pool
+
 from alembic import context
+from sqlalchemy import engine_from_config, pool
+from app.models.base import Base
 
 config = context.config
 fileConfig(config.config_file_name)
-
-BASE_DIR = Path(__file__).resolve().parents[1]
-if str(BASE_DIR) not in sys.path:
-    sys.path.append(str(BASE_DIR))
-
-from app.models.base import Base  # noqa: E402
 
 target_metadata = Base.metadata
 
