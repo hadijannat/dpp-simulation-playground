@@ -16,6 +16,7 @@ from ...models.validation_result import ValidationResult
 from ...core.aasx_storage import store_aasx_payload
 from ...core.event_publisher import publish_event
 from services.shared import events
+from services.shared.user_registry import resolve_user_id
 from pathlib import Path
 import os
 from ...auth import require_roles
@@ -147,11 +148,12 @@ def upload_aasx(request: Request, payload: AasxUploadRequest, db: Session = Depe
         content_base64=payload.content_base64,
         metadata={"source": "api"},
     )
+    user_id = resolve_user_id(db, request.state.user)
     publish_event(
         "simulation.events",
         events.build_event(
             events.AASX_UPLOADED,
-            user_id=str(request.state.user.get("sub") or request.state.user.get("preferred_username") or ""),
+            user_id=user_id or "",
             session_id=payload.session_id,
             metadata={"source": "api"},
         ),
