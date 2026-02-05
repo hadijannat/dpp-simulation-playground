@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-cd services/simulation-engine
-alembic upgrade head
+docker compose -f infrastructure/docker/docker-compose.yml exec -T simulation-engine alembic upgrade head
