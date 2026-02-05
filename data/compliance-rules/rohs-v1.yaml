@@ -1,4 +1,15 @@
 - id: rohs.declaration
+  severity: error
+  jsonpath: "$.rohs.declaration"
+  required: true
+  message: "Missing RoHS compliance declaration"
+- id: rohs.restricted_substances
   severity: warning
-  jsonpath: "$.compliance.declaration"
-  required: false
+  jsonpath: "$.rohs.restricted_substances[*].name"
+  required: true
+  message: "Missing restricted substance concentrations"
+- id: rohs.exemptions
+  severity: warning
+  jsonpath: "$.rohs.exemptions"
+  recommended: true
+  message: "Missing RoHS exemptions information"

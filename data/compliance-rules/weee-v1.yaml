@@ -1,4 +1,15 @@
 - id: weee.category
+  severity: error
+  jsonpath: "$.weee.category"
+  required: true
+  message: "Missing WEEE category classification"
+- id: weee.producer_registration
   severity: warning
-  jsonpath: "$.category"
-  required: false
+  jsonpath: "$.weee.producer_registration"
+  required: true
+  message: "Missing producer registration number"
+- id: weee.dismantling_info
+  severity: warning
+  jsonpath: "$.weee.dismantling_instructions"
+  recommended: true
+  message: "Missing dismantling instructions"

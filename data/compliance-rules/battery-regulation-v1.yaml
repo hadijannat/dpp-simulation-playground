@@ -1,4 +1,50 @@
-- id: battery.uuid
+- id: battery.unique_identifier
   severity: error
   jsonpath: "$.aas_identifier"
   required: true
+  message: "Missing battery passport identifier"
+- id: battery.carbon_footprint
+  severity: error
+  jsonpath: "$.carbon_footprint.total_kg"
+  required: true
+  message: "Missing carbon footprint total"
+- id: battery.material_composition
+  severity: error
+  jsonpath: "$.materials[*].name"
+  required: true
+  message: "Missing material composition"
+- id: battery.state_of_health
+  severity: error
+  jsonpath: "$.battery.state_of_health"
+  required: true
+  message: "Missing state of health"
+- id: battery.due_diligence
+  severity: warning
+  jsonpath: "$.due_diligence.statement"
+  recommended: true
+  message: "Missing due diligence statement"
+- id: battery.recycled_content
+  severity: warning
+  jsonpath: "$.recycled_content"
+  recommended: true
+  message: "Missing recycled content percentage"
+- id: battery.chemistry
+  severity: warning
+  jsonpath: "$.battery.chemistry"
+  recommended: true
+  message: "Missing battery chemistry"
+- id: battery.capacity
+  severity: warning
+  jsonpath: "$.battery.capacity_kwh"
+  recommended: true
+  message: "Missing battery capacity"
+- id: battery.manufacture_date
+  severity: warning
+  jsonpath: "$.manufacture_date"
+  recommended: true
+  message: "Missing manufacture date"
+- id: battery.end_of_life
+  severity: warning
+  jsonpath: "$.end_of_life.instructions"
+  recommended: true
+  message: "Missing end-of-life instructions"

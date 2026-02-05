@@ -2,3 +2,49 @@
   severity: error
   jsonpath: "$.aas_identifier"
   required: true
+  message: "Missing unique AAS identifier"
+- id: espr.product_name
+  severity: error
+  jsonpath: "$.product_name"
+  required: true
+  message: "Missing product name"
+- id: espr.product_category
+  severity: error
+  jsonpath: "$.category"
+  required: true
+  message: "Missing product category"
+- id: espr.manufacturer_name
+  severity: error
+  jsonpath: "$.manufacturer.name"
+  required: true
+  message: "Missing manufacturer name"
+- id: espr.manufacturer_address
+  severity: warning
+  jsonpath: "$.manufacturer.address"
+  recommended: true
+  message: "Missing manufacturer address"
+- id: espr.substances_of_concern
+  severity: warning
+  jsonpath: "$.substances[*].name"
+  recommended: true
+  message: "Missing substances of concern list"
+- id: espr.recycled_content
+  severity: warning
+  jsonpath: "$.recycled_content"
+  recommended: true
+  message: "Missing recycled content percentage"
+- id: espr.disposal_instructions
+  severity: warning
+  jsonpath: "$.disposal.instructions"
+  recommended: true
+  message: "Missing disposal instructions"
+- id: espr.warranty_period
+  severity: warning
+  jsonpath: "$.warranty.period_months"
+  recommended: true
+  message: "Missing warranty period"
+- id: espr.repairability
+  severity: warning
+  jsonpath: "$.repairability.score"
+  recommended: true
+  message: "Missing repairability score"
