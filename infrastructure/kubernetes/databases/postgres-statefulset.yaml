@@ -19,10 +19,26 @@ spec:
           image: postgres:16
           env:
             - name: POSTGRES_DB
-              value: dpp_playground
+              valueFrom:
+                secretKeyRef:
+                  name: database-secrets
+                  key: POSTGRES_DB
             - name: POSTGRES_USER
-              value: dpp
+              valueFrom:
+                secretKeyRef:
+                  name: database-secrets
+                  key: POSTGRES_USER
             - name: POSTGRES_PASSWORD
-              value: dpp
+              valueFrom:
+                secretKeyRef:
+                  name: database-secrets
+                  key: POSTGRES_PASSWORD
           ports:
             - containerPort: 5432
+          volumeMounts:
+            - name: postgres-data
+              mountPath: /var/lib/postgresql/data
+      volumes:
+        - name: postgres-data
+          persistentVolumeClaim:
+            claimName: postgres-pvc
