@@ -30,7 +30,8 @@ describe("sessionStore", () => {
   it("setCurrentSession updates the currentSession", () => {
     const session: SessionSummary = {
       id: "session-1",
-      story_code: "test-story",
+      user_id: "user-1",
+      role: "manufacturer",
       state: { step: 1 },
       created_at: "2025-01-01T00:00:00Z",
     };
@@ -46,7 +47,8 @@ describe("sessionStore", () => {
     // Set some state first
     const session: SessionSummary = {
       id: "session-2",
-      story_code: "story-2",
+      user_id: "user-2",
+      role: "developer",
       state: {},
     };
     useSessionStore.getState().setCurrentSession(session);
@@ -82,7 +84,8 @@ describe("sessionStore", () => {
   it("addSession adds a session to the list", () => {
     const session: SessionSummary = {
       id: "session-a",
-      story_code: "story-a",
+      user_id: "user-a",
+      role: "manufacturer",
       state: {},
     };
     useSessionStore.getState().addSession(session);
@@ -91,9 +94,9 @@ describe("sessionStore", () => {
   });
 
   it("addSession deduplicates by id and prepends newest", () => {
-    const session1: SessionSummary = { id: "s1", story_code: "story", state: {} };
-    const session2: SessionSummary = { id: "s2", story_code: "story", state: {} };
-    const session1Updated: SessionSummary = { id: "s1", story_code: "story-updated", state: { updated: true } };
+    const session1: SessionSummary = { id: "s1", user_id: "u1", role: "manufacturer", state: {} };
+    const session2: SessionSummary = { id: "s2", user_id: "u1", role: "manufacturer", state: {} };
+    const session1Updated: SessionSummary = { id: "s1", user_id: "u1", role: "developer", state: { updated: true } };
 
     useSessionStore.getState().addSession(session1);
     useSessionStore.getState().addSession(session2);
@@ -103,7 +106,7 @@ describe("sessionStore", () => {
     expect(sessions).toHaveLength(2);
     // Updated session1 should be first (newest)
     expect(sessions[0].id).toBe("s1");
-    expect(sessions[0].story_code).toBe("story-updated");
+    expect(sessions[0].role).toBe("developer");
     expect(sessions[1].id).toBe("s2");
   });
 
@@ -111,7 +114,8 @@ describe("sessionStore", () => {
     for (let i = 0; i < 25; i++) {
       useSessionStore.getState().addSession({
         id: `session-${i}`,
-        story_code: "story",
+        user_id: "user",
+        role: "manufacturer",
         state: {},
       });
     }
