@@ -1,12 +1,19 @@
 from fastapi import APIRouter, Request, Depends
 from sqlalchemy.orm import Session
 from uuid import uuid4
-from ...schemas.aas_schema import AasCreate, AasValidateRequest
+from ...schemas.aas_schema import (
+    AasCreate,
+    AasValidateRequest,
+    AasSubmodelCreate,
+    AasSubmodelElementsPatch,
+    AasxUploadRequest,
+)
 from ...core.db import get_db
 from ...config import BASYX_BASE_URL, BASYX_API_PREFIX, AAS_REGISTRY_URL, SUBMODEL_REGISTRY_URL
 from ...aas.basyx_client import BasyxClient
 from ...models.dpp_instance import DppInstance
 from ...models.validation_result import ValidationResult
+from ...core.aasx_storage import store_aasx_payload
 from pathlib import Path
 import os
 from ...auth import require_roles
@@ -85,3 +92,57 @@ def validate_aas(request: Request, payload: AasValidateRequest, db: Session = De
     db.add(record)
     db.commit()
     return result
+
+
+@router.post("/aas/submodels")
+def create_submodel(request: Request, payload: AasSubmodelCreate, db: Session = Depends(get_db)):
+    require_roles(request.state.user, ["manufacturer", "developer", "admin"])
+    client = BasyxClient(base_url=BASYX_BASE_URL, api_prefix=BASYX_API_PREFIX)
+    try:
+        submodel = client.create_submodel(payload.submodel)
+    except Exception as exc:
+        return {"status": "error", "error": str(exc)}
+    if payload.register and SUBMODEL_REGISTRY_URL:
+        try:
+            client.register_submodel_descriptor(SUBMODEL_REGISTRY_URL, payload.submodel)
+        except Exception:
+            pass
+    return {"status": "created", "submodel": submodel}
+
+
+@router.get("/aas/submodels/{submodel_id}/elements")
+def get_submodel_elements(request: Request, submodel_id: str):
+    require_roles(request.state.user, ["manufacturer", "developer", "admin", "regulator", "consumer", "recycler"])
+    client = BasyxClient(base_url=BASYX_BASE_URL, api_prefix=BASYX_API_PREFIX)
+    try:
+        return client.get_submodel_elements(submodel_id)
+    except Exception as exc:
+        return {"error": str(exc), "items": []}
+
+
+@router.patch("/aas/submodels/{submodel_id}/elements")
+def patch_submodel_elements(
+    request: Request,
+    submodel_id: str,
+    payload: AasSubmodelElementsPatch,
+):
+    require_roles(request.state.user, ["manufacturer", "developer", "admin"])
+    client = BasyxClient(base_url=BASYX_BASE_URL, api_prefix=BASYX_API_PREFIX)
+    try:
+        updated = client.patch_submodel_elements(submodel_id, payload.elements)
+        return {"status": "updated", "elements": updated}
+    except Exception as exc:
+        return {"status": "error", "error": str(exc)}
+
+
+@router.post("/aasx/upload")
+def upload_aasx(request: Request, payload: AasxUploadRequest, db: Session = Depends(get_db)):
+    require_roles(request.state.user, ["manufacturer", "developer", "admin"])
+    stored = store_aasx_payload(
+        db=db,
+        session_id=payload.session_id,
+        filename=payload.filename,
+        content_base64=payload.content_base64,
+        metadata={"source": "api"},
+    )
+    return {"status": "stored", "storage": stored}

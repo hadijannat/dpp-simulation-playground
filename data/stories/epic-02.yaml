@@ -38,6 +38,11 @@
     - action: user.input
       params:
         prompt: "Upload AASX package"
+    - action: aasx.upload
+      params:
+        payload:
+          filename: "sample.aasx"
+          content_base64: "ZGVtbw=="
 - code: US-02-05
   title: "Register DPP in registry"
   steps:

@@ -6,6 +6,7 @@ from .service_token import get_service_token
 from ..aas.basyx_client import BasyxClient
 from ..models.dpp_instance import DppInstance
 from ..models.session import SimulationSession
+from .aasx_storage import store_aasx_payload
 from datetime import datetime, timezone
 from uuid import uuid4
 
@@ -26,9 +27,10 @@ def execute_step(
     params: Dict[str, Any],
     payload: Dict[str, Any],
     context: Dict[str, Any],
+    metadata: Dict[str, Any] | None = None,
 ) -> Dict[str, Any]:
     token = get_service_token()
-    headers = {"Authorization": f"Bearer {token}"}
+    headers = {"Authorization": f"Bearer {token}"} if token else {}
     if action == "user.input":
         return {"status": "awaiting_input", "prompt": params.get("prompt")}
     if action == "compliance.check":
@@ -67,6 +69,19 @@ def execute_step(
             return {"status": "ok", "data": resp.json()}
         except requests.RequestException as exc:
             return {"status": "error", "error": str(exc)}
+    if action == "edc.transfer":
+        payload = _default_payload(payload, params)
+        try:
+            resp = requests.post(
+                f"{EDC_URL}/api/v1/edc/transfers",
+                json=payload,
+                headers=headers,
+                timeout=8,
+            )
+            resp.raise_for_status()
+            return {"status": "ok", "data": resp.json()}
+        except requests.RequestException as exc:
+            return {"status": "error", "error": str(exc)}
     if action == "aas.create":
         payload = _default_payload(payload, params)
         client = BasyxClient(base_url=BASYX_BASE_URL, api_prefix=BASYX_API_PREFIX)
@@ -89,6 +104,31 @@ def execute_step(
         except Exception:
             db.rollback()
         return {"status": "created", "data": shell}
+    if action == "aas.submodel.add":
+        payload = _default_payload(payload, params)
+        if not isinstance(payload, dict):
+            return {"status": "error", "error": "Payload must be object"}
+        submodel = payload.get("submodel") or payload
+        client = BasyxClient(base_url=BASYX_BASE_URL, api_prefix=BASYX_API_PREFIX)
+        try:
+            created = client.create_submodel(submodel)
+        except requests.RequestException as exc:
+            return {"status": "error", "error": str(exc)}
+        return {"status": "created", "data": created}
+    if action == "aas.submodel.patch":
+        payload = _default_payload(payload, params)
+        if not isinstance(payload, dict):
+            return {"status": "error", "error": "Payload must be object"}
+        submodel_id = payload.get("submodel_id")
+        elements = payload.get("elements")
+        if not submodel_id or elements is None:
+            return {"status": "error", "error": "Missing submodel_id or elements"}
+        client = BasyxClient(base_url=BASYX_BASE_URL, api_prefix=BASYX_API_PREFIX)
+        try:
+            updated = client.patch_submodel_elements(submodel_id, elements)
+        except requests.RequestException as exc:
+            return {"status": "error", "error": str(exc)}
+        return {"status": "updated", "data": updated}
     if action == "aas.update":
         payload = _default_payload(payload, params)
         update_name = None
@@ -112,6 +152,22 @@ def execute_step(
                 except Exception:
                     db.rollback()
         return {"status": "updated", "data": payload}
+    if action == "aasx.upload":
+        payload = _default_payload(payload, params)
+        if not isinstance(payload, dict):
+            return {"status": "error", "error": "Payload must be object"}
+        filename = payload.get("filename") or "dpp.aasx"
+        content = payload.get("content_base64") or payload.get("content")
+        if not content:
+            return {"status": "error", "error": "Missing content"}
+        stored = store_aasx_payload(
+            db=db,
+            session_id=context.get("session_id"),
+            filename=filename,
+            content_base64=content,
+            metadata=metadata or {},
+        )
+        return {"status": "stored", "data": stored}
     if action == "api.call":
         payload = _default_payload(payload, params)
         return {"status": "called", "data": payload}

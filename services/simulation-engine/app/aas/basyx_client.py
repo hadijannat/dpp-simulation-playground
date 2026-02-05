@@ -30,6 +30,18 @@ class BasyxClient:
         resp = self._request("POST", "submodels", json=submodel)
         return resp.json() if resp.content else submodel
 
+    def get_submodel_elements(self, submodel_id: str) -> Dict[str, Any]:
+        resp = self._request("GET", f"submodels/{submodel_id}/submodel-elements")
+        return resp.json()
+
+    def patch_submodel_elements(self, submodel_id: str, elements: Dict[str, Any] | list) -> Dict[str, Any]:
+        path = f"submodels/{submodel_id}/submodel-elements"
+        try:
+            resp = self._request("PATCH", path, json=elements)
+        except requests.RequestException:
+            resp = self._request("PUT", path, json=elements)
+        return resp.json() if resp.content else {"updated": True}
+
     def register_shell_descriptor(self, registry_url: str, shell: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         if not registry_url:
             return None

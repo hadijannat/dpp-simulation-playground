@@ -1,14 +1,20 @@
 from fastapi import APIRouter, Request, Depends, HTTPException
 from sqlalchemy.orm import Session
+import requests
 from ...core.story_loader import load_story, list_stories
 from ...core.db import get_db
 from ...models.story import UserStory
 from ...models.story_progress import StoryProgress
 from ...models.session import SimulationSession
+from ...models.validation_result import ValidationResult
 from pydantic import BaseModel
 from uuid import uuid4
 from datetime import datetime, timezone
 from ...auth import require_roles
+from ...config import COMPLIANCE_URL
+from ...core.service_token import get_service_token
+from ...core.event_publisher import publish_event
+from services.shared import events
 
 router = APIRouter()
 
@@ -82,11 +88,78 @@ class StoryValidateRequest(BaseModel):
 
 
 @router.post("/sessions/{session_id}/stories/{code}/validate")
-def validate_story(request: Request, session_id: str, code: str, payload: StoryValidateRequest):
+def validate_story(
+    request: Request,
+    session_id: str,
+    code: str,
+    payload: StoryValidateRequest,
+    db: Session = Depends(get_db),
+):
     require_roles(request.state.user, ["manufacturer", "developer", "admin", "regulator", "consumer", "recycler"])
-    return {
+    token = get_service_token()
+    headers = {"Authorization": f"Bearer {token}"} if token else {}
+    body = {
+        "data": payload.data,
+        "regulations": payload.regulations,
         "session_id": session_id,
         "story_code": code,
-        "status": "received",
-        "regulations": payload.regulations,
     }
+    try:
+        resp = requests.post(
+            f"{COMPLIANCE_URL}/api/v1/compliance/check",
+            json=body,
+            headers=headers,
+            timeout=8,
+        )
+        resp.raise_for_status()
+        result = resp.json()
+    except requests.RequestException as exc:
+        result = {"status": "error", "error": str(exc)}
+
+    record = ValidationResult(id=str(uuid4()), result=result)
+    db.add(record)
+
+    session = db.query(SimulationSession).filter(SimulationSession.id == session_id).first()
+    if session:
+        current_state = session.session_state or {}
+        session.session_state = {**current_state, "last_validation": result}
+        session.last_activity = datetime.now(timezone.utc)
+        if session.current_story_id:
+            progress = (
+                db.query(StoryProgress)
+                .filter(
+                    StoryProgress.user_id == session.user_id,
+                    StoryProgress.story_id == session.current_story_id,
+                    StoryProgress.role_type == session.active_role,
+                )
+                .first()
+            )
+            if progress:
+                progress.validation_results = result
+                if result.get("status") == "compliant":
+                    progress.status = "completed"
+                    progress.completed_at = datetime.now(timezone.utc)
+    db.commit()
+
+    if session:
+        publish_event(
+            "simulation.events",
+            events.build_event(
+                events.STORY_COMPLETED,
+                user_id=str(session.user_id),
+                session_id=session_id,
+                story_code=code,
+                status=result.get("status"),
+            ),
+        )
+        if result.get("status") == "compliant":
+            publish_event(
+                "simulation.events",
+                events.build_event(
+                    events.COMPLIANCE_CHECK_PASSED,
+                    user_id=str(session.user_id),
+                    session_id=session_id,
+                    story_code=code,
+                ),
+            )
+    return {"session_id": session_id, "story_code": code, "result": result}

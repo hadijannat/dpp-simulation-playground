@@ -12,8 +12,9 @@ JWKS_URL = os.getenv(
     f"{KEYCLOAK_URL}/realms/{KEYCLOAK_REALM}/protocol/openid-connect/certs",
 )
 DEV_BYPASS_AUTH = os.getenv("DEV_BYPASS_AUTH", "false").lower() in ("1", "true", "yes")
+AUTH_MODE = os.getenv("AUTH_MODE", "auto").lower()
 
-_cache = {"keys": None, "fetched": 0}
+_cache = {"keys": None, "fetched": 0, "keycloak_ok": None, "keycloak_checked": 0}
 
 
 def _build_default_issuers() -> List[str]:
@@ -32,6 +33,33 @@ def _allowed_issuers() -> List[str]:
     if override:
         return [item.strip() for item in override.split(",") if item.strip()]
     return _build_default_issuers()
+
+
+def _keycloak_available() -> bool:
+    now = time.time()
+    cached = _cache.get("keycloak_ok")
+    if cached is not None and now - _cache.get("keycloak_checked", 0) < 30:
+        return bool(cached)
+    try:
+        resp = requests.get(f"{KEYCLOAK_URL}/realms/{KEYCLOAK_REALM}", timeout=1.5)
+        ok = resp.status_code == 200
+    except Exception:
+        ok = False
+    _cache["keycloak_ok"] = ok
+    _cache["keycloak_checked"] = now
+    return ok
+
+
+def _bypass_enabled() -> bool:
+    if DEV_BYPASS_AUTH:
+        return True
+    if AUTH_MODE == "bypass":
+        return True
+    if AUTH_MODE == "keycloak":
+        return False
+    if AUTH_MODE == "auto":
+        return not _keycloak_available()
+    return False
 
 
 def _get_jwks():
@@ -53,7 +81,7 @@ def _parse_roles(value: str | None) -> List[str]:
 
 
 def _dev_bypass(request: Request) -> dict | None:
-    if not DEV_BYPASS_AUTH:
+    if not _bypass_enabled():
         return None
     auth = request.headers.get("authorization", "")
     if auth.startswith("Bearer "):

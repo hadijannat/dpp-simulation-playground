@@ -14,4 +14,7 @@ class DppInstance(Base):
     product_name = Column(String(255))
     product_category = Column(String(100))
     compliance_status = Column(JSON, default=dict)
+    aasx_object_key = Column(String(500))
+    aasx_url = Column(String(500))
+    aasx_filename = Column(String(255))
     created_at = Column(DateTime(timezone=True), server_default=func.now())

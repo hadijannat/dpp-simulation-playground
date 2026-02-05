@@ -25,10 +25,16 @@ services:
     environment:
       - KEYCLOAK_URL=http://keycloak:8080
       - KEYCLOAK_REALM=dpp
+      - AUTH_MODE=auto
       - SERVICE_CLIENT_ID=dpp-services
       - SERVICE_CLIENT_SECRET=dev-services-secret
       - DATABASE_URL=postgresql://dpp:dpp@postgres:5432/dpp_playground
       - REDIS_URL=redis://redis:6379/0
+      - MINIO_ENDPOINT=minio:9000
+      - MINIO_ACCESS_KEY=minioadmin
+      - MINIO_SECRET_KEY=minioadmin
+      - MINIO_BUCKET=dpp-aasx
+      - MINIO_PUBLIC_URL=http://localhost:9100
     depends_on: [postgres, redis, mongodb, keycloak]
 
   compliance-service:
@@ -39,6 +45,7 @@ services:
     environment:
       - KEYCLOAK_URL=http://keycloak:8080
       - KEYCLOAK_REALM=dpp
+      - AUTH_MODE=auto
       - DATABASE_URL=postgresql://dpp:dpp@postgres:5432/dpp_playground
       - REDIS_URL=redis://redis:6379/0
     depends_on: [keycloak]
@@ -51,6 +58,7 @@ services:
     environment:
       - KEYCLOAK_URL=http://keycloak:8080
       - KEYCLOAK_REALM=dpp
+      - AUTH_MODE=auto
       - DATABASE_URL=postgresql://dpp:dpp@postgres:5432/dpp_playground
       - REDIS_URL=redis://redis:6379/0
     depends_on: [postgres, redis, keycloak]
@@ -63,6 +71,7 @@ services:
     environment:
       - KEYCLOAK_URL=http://keycloak:8080
       - KEYCLOAK_REALM=dpp
+      - AUTH_MODE=auto
       - DATABASE_URL=postgresql://dpp:dpp@postgres:5432/dpp_playground
       - REDIS_URL=redis://redis:6379/0
     depends_on: [keycloak]
@@ -75,6 +84,7 @@ services:
     environment:
       - KEYCLOAK_URL=http://keycloak:8080
       - KEYCLOAK_REALM=dpp
+      - AUTH_MODE=auto
       - DATABASE_URL=postgresql://dpp:dpp@postgres:5432/dpp_playground
       - REDIS_URL=redis://redis:6379/0
     depends_on: [keycloak]

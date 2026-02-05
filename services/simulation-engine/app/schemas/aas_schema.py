@@ -13,3 +13,19 @@ class AasCreate(BaseModel):
 class AasValidateRequest(BaseModel):
     data: Dict[str, Any]
     templates: List[str] = []
+
+
+class AasSubmodelCreate(BaseModel):
+    submodel: Dict[str, Any]
+    session_id: Optional[str] = None
+    register: bool = True
+
+
+class AasSubmodelElementsPatch(BaseModel):
+    elements: Any
+
+
+class AasxUploadRequest(BaseModel):
+    filename: str
+    content_base64: str
+    session_id: Optional[str] = None

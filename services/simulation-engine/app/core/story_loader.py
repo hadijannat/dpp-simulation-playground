@@ -7,6 +7,26 @@ DEFAULT_DATA_DIR = os.path.join(ROOT_DIR, "data", "stories")
 DATA_DIR = os.getenv("STORY_DATA_DIR", DEFAULT_DATA_DIR)
 
 
+def _decorate(story: Dict) -> Dict:
+    code = story.get("code", "")
+    parts = code.split("-")
+    epic_code = None
+    order_index = None
+    if len(parts) >= 3 and parts[1].isdigit():
+        epic_code = f"EPIC-{parts[1]}"
+        try:
+            order_index = int(parts[2])
+        except ValueError:
+            order_index = None
+    return {
+        **story,
+        "epic_code": epic_code,
+        "order_index": order_index,
+        "roles": story.get("roles") or ["manufacturer", "regulator", "consumer", "recycler", "developer"],
+        "difficulty": story.get("difficulty") or "intermediate",
+    }
+
+
 def _load_all() -> list[Dict]:
     if not os.path.exists(DATA_DIR):
         raise KeyError(f"Story data directory not found: {DATA_DIR}")
@@ -18,7 +38,7 @@ def _load_all() -> list[Dict]:
             stories = yaml.safe_load(handle) or []
             if isinstance(stories, list):
                 all_stories.extend(stories)
-    return all_stories
+    return [_decorate(item) for item in all_stories]
 
 
 def load_story(code: str) -> Dict:

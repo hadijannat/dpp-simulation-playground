@@ -11,19 +11,22 @@ TOKEN_URL = f"{KEYCLOAK_URL}/realms/{KEYCLOAK_REALM}/protocol/openid-connect/tok
 _cache = {"token": None, "exp": 0}
 
 
-def get_service_token() -> str:
+def get_service_token() -> str | None:
     now = int(time.time())
     if _cache["token"] and now < _cache["exp"] - 30:
         return _cache["token"]
-    resp = requests.post(
-        TOKEN_URL,
-        data={"grant_type": "client_credentials", "client_id": CLIENT_ID, "client_secret": CLIENT_SECRET},
-        timeout=5,
-    )
-    resp.raise_for_status()
-    data = resp.json()
-    token = data.get("access_token")
-    expires_in = int(data.get("expires_in", 60))
-    _cache["token"] = token
-    _cache["exp"] = now + expires_in
-    return token
+    try:
+        resp = requests.post(
+            TOKEN_URL,
+            data={"grant_type": "client_credentials", "client_id": CLIENT_ID, "client_secret": CLIENT_SECRET},
+            timeout=5,
+        )
+        resp.raise_for_status()
+        data = resp.json()
+        token = data.get("access_token")
+        expires_in = int(data.get("expires_in", 60))
+        _cache["token"] = token
+        _cache["exp"] = now + expires_in
+        return token
+    except Exception:
+        return None
