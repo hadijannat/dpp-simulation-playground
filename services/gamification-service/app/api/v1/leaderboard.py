@@ -7,9 +7,15 @@ from ...auth import require_roles
 router = APIRouter()
 
 @router.get("/leaderboard")
-def leaderboard(request: Request, limit: int = 10, db: Session = Depends(get_db)):
+def leaderboard(request: Request, limit: int = 10, offset: int = 0, db: Session = Depends(get_db)):
     require_roles(request.state.user, ["developer", "admin", "manufacturer", "consumer", "regulator", "recycler"])
-    items = db.query(UserPoints).order_by(UserPoints.total_points.desc()).limit(limit).all()
+    items = (
+        db.query(UserPoints)
+        .order_by(UserPoints.total_points.desc())
+        .offset(offset)
+        .limit(limit)
+        .all()
+    )
     return {
         "items": [
             {"user_id": str(item.user_id), "total_points": item.total_points, "level": item.level}

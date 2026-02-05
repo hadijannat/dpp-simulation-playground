@@ -7,9 +7,25 @@ from ...auth import require_roles
 router = APIRouter()
 
 @router.get("/streaks")
-def streaks(request: Request):
+def streaks(request: Request, limit: int = 10, db: Session = Depends(get_db)):
     require_roles(request.state.user, ["developer", "admin", "manufacturer", "consumer", "regulator", "recycler"])
-    return {"items": []}
+    items = (
+        db.query(UserPoints)
+        .order_by(UserPoints.current_streak_days.desc(), UserPoints.total_points.desc())
+        .limit(limit)
+        .all()
+    )
+    return {
+        "items": [
+            {
+                "user_id": str(item.user_id),
+                "current_streak_days": item.current_streak_days,
+                "longest_streak_days": item.longest_streak_days,
+                "total_points": item.total_points,
+            }
+            for item in items
+        ]
+    }
 
 
 @router.get("/streaks/{user_id}")

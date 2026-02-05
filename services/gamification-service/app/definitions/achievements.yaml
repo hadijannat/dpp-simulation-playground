@@ -3,3 +3,33 @@
   points: 25
   criteria:
     event: aas_created
+- code: compliance-master
+  name: Compliance Master
+  points: 30
+  criteria:
+    event: compliance_check_passed
+- code: negotiation-closer
+  name: Negotiation Closer
+  points: 20
+  criteria:
+    event: edc_negotiation_completed
+- code: transfer-finisher
+  name: Transfer Finisher
+  points: 20
+  criteria:
+    event: edc_transfer_completed
+- code: story-complete
+  name: Story Completed
+  points: 15
+  criteria:
+    event: story_completed
+- code: gap-finder
+  name: Gap Finder
+  points: 10
+  criteria:
+    event: gap_reported
+- code: aasx-uploader
+  name: AASX Uploader
+  points: 10
+  criteria:
+    event: aasx_uploaded

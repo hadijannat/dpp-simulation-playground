@@ -37,6 +37,20 @@ def _decode(value):
     return value
 
 
+def _maybe_json(value):
+    if not isinstance(value, str):
+        return value
+    trimmed = value.strip()
+    if not trimmed:
+        return value
+    if trimmed[0] in ("{", "["):
+        try:
+            return json.loads(trimmed)
+        except json.JSONDecodeError:
+            return value
+    return value
+
+
 def _process_event(event: Dict[str, Any], point_rules: Dict[str, int], achievements: list[dict]):
     event_type = event.get("event_type")
     user_id = event.get("user_id")
@@ -44,7 +58,7 @@ def _process_event(event: Dict[str, Any], point_rules: Dict[str, int], achieveme
         return
     points = point_rules.get(event_type)
     if points:
-        add_points(user_id, points, date.today())
+        add_points(user_id, points, date.today(), event.get("metadata"))
     if not achievements:
         return
     db = SessionLocal()
@@ -72,12 +86,17 @@ def _process_event(event: Dict[str, Any], point_rules: Dict[str, int], achieveme
 
 def _worker():
     client = Redis.from_url(REDIS_URL)
-    last_id = "0-0"
+    group = "gamification"
+    consumer = f"consumer-{uuid4()}"
+    try:
+        client.xgroup_create(STREAM, group, id="0-0", mkstream=True)
+    except Exception:
+        pass
     point_rules = _load_point_rules()
     achievements = _load_achievement_defs()
     while True:
         try:
-            result = client.xread({STREAM: last_id}, block=5000, count=10)
+            result = client.xreadgroup(group, consumer, {STREAM: ">"}, block=5000, count=10)
         except Exception:
             time.sleep(2)
             continue
@@ -85,9 +104,12 @@ def _worker():
             continue
         for _, messages in result:
             for msg_id, data in messages:
-                last_id = msg_id
-                decoded = { _decode(k): _decode(v) for k, v in data.items() }
+                decoded = {_decode(k): _maybe_json(_decode(v)) for k, v in data.items()}
                 _process_event(decoded, point_rules, achievements)
+                try:
+                    client.xack(STREAM, group, msg_id)
+                except Exception:
+                    continue
 
 
 def start_consumer():

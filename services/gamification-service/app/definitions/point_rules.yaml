@@ -6,3 +6,5 @@ api_call_success: 1
 aas_created: 10
 edc_negotiation_completed: 20
 gap_reported: 10
+edc_transfer_completed: 20
+aasx_uploaded: 10
