@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { Navigate } from "react-router-dom";
 import AccessDenied from "./AccessDenied";
 import { useAuth } from "../../hooks/useAuth";
@@ -6,7 +7,7 @@ import { useRoleStore } from "../../stores/roleStore";
 
 interface GuardProps {
   roles?: string[];
-  children: React.ReactNode;
+  children: ReactNode;
 }
 
 export default function RouteGuard({ roles, children }: GuardProps) {
