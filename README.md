@@ -1,5 +1,39 @@
 # DPP Simulation Playground
 
-DPP Simulation Playground is a microservices-based simulation environment for Digital Product Passport workflows. It includes a React frontend, FastAPI services for simulation, compliance, gamification, EDC simulation, collaboration, and supporting infrastructure for Keycloak, Kong, BaSyx, and data stores.
+A microservices-based simulation environment for Digital Product Passport workflows. It combines a React frontend, FastAPI services, Keycloak auth, Kong gateway, and supporting infrastructure (Postgres, Redis, MongoDB, MinIO, BaSyx).
 
-See `docs/` for architecture, API, and compliance documentation.
+## Quick Start
+
+1. Copy environment defaults:
+
+```bash
+cp infrastructure/docker/.env.example infrastructure/docker/.env
+```
+
+2. Start the stack:
+
+```bash
+make up
+```
+
+3. Open the UI:
+
+- http://localhost:3000
+
+## Services
+
+- Simulation Engine: http://localhost:8001
+- Compliance Service: http://localhost:8002
+- Gamification Service: http://localhost:8003
+- EDC Simulator: http://localhost:8004
+- Collaboration Service: http://localhost:8005
+- Keycloak: http://localhost:8080
+
+## Development
+
+- Frontend: `cd frontend && npm install && npm run dev`
+- Backend: `cd services/<service> && uvicorn app.main:app --reload --port <port>`
+
+## Documentation
+
+See `docs/` for architecture, APIs, compliance, and guides.
