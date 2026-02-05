@@ -1,13 +1,12 @@
 import { useState } from "react";
-import { API_BASE } from "../../config/endpoints";
+import { apiRequest } from "../../services/api";
 
 export default function RequestBuilder() {
   const [path, setPath] = useState("/api/v1/health");
   const [response, setResponse] = useState<string>("");
 
   async function run() {
-    const res = await fetch(`${API_BASE}${path}`);
-    const data = await res.json();
+    const data = await apiRequest(path);
     setResponse(JSON.stringify(data, null, 2));
   }
 

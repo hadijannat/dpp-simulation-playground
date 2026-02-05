@@ -1,17 +1,15 @@
 import { useState } from "react";
-import { API_BASE } from "../../config/endpoints";
+import { apiPost } from "../../services/api";
 
 export default function ComplianceChecker() {
   const [result, setResult] = useState<string>("");
   const [payload, setPayload] = useState("{\n  \"aas_identifier\": \"urn:example:aas:battery-ev-001\"\n}");
 
   async function run() {
-    const res = await fetch(`${API_BASE}/api/v1/compliance/check`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ data: JSON.parse(payload), regulations: ["ESPR"] }),
+    const data = await apiPost("/api/v1/compliance/check", {
+      data: JSON.parse(payload),
+      regulations: ["ESPR"],
     });
-    const data = await res.json();
     setResult(JSON.stringify(data, null, 2));
   }
 
