@@ -1,0 +1,10 @@
+.git
+.gitignore
+node_modules
+frontend/dist
+frontend/.vite
+__pycache__
+*.pyc
+.venv
+.env
+infrastructure/docker/volumes
