@@ -1,0 +1,4 @@
+- id: battery.uuid
+  severity: error
+  jsonpath: "$.aas_identifier"
+  required: true
