@@ -47,6 +47,11 @@ def upgrade():
         sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now()),
     )
     op.create_table(
+        "validation_results",
+        sa.Column("id", sa.String, primary_key=True),
+        sa.Column("result", postgresql.JSONB, server_default=sa.text("'{}'::jsonb")),
+    )
+    op.create_table(
         "edc_participants",
         sa.Column("id", postgresql.UUID(as_uuid=True), primary_key=True),
         sa.Column("participant_id", sa.String(255), unique=True, nullable=False),
@@ -65,6 +70,7 @@ def upgrade():
 
 
 def downgrade():
+    op.drop_table("validation_results")
     op.drop_table("edc_assets")
     op.drop_table("edc_participants")
     op.drop_table("compliance_reports")
