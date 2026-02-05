@@ -1,8 +1,28 @@
 {
   "realm": "dpp",
   "enabled": true,
-  "clients": [],
+  "displayName": "DPP Playground",
   "roles": {
-    "realm": []
-  }
+    "realm": [
+      {"name": "manufacturer"},
+      {"name": "regulator"},
+      {"name": "consumer"},
+      {"name": "recycler"},
+      {"name": "developer"},
+      {"name": "admin"}
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "dpp-frontend",
+      "publicClient": true,
+      "redirectUris": ["http://localhost:3000/*"],
+      "webOrigins": ["*"],
+      "standardFlowEnabled": true
+    },
+    {
+      "clientId": "dpp-api",
+      "bearerOnly": true
+    }
+  ]
 }
