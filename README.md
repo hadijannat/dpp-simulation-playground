@@ -43,14 +43,25 @@ Simulation Engine uses Keycloak client credentials:
 - Client ID: `dpp-services`
 - Client Secret: `dev-services-secret`
 
+## Environment Variables (Common)
+
+- `KEYCLOAK_URL` (default: `http://keycloak:8080`)
+- `KEYCLOAK_REALM` (default: `dpp`)
+- `KEYCLOAK_ISSUERS` (comma-separated; defaults to localhost + docker host issuers)
+- `KEYCLOAK_JWKS_URL` (override JWKS endpoint)
+- `DEV_BYPASS_AUTH` (set `true` for local header-based auth)
+- `BASYX_BASE_URL` (default: `http://aas-environment:8081`)
+- `AAS_REGISTRY_URL` (optional)
+- `SUBMODEL_REGISTRY_URL` (optional)
+
 ## Services
 
 - API Gateway: http://localhost:8000
-- Simulation Engine: http://localhost:8101
-- Compliance Service: http://localhost:8102
-- Gamification Service: http://localhost:8103
-- EDC Simulator: http://localhost:8104
-- Collaboration Service: http://localhost:8105
+- Simulation Engine: http://localhost:8101 (gateway: http://localhost:8000)
+- Compliance Service: http://localhost:8102 (gateway: http://localhost:8000)
+- Gamification Service: http://localhost:8103 (gateway: http://localhost:8000)
+- EDC Simulator: http://localhost:8104 (gateway: http://localhost:8000)
+- Collaboration Service: http://localhost:8105 (gateway: http://localhost:8000)
 - Keycloak: http://localhost:8080
 - MinIO: http://localhost:9100 (console 9101)
 

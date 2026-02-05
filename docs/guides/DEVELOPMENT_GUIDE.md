@@ -1,3 +1,28 @@
 # Development Guide
 
-Local development workflows.
+## Environment Variables
+
+### Auth
+- `KEYCLOAK_URL` (default: `http://keycloak:8080`)
+- `KEYCLOAK_REALM` (default: `dpp`)
+- `KEYCLOAK_ISSUERS` (optional, comma-separated)
+- `KEYCLOAK_JWKS_URL` (optional override)
+- `DEV_BYPASS_AUTH` (set `true` for local testing)
+- `X-Dev-User` (header used when `DEV_BYPASS_AUTH=true`)
+- `X-Dev-Roles` (header used when `DEV_BYPASS_AUTH=true`, comma-separated)
+
+### Backend
+- `DATABASE_URL` (default: `postgresql://dpp:dpp@postgres:5432/dpp_playground`)
+- `REDIS_URL` (default: `redis://redis:6379/0`)
+- `COMPLIANCE_URL` (simulation-engine -> compliance service)
+- `EDC_URL` (simulation-engine -> edc service)
+- `BASYX_BASE_URL` (default: `http://aas-environment:8081`)
+- `AAS_REGISTRY_URL` (optional)
+- `SUBMODEL_REGISTRY_URL` (optional)
+- `IDTA_TEMPLATES_DIR` (optional override for template lookup)
+
+## Local Dev Tips
+
+- Use `make up` to start the full stack.
+- Use `DEV_BYPASS_AUTH=true` with headers for local API calls.
+- The Kong gateway runs at `http://localhost:8000` and routes `/api/v1/*`.
