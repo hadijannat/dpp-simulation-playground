@@ -57,6 +57,17 @@ export type LeaderboardEntry = {
   level: number;
 };
 
+export type Achievement = {
+  id?: number;
+  code: string;
+  name?: string;
+  description?: string;
+  points?: number;
+  category?: string;
+  rarity?: string;
+  icon_url?: string;
+};
+
 export type LeaderboardResponse = {
   items: LeaderboardEntry[];
 };

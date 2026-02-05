@@ -1,5 +1,6 @@
 import { useGamification } from "../hooks/useGamification";
 import { useGamificationStore } from "../stores/gamificationStore";
+import type { Achievement } from "../types/api.types";
 
 export default function GamificationPage() {
   const { achievements, leaderboard } = useGamification();
@@ -16,9 +17,11 @@ export default function GamificationPage() {
           {achievements.error && <div className="error">Failed to load achievements.</div>}
           {achievements.data?.items?.length ? (
             <ul>
-              {achievements.data.items.slice(0, 6).map((item: any, idx: number) => (
-                <li key={`${item.code ?? idx}`}>{item.name ?? item.code}</li>
-              ))}
+              {achievements.data.items
+                .slice(0, 6)
+                .map((item: Achievement, idx: number) => (
+                  <li key={`${item.code ?? idx}`}>{item.name ?? item.code}</li>
+                ))}
             </ul>
           ) : (
             !achievements.isLoading && <div>No achievements available.</div>

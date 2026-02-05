@@ -1,8 +1,8 @@
 import { apiGet } from "./api";
-import type { LeaderboardResponse } from "../types/api.types";
+import type { Achievement, LeaderboardResponse } from "../types/api.types";
 
 export function listAchievements() {
-  return apiGet<{ items: unknown[] }>("/api/v1/achievements");
+  return apiGet<{ items: Achievement[] }>("/api/v1/achievements");
 }
 
 export function getLeaderboard(limit = 10, offset = 0) {
