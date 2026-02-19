@@ -443,6 +443,50 @@ select {
   color: var(--ink-secondary);
 }
 
+.gamification-toolbar {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.gamification-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.gamification-toast-stack {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 90;
+  display: grid;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.gamification-toast {
+  border: 1px solid rgba(0, 232, 255, 0.38);
+  background: linear-gradient(135deg, rgba(8, 24, 48, 0.94), rgba(7, 42, 54, 0.92));
+  border-radius: var(--radius-md);
+  color: var(--ink-primary);
+  padding: 10px 12px;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.4);
+  max-width: 320px;
+  animation: toast-in var(--motion-medium) ease;
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .error {
   color: var(--brand-red);
 }
@@ -491,8 +535,16 @@ select {
 
   .digital-twin-slider-grid,
   .digital-twin-diff-grid,
-  .digital-twin-change-grid {
+  .digital-twin-change-grid,
+  .gamification-toolbar,
+  .gamification-summary-grid {
     grid-template-columns: 1fr;
+  }
+
+  .gamification-toast-stack {
+    left: 14px;
+    right: 14px;
+    bottom: 14px;
   }
 
   .simulation-workspace {
