@@ -1,4 +1,4 @@
-import { onCLS, onFID, onLCP, onFCP, onTTFB } from "web-vitals";
+import { onCLS, onINP, onLCP, onFCP, onTTFB } from "web-vitals";
 
 type MetricHandler = (metric: { name: string; value: number; id: string }) => void;
 
@@ -8,7 +8,7 @@ const reportMetric: MetricHandler = (metric) => {
 
 export function reportWebVitals() {
   onCLS(reportMetric);
-  onFID(reportMetric);
+  onINP(reportMetric);
   onLCP(reportMetric);
   onFCP(reportMetric);
   onTTFB(reportMetric);
