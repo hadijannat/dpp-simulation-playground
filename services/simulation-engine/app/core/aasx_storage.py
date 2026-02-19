@@ -44,8 +44,7 @@ def _sanitize_filename(filename: str) -> str:
 
 def _store_local(filename: str, raw: bytes) -> dict:
     os.makedirs(AASX_STORAGE_DIR, exist_ok=True)
-    safe_name = _sanitize_filename(filename)
-    key = f"{uuid4()}-{safe_name}"
+    key = f"{uuid4()}.aasx"
     path = os.path.join(AASX_STORAGE_DIR, key)
     with open(path, "wb") as handle:
         handle.write(raw)
