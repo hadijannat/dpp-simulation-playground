@@ -15,6 +15,7 @@ from ...core.session_state import (
 )
 from ...schemas.session_schema import SessionCreate, SessionResponse, SessionUpdate
 from ...services.session_service import create_new_session, fetch_session, update_existing_session
+from services.shared.audit import actor_subject, safe_record_audit
 from services.shared.user_registry import resolve_user_id
 
 router = APIRouter()
@@ -67,6 +68,21 @@ def create_session(request: Request, payload: SessionCreate, db: Session = Depen
         session.last_activity = datetime.now(timezone.utc)
         db.commit()
         db.refresh(session)
+
+    safe_record_audit(
+        db,
+        action="simulation.session_created",
+        object_type="simulation_session",
+        object_id=str(session.id),
+        actor_user_id=user_id,
+        actor_subject_value=actor_subject(getattr(request.state, "user", None)),
+        session_id=str(session.id),
+        request_id=str(getattr(request.state, "request_id", "")) or None,
+        details={
+            "role": payload.role,
+            "lifecycle_state": lifecycle_state,
+        },
+    )
     return _to_session_response(session)
 
 

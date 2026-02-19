@@ -13,6 +13,7 @@ from sqlalchemy.orm import Session
 from ...auth import require_roles
 from ...config import COMPLIANCE_URL
 from ...core.db import get_db
+from services.shared.audit import actor_subject, safe_record_audit
 from services.shared.models.compliance_report import ComplianceReport
 from services.shared.repositories import compliance_fix_repo
 from services.shared.user_registry import resolve_user_id
@@ -264,6 +265,21 @@ def create_run(request: Request, payload: ComplianceRunCreateRequest, db: Sessio
     db.commit()
     db.refresh(report)
 
+    safe_record_audit(
+        db,
+        action="compliance.run_created",
+        object_type="compliance_run",
+        object_id=str(report.id),
+        actor_user_id=user_id,
+        actor_subject_value=actor_subject(getattr(request.state, "user", None)),
+        request_id=str(getattr(request.state, "request_id", "")) or None,
+        details={
+            "status": report.status,
+            "regulations": payload.regulations,
+            "summary": upstream.get("summary"),
+        },
+    )
+
     now = datetime.now(timezone.utc).isoformat()
     return {
         "id": str(report.id),
@@ -370,6 +386,20 @@ def apply_fix(request: Request, run_id: str, payload: ComplianceFixApplyRequest,
         key: after_counts[key] - before_counts[key]
         for key in before_counts
     }
+    safe_record_audit(
+        db,
+        action="compliance.fix_applied",
+        object_type="compliance_run",
+        object_id=str(report.id),
+        actor_user_id=user_id,
+        actor_subject_value=actor_subject(getattr(request.state, "user", None)),
+        request_id=str(getattr(request.state, "request_id", "")) or None,
+        details={
+            "operations": [operation.model_dump(exclude_none=True) for operation in operations],
+            "deltas": deltas,
+            "status": report.status,
+        },
+    )
     return {
         "run_id": str(report.id),
         "status": report.status,

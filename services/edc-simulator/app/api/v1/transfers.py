@@ -10,6 +10,7 @@ from ...auth import require_roles
 from ...core.db import get_db
 from ...models.transfer import EdcTransfer
 from ...config import REDIS_URL, EVENT_STREAM_MAXLEN
+from services.shared.audit import actor_subject, safe_record_audit
 from services.shared.user_registry import resolve_user_id
 from services.shared import events
 from services.shared.redis_client import get_redis, publish_event
@@ -147,8 +148,19 @@ def complete(request: Request, transfer_id: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail="Invalid transition")
     _set_state(item, "COMPLETED")
     db.commit()
+    user_id = resolve_user_id(db, request.state.user)
+    safe_record_audit(
+        db,
+        action="edc.transfer_completed",
+        object_type="edc_transfer",
+        object_id=transfer_id,
+        actor_user_id=user_id,
+        actor_subject_value=actor_subject(getattr(request.state, "user", None)),
+        session_id=str(item.session_id) if item.session_id else None,
+        request_id=str(getattr(request.state, "request_id", "")) or None,
+        details={"state": item.current_state},
+    )
     try:
-        user_id = resolve_user_id(db, request.state.user)
         ok, _ = publish_event(
             get_redis(REDIS_URL),
             "simulation.events",

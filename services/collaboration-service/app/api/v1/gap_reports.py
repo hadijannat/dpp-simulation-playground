@@ -7,6 +7,7 @@ from ...core.db import get_db
 from ...models.gap_report import GapReport
 from ...config import REDIS_URL, EVENT_STREAM_MAXLEN
 from ...auth import require_roles
+from services.shared.audit import actor_subject, safe_record_audit
 from services.shared.user_registry import resolve_user_id
 from services.shared import events
 from services.shared.redis_client import get_redis, publish_event
@@ -67,6 +68,16 @@ def create_report(request: Request, payload: GapReportCreate, db: Session = Depe
     )
     db.add(item)
     db.commit()
+    safe_record_audit(
+        db,
+        action="collaboration.gap_report_created",
+        object_type="gap_report",
+        object_id=str(item.id),
+        actor_user_id=user_id,
+        actor_subject_value=actor_subject(getattr(request.state, "user", None)),
+        request_id=str(getattr(request.state, "request_id", "")) or None,
+        details={"story_id": payload.story_id, "status": item.status},
+    )
     try:
         ok, _ = publish_event(
             get_redis(REDIS_URL),

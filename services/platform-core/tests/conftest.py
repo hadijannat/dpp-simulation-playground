@@ -30,6 +30,7 @@ from services.shared.models.digital_twin_node import DigitalTwinNode  # noqa: E4
 from services.shared.models.digital_twin_edge import DigitalTwinEdge  # noqa: E402, F401
 from services.shared.models.ux_feedback import UxFeedback  # noqa: E402, F401
 from services.shared.models.event_log import EventLog  # noqa: E402, F401
+from services.shared.models.audit_log import AuditLog  # noqa: E402, F401
 
 from app.core.db import get_db  # noqa: E402
 from app import main  # noqa: E402

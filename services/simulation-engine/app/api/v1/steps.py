@@ -12,6 +12,7 @@ from ...core.db import get_db
 from ...models.session import SimulationSession
 from ...models.story_progress import StoryProgress
 from ...auth import require_roles
+from services.shared.audit import actor_subject, safe_record_audit
 from services.shared import events
 
 router = APIRouter()
@@ -62,6 +63,22 @@ def execute(
     session_state = dict(session.session_state or {})
     receipts = dict(session_state.get("step_receipts") or {})
     if receipt_id and receipt_id in receipts:
+        safe_record_audit(
+            db,
+            action="simulation.step_executed",
+            object_type="simulation_step",
+            object_id=f"{session_id}:{code}:{idx}",
+            actor_user_id=str(session.user_id),
+            actor_subject_value=actor_subject(getattr(request.state, "user", None)),
+            session_id=session_id,
+            request_id=str(getattr(request.state, "request_id", "")) or None,
+            details={
+                "story_code": code,
+                "step_idx": idx,
+                "idempotency_replay": True,
+                "status": receipts[receipt_id].get("status"),
+            },
+        )
         return {"result": receipts[receipt_id], "idempotent_replay": True}
 
     request_id = getattr(request.state, "request_id", None)
@@ -261,4 +278,21 @@ def execute(
                 status="called",
             )
         )
+    safe_record_audit(
+        db,
+        action="simulation.step_executed",
+        object_type="simulation_step",
+        object_id=f"{session_id}:{code}:{idx}",
+        actor_user_id=str(session.user_id),
+        actor_subject_value=actor_subject(getattr(request.state, "user", None)),
+        session_id=session_id,
+        request_id=str(request_id) if request_id else None,
+        details={
+            "story_code": code,
+            "step_idx": idx,
+            "action": step.get("action"),
+            "status": result.get("status"),
+            "idempotency_replay": False,
+        },
+    )
     return {"result": result}
