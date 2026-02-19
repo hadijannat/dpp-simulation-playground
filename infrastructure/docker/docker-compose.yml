@@ -33,6 +33,7 @@ services:
       - SERVICE_CLIENT_SECRET=${SERVICE_CLIENT_SECRET:-dev-services-secret}
       - DATABASE_URL=postgresql://dpp:dpp@postgres:5432/dpp_playground
       - REDIS_URL=redis://redis:6379/0
+      - AAS_ADAPTER_URL=http://aas-adapter:8008
       - MINIO_ENDPOINT=minio:9000
       - MINIO_ACCESS_KEY=minioadmin
       - MINIO_SECRET_KEY=minioadmin

@@ -17,6 +17,22 @@ def test_aas_requires_role(monkeypatch):
 
 def test_aas_allows_manufacturer(monkeypatch):
     monkeypatch.setattr(main, "verify_request", _set_roles(["manufacturer"]))
+
+    class _DummyResponse:
+        status_code = 200
+
+        @property
+        def content(self):
+            return b'{"status":"created","shell":{"id":"x"}}'
+
+        @property
+        def ok(self):
+            return True
+
+        def json(self):
+            return {"status": "created", "shell": {"id": "x"}}
+
+    monkeypatch.setattr("app.api.v1.aas.requests.request", lambda *args, **kwargs: _DummyResponse())
     client = TestClient(main.app)
     resp = client.post("/api/v1/aas/shells", json={"aas_identifier": "x"})
     assert resp.status_code == 200

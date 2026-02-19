@@ -3,7 +3,6 @@ from pydantic import BaseModel
 from uuid import uuid4
 from datetime import datetime, timezone
 from sqlalchemy.orm import Session
-from redis import Redis
 
 from ...dsp.transfer_state_machine import can_transition
 from ...auth import require_roles
@@ -12,6 +11,7 @@ from ...models.transfer import EdcTransfer
 from ...config import REDIS_URL
 from services.shared.user_registry import resolve_user_id
 from services.shared import events
+from services.shared.redis_client import get_redis, publish_event
 
 router = APIRouter()
 
@@ -66,7 +66,7 @@ def get_transfer(request: Request, transfer_id: str, db: Session = Depends(get_d
     require_roles(request.state.user, ["developer", "manufacturer", "admin", "regulator"])
     item = db.query(EdcTransfer).filter(EdcTransfer.transfer_id == transfer_id).first()
     if not item:
-        return {"error": "not found"}
+        raise HTTPException(status_code=404, detail="Not found")
     return _to_dict(item)
 
 
@@ -147,11 +147,14 @@ def complete(request: Request, transfer_id: str, db: Session = Depends(get_db)):
     db.commit()
     try:
         user_id = resolve_user_id(db, request.state.user)
-        Redis.from_url(REDIS_URL).xadd(
+        publish_event(
+            get_redis(REDIS_URL),
             "simulation.events",
             events.build_event(
                 events.EDC_TRANSFER_COMPLETED,
                 user_id=user_id or "",
+                source_service="edc-simulator",
+                request_id=getattr(request.state, "request_id", None),
                 transfer_id=transfer_id,
                 session_id=str(item.session_id) if item.session_id else None,
             ),

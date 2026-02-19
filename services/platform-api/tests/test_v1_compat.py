@@ -9,6 +9,7 @@ from fastapi.testclient import TestClient
 
 from app.main import app
 from app.config import (
+    AAS_ADAPTER_URL,
     COLLABORATION_URL,
     COMPLIANCE_URL,
     EDC_URL,
@@ -67,10 +68,38 @@ def test_v1_health():
         ),
         (
             "POST",
+            "/api/v1/sessions/s-1/pause",
+            None,
+            f"{SIMULATION_URL}/api/v1/sessions/s-1/pause",
+            {"id": "s-1", "user_id": "u-1", "role": "manufacturer", "state": {"lifecycle_state": "paused"}},
+        ),
+        (
+            "GET",
+            "/api/v1/progress?limit=5&offset=1",
+            None,
+            f"{SIMULATION_URL}/api/v1/progress",
+            {"items": [], "total": 0, "limit": 5, "offset": 1, "progress": []},
+        ),
+        (
+            "POST",
             "/api/v1/sessions/s-1/stories/US-01/steps/0/execute",
             {"payload": {"key": "value"}, "metadata": {"role": "manufacturer"}},
             f"{SIMULATION_URL}/api/v1/sessions/s-1/stories/US-01/steps/0/execute",
             {"result": {"status": "ok"}},
+        ),
+        (
+            "GET",
+            "/api/v1/aas/shells",
+            None,
+            f"{AAS_ADAPTER_URL}/api/v2/aas/shells",
+            {"items": [{"id": "urn:uuid:example"}]},
+        ),
+        (
+            "PATCH",
+            "/api/v1/aas/submodels/sub-1/elements",
+            {"elements": [{"idShort": "fieldA", "value": 7}]},
+            f"{AAS_ADAPTER_URL}/api/v2/aas/submodels/sub-1/elements",
+            {"status": "updated", "submodel_id": "sub-1", "elements": [{"idShort": "fieldA", "value": 7}]},
         ),
         (
             "POST",
@@ -203,3 +232,32 @@ def test_v1_compat_returns_502_when_upstream_unavailable(monkeypatch: pytest.Mon
     response = client.get("/api/v1/stories", headers=HEADERS)
     assert response.status_code == 502
     assert "Upstream unavailable" in response.json()["detail"]
+
+
+def test_v1_create_shell_maps_legacy_payload_to_aas_adapter(monkeypatch: pytest.MonkeyPatch):
+    calls: list[dict[str, Any]] = []
+
+    def fake_request(method: str, url: str, params: dict[str, Any] | None, json: dict[str, Any] | None, **kwargs: Any):
+        calls.append({"method": method, "url": url, "params": params, "json": json})
+        return DummyResponse({"status": "created", "shell": {"id": "urn:uuid:us-02-01"}})
+
+    monkeypatch.setattr("app.core.proxy.requests.request", fake_request)
+
+    response = client.post(
+        "/api/v1/aas/shells",
+        json={
+            "id": "urn:uuid:us-02-01",
+            "idShort": "DPP-Create",
+            "assetInformation": {"globalAssetId": "urn:example:asset:us-02-01"},
+        },
+        headers=HEADERS,
+    )
+
+    assert response.status_code == 200
+    assert calls
+    assert calls[0]["url"] == f"{AAS_ADAPTER_URL}/api/v2/aas/shells"
+    assert calls[0]["json"] == {
+        "aas_identifier": "urn:uuid:us-02-01",
+        "product_name": "DPP-Create",
+        "product_identifier": "urn:example:asset:us-02-01",
+    }

@@ -1,25 +1,33 @@
 from typing import Dict, List, Any
 from jsonpath_ng import parse
+from sqlalchemy.orm import Session
+
 from .rule_loader import load_rules_for
 
 
-def evaluate_payload(data: Dict[str, Any], regulations: List[str]) -> Dict[str, Any]:
+def evaluate_payload(data: Dict[str, Any], regulations: List[str], db: Session | None = None) -> Dict[str, Any]:
     data = data or {}
     violations = []
     warnings = []
     recommendations = []
     for regulation in regulations:
-        for rule in load_rules_for(regulation):
+        for rule in load_rules_for(regulation, db=db):
             path = rule.get("jsonpath")
             required = rule.get("required", False)
             recommended = rule.get("recommended", False)
             severity = rule.get("severity", "warning")
             when = rule.get("when")
             if when:
-                when_matches = parse(when).find(data)
+                try:
+                    when_matches = parse(when).find(data)
+                except Exception:
+                    continue
                 if not when_matches:
                     continue
-            matches = parse(path).find(data) if path else []
+            try:
+                matches = parse(path).find(data) if path else []
+            except Exception:
+                continue
             is_missing = (required or recommended) and not matches
             if not is_missing:
                 continue
@@ -33,8 +41,10 @@ def evaluate_payload(data: Dict[str, Any], regulations: List[str]) -> Dict[str, 
                 "message": rule.get("message", "Missing required field"),
                 "regulation": regulation,
                 "jsonpath": path,
+                "path": path,
                 "severity": severity,
                 "level": level,
+                "remediation": rule.get("remediation"),
             }
             if level == "recommended":
                 recommendations.append(target)

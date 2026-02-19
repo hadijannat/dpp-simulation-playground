@@ -5,10 +5,10 @@ from sqlalchemy.orm import Session
 from ...core.db import get_db
 from ...models.gap_report import GapReport
 from ...config import REDIS_URL
-from redis import Redis
 from ...auth import require_roles
 from services.shared.user_registry import resolve_user_id
 from services.shared import events
+from services.shared.redis_client import get_redis, publish_event
 
 router = APIRouter()
 
@@ -66,11 +66,14 @@ def create_report(request: Request, payload: GapReportCreate, db: Session = Depe
     db.add(item)
     db.commit()
     try:
-        Redis.from_url(REDIS_URL).xadd(
+        publish_event(
+            get_redis(REDIS_URL),
             "simulation.events",
             events.build_event(
                 events.GAP_REPORTED,
                 user_id=user_id,
+                source_service="collaboration-service",
+                request_id=getattr(request.state, "request_id", None),
                 story_id=payload.story_id or "",
             ),
         )

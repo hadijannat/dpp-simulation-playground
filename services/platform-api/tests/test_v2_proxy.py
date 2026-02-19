@@ -237,3 +237,38 @@ def test_v2_proxy_forwards_upstream_errors(
     response = client.request(method, path, **request_kwargs)
     assert response.status_code == 404
     assert response.json()["detail"] == "Upstream not found"
+
+
+def test_v2_proxy_forwards_request_id_header(monkeypatch: pytest.MonkeyPatch):
+    calls: list[dict[str, Any]] = []
+
+    def fake_request(method: str, url: str, params: Any = None, json: Any = None, **kwargs: Any):
+        calls.append(
+            {
+                "method": method,
+                "url": url,
+                "params": params,
+                "json": json,
+                "headers": kwargs.get("headers", {}),
+            }
+        )
+        return DummyResponse({"items": []})
+
+    monkeypatch.setattr("app.core.proxy.requests.request", fake_request)
+
+    request_id = "req-test-123"
+    response = client.get(
+        "/api/v2/journeys/templates",
+        headers={**HEADERS, "X-Request-ID": request_id},
+    )
+    assert response.status_code == 200
+    assert response.headers.get("X-Request-ID") == request_id
+    assert calls, "Expected v2 proxy to call platform-core"
+    assert calls[0]["headers"].get("X-Request-ID") == request_id
+
+
+def test_v2_proxy_rejects_missing_bearer_when_dev_headers_disallowed(monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.setattr("app.core.proxy.ALLOW_DEV_HEADERS", False)
+    response = client.get("/api/v2/journeys/templates", headers=HEADERS)
+    assert response.status_code == 401
+    assert response.json()["detail"] == "Missing bearer token"

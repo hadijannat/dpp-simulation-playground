@@ -29,6 +29,7 @@ from services.shared.models.digital_twin_snapshot import DigitalTwinSnapshot  # 
 from services.shared.models.digital_twin_node import DigitalTwinNode  # noqa: E402, F401
 from services.shared.models.digital_twin_edge import DigitalTwinEdge  # noqa: E402, F401
 from services.shared.models.ux_feedback import UxFeedback  # noqa: E402, F401
+from services.shared.models.event_log import EventLog  # noqa: E402, F401
 
 from app.core.db import get_db  # noqa: E402
 from app import main  # noqa: E402

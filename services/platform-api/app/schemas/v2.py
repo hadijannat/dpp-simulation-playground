@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Any
+from typing import Any, Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 
 class HealthResponse(BaseModel):
@@ -20,6 +20,7 @@ class StoryItem(BaseModel):
     code: str
     title: str
     description: str | None = None
+    story_version: int = 1
     steps: list[StoryStep] = Field(default_factory=list)
     epic_code: str | None = None
     order_index: int | None = None
@@ -34,12 +35,14 @@ class StoryListResponse(BaseModel):
 class SessionCreateRequest(BaseModel):
     role: str
     state: dict[str, Any] = Field(default_factory=dict)
+    lifecycle_state: str | None = None
 
 
 class SessionUpdateRequest(BaseModel):
     role: str | None = None
     state: dict[str, Any] | None = None
     is_active: bool | None = None
+    lifecycle_state: str | None = None
 
 
 class SessionResponse(BaseModel):
@@ -47,6 +50,8 @@ class SessionResponse(BaseModel):
     user_id: str
     role: str
     state: dict[str, Any] = Field(default_factory=dict)
+    lifecycle_state: str | None = None
+    is_active: bool | None = None
 
 
 class StoryStartResponse(BaseModel):
@@ -59,10 +64,12 @@ class StoryStartResponse(BaseModel):
 class StepExecuteRequest(BaseModel):
     payload: dict[str, Any] = Field(default_factory=dict)
     metadata: dict[str, Any] = Field(default_factory=dict)
+    idempotency_key: str | None = None
 
 
 class StepExecuteResponse(BaseModel):
     result: dict[str, Any] = Field(default_factory=dict)
+    idempotent_replay: bool | None = None
 
 
 class StoryValidateRequest(BaseModel):
@@ -79,12 +86,22 @@ class StoryValidateResponse(BaseModel):
 class ProgressItem(BaseModel):
     id: str
     story_id: int | None = None
+    story_code: str | None = None
+    role_type: str | None = None
     status: str
     completion_percentage: int
     steps_completed: list[int] = Field(default_factory=list)
+    started_at: str | None = None
+    completed_at: str | None = None
+    time_spent_seconds: int | None = None
+    error_count: int | None = None
 
 
 class ProgressResponse(BaseModel):
+    items: list[ProgressItem] = Field(default_factory=list)
+    total: int = 0
+    limit: int = 0
+    offset: int = 0
     progress: list[ProgressItem] = Field(default_factory=list)
 
 
@@ -159,6 +176,7 @@ class ComplianceIssue(BaseModel):
     severity: str | None = None
     level: str | None = None
     path: str | None = None
+    remediation: str | None = None
 
 
 class ComplianceSummary(BaseModel):
@@ -188,14 +206,40 @@ class ComplianceRunResponse(BaseModel):
 
 
 class ComplianceFixRequest(BaseModel):
+    path: str | None = None
+    value: Any | None = None
+    operations: list["JsonPatchOperation"] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def validate_payload(self):
+        if self.operations:
+            return self
+        if not self.path:
+            raise ValueError("Either operations or path must be provided")
+        return self
+
+
+class JsonPatchOperation(BaseModel):
+    op: Literal["add", "replace", "remove"]
     path: str
-    value: Any
+    value: Any | None = None
+
+    @model_validator(mode="after")
+    def validate_value(self):
+        if self.op in {"add", "replace"} and self.value is None:
+            raise ValueError("value is required for add/replace operations")
+        return self
 
 
 class ComplianceFixResponse(BaseModel):
     run_id: str
     status: str
     payload: dict[str, Any] = Field(default_factory=dict)
+    operations_applied: list[JsonPatchOperation] = Field(default_factory=list)
+    before: dict[str, Any] = Field(default_factory=dict)
+    after: dict[str, Any] = Field(default_factory=dict)
+    deltas: dict[str, int] = Field(default_factory=dict)
+    fixes: list[dict[str, Any]] = Field(default_factory=list)
 
 
 class ComplianceReportSummary(BaseModel):
@@ -208,6 +252,11 @@ class ComplianceReportSummary(BaseModel):
 
 
 class ComplianceReportListResponse(BaseModel):
+    items: list[ComplianceReportSummary] = Field(default_factory=list)
+    total: int = 0
+    limit: int = 0
+    offset: int = 0
+    # Backward-compatible alias used by older frontend payload readers.
     reports: list[ComplianceReportSummary] = Field(default_factory=list)
 
 
@@ -414,6 +463,29 @@ class JourneyStepExecuteResponse(BaseModel):
     run_id: str
     execution: JourneyStepResult
     next_step: str
+
+
+class EventItem(BaseModel):
+    event_id: str
+    event_type: str
+    user_id: str
+    timestamp: str | None = None
+    source_service: str
+    session_id: str | None = None
+    run_id: str | None = None
+    request_id: str | None = None
+    metadata: dict[str, Any] | list[Any] = Field(default_factory=dict)
+    version: str | None = None
+    stream: str | None = None
+    stream_message_id: str | None = None
+    published: bool | None = None
+
+
+class EventListResponse(BaseModel):
+    items: list[EventItem] = Field(default_factory=list)
+    total: int = 0
+    limit: int = 0
+    offset: int = 0
 
 
 class DigitalTwinNode(BaseModel):

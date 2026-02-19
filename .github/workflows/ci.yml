@@ -62,8 +62,14 @@ jobs:
         run: |
           cd services/${{ matrix.service }}
           pip install -r requirements.txt -r requirements-dev.txt
+      - name: Lint story definitions
+        if: matrix.service == 'simulation-engine'
+        run: cd services/${{ matrix.service }} && python scripts/story_lint.py
       - name: Run tests
         run: cd services/${{ matrix.service }} && pytest tests/ -v --tb=short
+      - name: Validate shared migration lineage
+        if: matrix.service == 'simulation-engine'
+        run: cd services/${{ matrix.service }} && alembic -c ../shared/migrations/alembic.ini heads
 
   test-frontend:
     runs-on: ubuntu-latest
