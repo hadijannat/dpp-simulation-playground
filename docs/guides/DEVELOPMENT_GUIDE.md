@@ -35,3 +35,10 @@
 - Use `make up` to start the full stack.
 - Use `DEV_BYPASS_AUTH=true` with headers for local API calls.
 - The Kong gateway runs at `http://localhost:8000` and routes `/api/v1/*`.
+
+## Runbooks
+
+- Story authoring: `docs/guides/ADDING_STORIES.md`
+- Compliance rules lifecycle: `docs/guides/ADDING_COMPLIANCE_RULES.md`
+- Event and stream debugging: `docs/guides/EVENT_DEBUG_RUNBOOK.md`
+- Step execution failure debugging: `docs/guides/STEP_FAILURE_DEBUG_RUNBOOK.md`
