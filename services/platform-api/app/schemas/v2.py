@@ -492,19 +492,78 @@ class DigitalTwinNode(BaseModel):
     id: str
     label: str
     type: str
+    payload: dict[str, Any] = Field(default_factory=dict)
 
 
 class DigitalTwinEdge(BaseModel):
     id: str
     source: str
     target: str
+    label: str | None = None
+    payload: dict[str, Any] = Field(default_factory=dict)
+
+
+class DigitalTwinSnapshotItem(BaseModel):
+    snapshot_id: str
+    label: str | None = None
+    created_at: str | None = None
+    metadata: dict[str, Any] = Field(default_factory=dict)
+    node_count: int = 0
+    edge_count: int = 0
 
 
 class DigitalTwinResponse(BaseModel):
     dpp_id: str
+    snapshot_id: str | None = None
+    snapshot_label: str | None = None
+    snapshot_created_at: str | None = None
+    snapshot_metadata: dict[str, Any] = Field(default_factory=dict)
     nodes: list[DigitalTwinNode] = Field(default_factory=list)
     edges: list[DigitalTwinEdge] = Field(default_factory=list)
     timeline: list[dict[str, Any]] = Field(default_factory=list)
+
+
+class DigitalTwinHistoryResponse(BaseModel):
+    dpp_id: str
+    items: list[DigitalTwinSnapshotItem] = Field(default_factory=list)
+    total: int = 0
+    limit: int = 0
+    offset: int = 0
+
+
+class DigitalTwinDiffChangedItem(BaseModel):
+    key: str
+    before: dict[str, Any]
+    after: dict[str, Any]
+
+
+class DigitalTwinDiffGroup(BaseModel):
+    added: list[dict[str, Any]] = Field(default_factory=list)
+    removed: list[dict[str, Any]] = Field(default_factory=list)
+    changed: list[DigitalTwinDiffChangedItem] = Field(default_factory=list)
+
+
+class DigitalTwinDiffSummary(BaseModel):
+    nodes_added: int = 0
+    nodes_removed: int = 0
+    nodes_changed: int = 0
+    edges_added: int = 0
+    edges_removed: int = 0
+    edges_changed: int = 0
+
+
+class DigitalTwinDiffResult(BaseModel):
+    summary: DigitalTwinDiffSummary
+    nodes: DigitalTwinDiffGroup
+    edges: DigitalTwinDiffGroup
+    generated_at: str | None = None
+
+
+class DigitalTwinDiffResponse(BaseModel):
+    dpp_id: str
+    from_snapshot: DigitalTwinSnapshotItem
+    to_snapshot: DigitalTwinSnapshotItem
+    diff: DigitalTwinDiffResult
 
 
 class CsatFeedback(BaseModel):

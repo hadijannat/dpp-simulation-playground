@@ -142,6 +142,96 @@ def test_get_digital_twin_proxies_to_platform_core(monkeypatch: pytest.MonkeyPat
     assert calls[0]["url"] == f"{PLATFORM_CORE_URL}/api/v2/core/digital-twins/{dpp_id}"
 
 
+def test_get_digital_twin_history_proxies_to_platform_core(monkeypatch: pytest.MonkeyPatch):
+    calls: list[dict[str, Any]] = []
+    dpp_id = "dpp-twin-999"
+    upstream_payload = {
+        "dpp_id": dpp_id,
+        "items": [
+            {
+                "snapshot_id": "s1",
+                "label": "v1",
+                "created_at": "2025-01-01T00:00:00",
+                "metadata": {},
+                "node_count": 1,
+                "edge_count": 0,
+            }
+        ],
+        "total": 1,
+        "limit": 10,
+        "offset": 0,
+    }
+
+    def fake_request(method: str, url: str, params: Any = None, json: Any = None, **kwargs: Any):
+        calls.append({"method": method, "url": url, "params": params, "json": json})
+        return DummyResponse(upstream_payload)
+
+    monkeypatch.setattr("app.core.proxy.requests.request", fake_request)
+
+    response = client.get(f"/api/v2/digital-twins/{dpp_id}/history", params={"limit": 10}, headers=HEADERS)
+    assert response.status_code == 200
+    assert response.json() == upstream_payload
+    assert calls, "Expected v2 proxy to call platform-core"
+    assert calls[0]["method"] == "GET"
+    assert calls[0]["url"] == f"{PLATFORM_CORE_URL}/api/v2/core/digital-twins/{dpp_id}/history"
+    assert calls[0]["params"] == {"limit": 10, "offset": 0}
+
+
+def test_get_digital_twin_diff_proxies_to_platform_core(monkeypatch: pytest.MonkeyPatch):
+    calls: list[dict[str, Any]] = []
+    dpp_id = "dpp-twin-999"
+    upstream_payload = {
+        "dpp_id": dpp_id,
+        "from_snapshot": {
+            "snapshot_id": "s1",
+            "label": "before",
+            "created_at": "2025-01-01T00:00:00",
+            "metadata": {},
+            "node_count": 1,
+            "edge_count": 0,
+        },
+        "to_snapshot": {
+            "snapshot_id": "s2",
+            "label": "after",
+            "created_at": "2025-01-01T00:01:00",
+            "metadata": {},
+            "node_count": 2,
+            "edge_count": 1,
+        },
+        "diff": {
+            "summary": {
+                "nodes_added": 1,
+                "nodes_removed": 0,
+                "nodes_changed": 0,
+                "edges_added": 1,
+                "edges_removed": 0,
+                "edges_changed": 0,
+            },
+            "nodes": {"added": [{"id": "transfer"}], "removed": [], "changed": []},
+            "edges": {"added": [{"id": "product-transfer"}], "removed": [], "changed": []},
+            "generated_at": "2025-01-01T00:02:00",
+        },
+    }
+
+    def fake_request(method: str, url: str, params: Any = None, json: Any = None, **kwargs: Any):
+        calls.append({"method": method, "url": url, "params": params, "json": json})
+        return DummyResponse(upstream_payload)
+
+    monkeypatch.setattr("app.core.proxy.requests.request", fake_request)
+
+    response = client.get(
+        f"/api/v2/digital-twins/{dpp_id}/diff",
+        params={"from": "s1", "to": "s2"},
+        headers=HEADERS,
+    )
+    assert response.status_code == 200
+    assert response.json() == upstream_payload
+    assert calls, "Expected v2 proxy to call platform-core"
+    assert calls[0]["method"] == "GET"
+    assert calls[0]["url"] == f"{PLATFORM_CORE_URL}/api/v2/core/digital-twins/{dpp_id}/diff"
+    assert calls[0]["params"] == {"from": "s1", "to": "s2"}
+
+
 # ---- Feedback ----------------------------------------------------------------
 
 def test_submit_csat_proxies_to_platform_core(monkeypatch: pytest.MonkeyPatch):
@@ -208,6 +298,12 @@ def test_submit_csat_proxies_to_platform_core(monkeypatch: pytest.MonkeyPatch):
             f"{PLATFORM_CORE_URL}/api/v2/core/digital-twins/dt-1",
         ),
         (
+            "GET",
+            "/api/v2/digital-twins/dt-1/history",
+            None,
+            f"{PLATFORM_CORE_URL}/api/v2/core/digital-twins/dt-1/history",
+        ),
+        (
             "POST",
             "/api/v2/feedback/csat",
             {"score": 3, "role": "developer"},
@@ -233,6 +329,8 @@ def test_v2_proxy_forwards_upstream_errors(
     request_kwargs: dict[str, Any] = {"headers": HEADERS}
     if body is not None:
         request_kwargs["json"] = body
+    if path.endswith("/history"):
+        request_kwargs["params"] = {"limit": 25, "offset": 0}
 
     response = client.request(method, path, **request_kwargs)
     assert response.status_code == 404

@@ -11,6 +11,11 @@ from __future__ import annotations
 
 from uuid import uuid4
 
+from services.shared.models.digital_twin_snapshot import DigitalTwinSnapshot
+from services.shared.models.dpp_instance import DppInstance
+from services.shared.models.session import SimulationSession
+from services.shared.models.user import User
+
 
 PREFIX = "/api/v2/core/journeys"
 
@@ -160,3 +165,62 @@ def test_execute_step_returns_404_for_unknown_run(client):
     )
     assert response.status_code == 404
     assert "Run not found" in response.json()["detail"]
+
+
+def test_execute_step_captures_digital_twin_snapshot_when_run_has_dpp(client, seed_template, db_session):
+    template, steps = seed_template
+
+    user_id = uuid4()
+    db_session.add(User(id=user_id, keycloak_id="journey-dt-user", email="journey-dt@test.com"))
+    db_session.flush()
+
+    session_id = uuid4()
+    db_session.add(
+        SimulationSession(
+            id=session_id,
+            user_id=user_id,
+            active_role="manufacturer",
+            session_state={"last_validation": {"status": "passed"}},
+        )
+    )
+    db_session.flush()
+
+    dpp_id = uuid4()
+    db_session.add(
+        DppInstance(
+            id=dpp_id,
+            session_id=session_id,
+            aas_identifier="urn:example:journey-dt",
+            product_name="Journey Product",
+        )
+    )
+    db_session.commit()
+
+    create_resp = client.post(
+        f"{PREFIX}/runs",
+        json={
+            "template_code": template.code,
+            "role": "manufacturer",
+            "locale": "en",
+            "session_id": str(session_id),
+        },
+    )
+    assert create_resp.status_code == 200
+    run_id = create_resp.json()["id"]
+
+    response = client.post(
+        f"{PREFIX}/runs/{run_id}/steps/{steps[0].step_key}/execute",
+        json={"payload": {"product_name": "Battery"}, "metadata": {}},
+    )
+    assert response.status_code == 200
+
+    snapshots = (
+        db_session.query(DigitalTwinSnapshot)
+        .filter(DigitalTwinSnapshot.dpp_instance_id == dpp_id)
+        .all()
+    )
+    assert len(snapshots) == 1
+    snapshot = snapshots[0]
+    metadata = snapshot.metadata_ or {}
+    assert metadata["run_id"] == run_id
+    assert metadata["step_id"] == steps[0].step_key
