@@ -52,7 +52,9 @@ def _seed_report(db_session, *, payload: dict[str, Any]) -> ComplianceReport:
     return report
 
 
-def test_apply_fix_legacy_payload_is_wrapped_and_applied(client, db_session, monkeypatch: pytest.MonkeyPatch):
+def test_apply_fix_legacy_payload_is_wrapped_and_applied(
+    client, db_session, monkeypatch: pytest.MonkeyPatch
+):
     report = _seed_report(db_session, payload={"battery": {"weight": 5}})
 
     def fake_post(*args, **kwargs):
@@ -66,7 +68,7 @@ def test_apply_fix_legacy_payload_is_wrapped_and_applied(client, db_session, mon
             }
         )
 
-    monkeypatch.setattr("app.api.v2.compliance.requests.post", fake_post)
+    monkeypatch.setattr("app.api.v2.compliance.pooled_request", fake_post)
 
     response = client.post(
         f"/api/v2/core/compliance/runs/{report.id}/apply-fix",
@@ -78,18 +80,25 @@ def test_apply_fix_legacy_payload_is_wrapped_and_applied(client, db_session, mon
     body = response.json()
     assert body["status"] == "compliant"
     assert body["payload"]["battery"]["weight"] == 10
-    assert body["operations_applied"] == [{"op": "replace", "path": "/battery/weight", "value": 10}]
+    assert body["operations_applied"] == [
+        {"op": "replace", "path": "/battery/weight", "value": 10}
+    ]
     assert body["deltas"]["violations"] == -1
     audit_entry = (
         db_session.query(AuditLog)
-        .filter(AuditLog.action == "compliance.fix_applied", AuditLog.object_id == str(report.id))
+        .filter(
+            AuditLog.action == "compliance.fix_applied",
+            AuditLog.object_id == str(report.id),
+        )
         .first()
     )
     assert audit_entry is not None
     assert audit_entry.payload_hash
 
 
-def test_apply_fix_json_patch_remove_operation(client, db_session, monkeypatch: pytest.MonkeyPatch):
+def test_apply_fix_json_patch_remove_operation(
+    client, db_session, monkeypatch: pytest.MonkeyPatch
+):
     report = _seed_report(db_session, payload={"battery": {"weight": 5, "unit": "kg"}})
 
     def fake_post(*args, **kwargs):
@@ -103,7 +112,7 @@ def test_apply_fix_json_patch_remove_operation(client, db_session, monkeypatch: 
             }
         )
 
-    monkeypatch.setattr("app.api.v2.compliance.requests.post", fake_post)
+    monkeypatch.setattr("app.api.v2.compliance.pooled_request", fake_post)
 
     response = client.post(
         f"/api/v2/core/compliance/runs/{report.id}/apply-fix",
@@ -117,7 +126,9 @@ def test_apply_fix_json_patch_remove_operation(client, db_session, monkeypatch: 
     assert body["operations_applied"] == [{"op": "remove", "path": "/battery/unit"}]
 
 
-def test_create_run_writes_audit_entry(client, db_session, monkeypatch: pytest.MonkeyPatch):
+def test_create_run_writes_audit_entry(
+    client, db_session, monkeypatch: pytest.MonkeyPatch
+):
     def fake_post(*args, **kwargs):
         return DummyComplianceResponse(
             {
@@ -129,7 +140,7 @@ def test_create_run_writes_audit_entry(client, db_session, monkeypatch: pytest.M
             }
         )
 
-    monkeypatch.setattr("app.api.v2.compliance.requests.post", fake_post)
+    monkeypatch.setattr("app.api.v2.compliance.pooled_request", fake_post)
 
     response = client.post(
         "/api/v2/core/compliance/runs",
@@ -140,20 +151,24 @@ def test_create_run_writes_audit_entry(client, db_session, monkeypatch: pytest.M
     run_id = response.json()["id"]
     audit_entry = (
         db_session.query(AuditLog)
-        .filter(AuditLog.action == "compliance.run_created", AuditLog.object_id == run_id)
+        .filter(
+            AuditLog.action == "compliance.run_created", AuditLog.object_id == run_id
+        )
         .first()
     )
     assert audit_entry is not None
     assert audit_entry.payload_hash
 
 
-def test_apply_fix_rejects_invalid_json_pointer(client, db_session, monkeypatch: pytest.MonkeyPatch):
+def test_apply_fix_rejects_invalid_json_pointer(
+    client, db_session, monkeypatch: pytest.MonkeyPatch
+):
     report = _seed_report(db_session, payload={"battery": {"weight": 5}})
 
     def fake_post(*args, **kwargs):
         return DummyComplianceResponse({"status": "compliant", "violations": []})
 
-    monkeypatch.setattr("app.api.v2.compliance.requests.post", fake_post)
+    monkeypatch.setattr("app.api.v2.compliance.pooled_request", fake_post)
 
     response = client.post(
         f"/api/v2/core/compliance/runs/{report.id}/apply-fix",

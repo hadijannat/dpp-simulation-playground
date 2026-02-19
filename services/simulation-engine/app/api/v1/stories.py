@@ -12,34 +12,61 @@ from pydantic import BaseModel
 from uuid import uuid4
 from datetime import datetime, timezone
 from ...auth import require_roles
-from ...config import COMPLIANCE_URL
+from ...config import COMPLIANCE_URL, EVENT_STREAM_MAXLEN, REDIS_URL
 from ...core.service_token import get_service_token
-from ...core.event_publisher import publish_event
 from services.shared import events
+from services.shared.outbox import emit_event
 
 router = APIRouter()
 
+
+def _emit_story_event(db: Session, payload: dict) -> None:
+    emit_event(
+        db,
+        stream="simulation.events",
+        payload=payload,
+        redis_url=REDIS_URL,
+        maxlen=EVENT_STREAM_MAXLEN,
+        commit=True,
+    )
+
+
 @router.get("/stories")
 def get_stories(request: Request):
-    require_roles(request.state.user, ["manufacturer", "developer", "admin", "regulator", "consumer", "recycler"])
+    require_roles(
+        request.state.user,
+        ["manufacturer", "developer", "admin", "regulator", "consumer", "recycler"],
+    )
     try:
         items = list_stories()
     except KeyError:
         items = []
     return {"items": items}
 
+
 @router.get("/stories/{code}")
 def get_story(request: Request, code: str):
-    require_roles(request.state.user, ["manufacturer", "developer", "admin", "regulator", "consumer", "recycler"])
+    require_roles(
+        request.state.user,
+        ["manufacturer", "developer", "admin", "regulator", "consumer", "recycler"],
+    )
     try:
         return load_story(code)
     except KeyError:
         raise HTTPException(status_code=404, detail="Story not found")
 
+
 @router.post("/sessions/{session_id}/stories/{code}/start")
-def start_story(request: Request, session_id: str, code: str, db: Session = Depends(get_db)):
-    require_roles(request.state.user, ["manufacturer", "developer", "admin", "regulator", "consumer", "recycler"])
-    session = db.query(SimulationSession).filter(SimulationSession.id == session_id).first()
+def start_story(
+    request: Request, session_id: str, code: str, db: Session = Depends(get_db)
+):
+    require_roles(
+        request.state.user,
+        ["manufacturer", "developer", "admin", "regulator", "consumer", "recycler"],
+    )
+    session = (
+        db.query(SimulationSession).filter(SimulationSession.id == session_id).first()
+    )
     if not session:
         raise HTTPException(status_code=404, detail="Session not found")
     ensure_session_active(session.session_state, is_active=bool(session.is_active))
@@ -49,11 +76,15 @@ def start_story(request: Request, session_id: str, code: str, db: Session = Depe
         raise HTTPException(status_code=404, detail="Story not found")
     story_record = db.query(UserStory).filter(UserStory.code == code).first()
     story_id = story_record.id if story_record else None
-    progress = db.query(StoryProgress).filter(
-        StoryProgress.user_id == session.user_id,
-        StoryProgress.story_id == story_id,
-        StoryProgress.role_type == session.active_role,
-    ).first()
+    progress = (
+        db.query(StoryProgress)
+        .filter(
+            StoryProgress.user_id == session.user_id,
+            StoryProgress.story_id == story_id,
+            StoryProgress.role_type == session.active_role,
+        )
+        .first()
+    )
     existing = progress is not None
     if progress:
         # Restart story progress to avoid unique constraint violations.
@@ -81,7 +112,12 @@ def start_story(request: Request, session_id: str, code: str, db: Session = Depe
     session.last_activity = datetime.now(timezone.utc)
     db.commit()
     status = "restarted" if existing else "started"
-    return {"session_id": session_id, "story": story, "status": status, "progress_id": str(progress.id)}
+    return {
+        "session_id": session_id,
+        "story": story,
+        "status": status,
+        "progress_id": str(progress.id),
+    }
 
 
 class StoryValidateRequest(BaseModel):
@@ -97,8 +133,13 @@ def validate_story(
     payload: StoryValidateRequest,
     db: Session = Depends(get_db),
 ):
-    require_roles(request.state.user, ["manufacturer", "developer", "admin", "regulator", "consumer", "recycler"])
-    session = db.query(SimulationSession).filter(SimulationSession.id == session_id).first()
+    require_roles(
+        request.state.user,
+        ["manufacturer", "developer", "admin", "regulator", "consumer", "recycler"],
+    )
+    session = (
+        db.query(SimulationSession).filter(SimulationSession.id == session_id).first()
+    )
     if not session:
         raise HTTPException(status_code=404, detail="Session not found")
     ensure_session_active(session.session_state, is_active=bool(session.is_active))
@@ -147,8 +188,8 @@ def validate_story(
 
     request_id = getattr(request.state, "request_id", None)
     if result.get("status") == "compliant":
-        publish_event(
-            "simulation.events",
+        _emit_story_event(
+            db,
             events.build_event(
                 events.STORY_COMPLETED,
                 user_id=str(session.user_id),
@@ -159,8 +200,8 @@ def validate_story(
                 status=result.get("status"),
             ),
         )
-        publish_event(
-            "simulation.events",
+        _emit_story_event(
+            db,
             events.build_event(
                 events.COMPLIANCE_CHECK_PASSED,
                 user_id=str(session.user_id),
@@ -172,8 +213,8 @@ def validate_story(
             ),
         )
     else:
-        publish_event(
-            "simulation.events",
+        _emit_story_event(
+            db,
             events.build_event(
                 events.STORY_FAILED,
                 user_id=str(session.user_id),

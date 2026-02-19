@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Dict, Any, Optional
+from typing import Any, Dict, Optional
 import requests
 
 
@@ -9,7 +9,9 @@ class BasyxClient:
         self.base_url = base_url.rstrip("/")
         self.api_prefix = f"/{api_prefix.strip('/')}" if api_prefix else ""
 
-    def _request(self, method: str, path: str, json: Optional[Dict[str, Any]] = None) -> requests.Response:
+    def _request(
+        self, method: str, path: str, json: Optional[Dict[str, Any] | list[Any]] = None
+    ) -> requests.Response:
         primary = f"{self.base_url}{self.api_prefix}/{path.lstrip('/')}"
         resp = requests.request(method, primary, json=json, timeout=5)
         if resp.status_code == 404 and self.api_prefix:
@@ -34,7 +36,9 @@ class BasyxClient:
         resp = self._request("GET", f"submodels/{submodel_id}/submodel-elements")
         return resp.json()
 
-    def patch_submodel_elements(self, submodel_id: str, elements: Dict[str, Any] | list) -> Dict[str, Any]:
+    def patch_submodel_elements(
+        self, submodel_id: str, elements: Dict[str, Any] | list
+    ) -> Dict[str, Any]:
         path = f"submodels/{submodel_id}/submodel-elements"
         try:
             resp = self._request("PATCH", path, json=elements)
@@ -42,7 +46,9 @@ class BasyxClient:
             resp = self._request("PUT", path, json=elements)
         return resp.json() if resp.content else {"updated": True}
 
-    def register_shell_descriptor(self, registry_url: str, shell: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    def register_shell_descriptor(
+        self, registry_url: str, shell: Dict[str, Any]
+    ) -> Optional[Dict[str, Any]]:
         if not registry_url:
             return None
         descriptor = {
@@ -64,7 +70,9 @@ class BasyxClient:
         resp.raise_for_status()
         return resp.json() if resp.content else descriptor
 
-    def register_submodel_descriptor(self, registry_url: str, submodel: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    def register_submodel_descriptor(
+        self, registry_url: str, submodel: Dict[str, Any]
+    ) -> Optional[Dict[str, Any]]:
         if not registry_url:
             return None
         descriptor = {

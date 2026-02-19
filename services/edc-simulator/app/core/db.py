@@ -2,6 +2,7 @@ from sqlalchemy import create_engine, Table, Column, String
 from sqlalchemy.orm import sessionmaker
 from ..config import DATABASE_URL
 from ..models.base import Base
+from services.shared.tracing import instrument_sqlalchemy_engine
 
 connect_args = {}
 if DATABASE_URL.startswith("sqlite"):
@@ -9,6 +10,7 @@ if DATABASE_URL.startswith("sqlite"):
 
 engine = create_engine(DATABASE_URL, future=True, connect_args=connect_args)
 SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
+instrument_sqlalchemy_engine(engine, service_name="edc-simulator")
 
 # Ensure FK references can be resolved even when the owning table lives in another service.
 if "simulation_sessions" not in Base.metadata.tables:

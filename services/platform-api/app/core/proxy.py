@@ -6,6 +6,7 @@ import requests
 from fastapi import HTTPException, Request
 
 from ..config import ALLOW_DEV_HEADERS
+from services.shared.http_client import request as pooled_request
 
 
 TRACE_HEADERS = ("traceparent", "tracestate", "baggage")
@@ -13,7 +14,9 @@ TRACE_HEADERS = ("traceparent", "tracestate", "baggage")
 
 def _forward_context_headers(request: Request) -> dict[str, str]:
     headers: dict[str, str] = {}
-    request_id = getattr(request.state, "request_id", None) or request.headers.get("x-request-id")
+    request_id = getattr(request.state, "request_id", None) or request.headers.get(
+        "x-request-id"
+    )
     if request_id:
         headers["X-Request-ID"] = str(request_id)
     idempotency_key = request.headers.get("idempotency-key")
@@ -38,7 +41,9 @@ def _forward_headers(request: Request) -> dict[str, str]:
 
     user = getattr(request.state, "user", {}) or {}
     subject = user.get("preferred_username") or user.get("sub") or "platform-api-user"
-    roles = user.get("realm_access", {}).get("roles", []) if isinstance(user, dict) else []
+    roles = (
+        user.get("realm_access", {}).get("roles", []) if isinstance(user, dict) else []
+    )
     headers["X-Dev-User"] = str(subject)
     if roles:
         headers["X-Dev-Roles"] = ",".join(str(role) for role in roles)
@@ -55,16 +60,19 @@ def request_json(
     timeout: int = 8,
 ) -> dict[str, Any]:
     try:
-        response = requests.request(
+        response = pooled_request(
             method=method,
             url=url,
             params=params,
             json=json_body,
             headers=_forward_headers(request),
+            session_name="platform-api-proxy",
             timeout=timeout,
         )
     except requests.RequestException as exc:
-        raise HTTPException(status_code=502, detail=f"Upstream unavailable: {exc}") from exc
+        raise HTTPException(
+            status_code=502, detail=f"Upstream unavailable: {exc}"
+        ) from exc
 
     payload: Any = {}
     if response.content:

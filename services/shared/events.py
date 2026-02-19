@@ -50,12 +50,20 @@ class EventEnvelopeV1(BaseModel):
     session_id: str | None = None
     run_id: str | None = None
     request_id: str | None = None
+    correlation_id: str | None = None
+    causation_id: str | None = None
     story_code: str | None = None
     metadata: dict[str, Any] | list[Any] = Field(default_factory=dict)
 
     @model_validator(mode="after")
     def validate_required_strings(self):
-        for field in ("event_id", "event_type", "timestamp", "source_service", "version"):
+        for field in (
+            "event_id",
+            "event_type",
+            "timestamp",
+            "source_service",
+            "version",
+        ):
             value = getattr(self, field)
             if not str(value).strip():
                 raise ValueError(f"empty field: {field}")
@@ -70,6 +78,8 @@ def build_event(
     session_id: str | None = None,
     run_id: str | None = None,
     request_id: str | None = None,
+    correlation_id: str | None = None,
+    causation_id: str | None = None,
     story_code: str | None = None,
     metadata: dict[str, Any] | list[Any] | None = None,
     event_id: str | None = None,
@@ -86,6 +96,10 @@ def build_event(
     }
     if request_id:
         payload["request_id"] = request_id
+    if correlation_id:
+        payload["correlation_id"] = correlation_id
+    if causation_id:
+        payload["causation_id"] = causation_id
     if session_id:
         payload["session_id"] = session_id
     if run_id:

@@ -10,15 +10,17 @@ from ...models.gap_report import GapReport
 from ...config import REDIS_URL, EVENT_STREAM_MAXLEN
 from ...auth import require_roles
 from services.shared import events
-from services.shared.redis_client import get_redis, publish_event
+from services.shared.outbox import emit_event
 from services.shared.user_registry import resolve_user_id
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
 
+
 class VoteCreate(BaseModel):
     target_id: str
     value: int
+
 
 @router.get("/votes")
 def list_votes(
@@ -28,7 +30,9 @@ def list_votes(
     offset: int = 0,
     db: Session = Depends(get_db),
 ):
-    require_roles(request.state.user, ["developer", "admin", "regulator", "manufacturer"])
+    require_roles(
+        request.state.user, ["developer", "admin", "regulator", "manufacturer"]
+    )
     query = db.query(Vote)
     if target_id:
         query = query.filter(Vote.target_id == target_id)
@@ -40,9 +44,13 @@ def list_votes(
         ]
     }
 
+
 @router.post("/votes")
 def create_vote(request: Request, payload: VoteCreate, db: Session = Depends(get_db)):
-    require_roles(request.state.user, ["developer", "admin", "manufacturer", "regulator", "consumer", "recycler"])
+    require_roles(
+        request.state.user,
+        ["developer", "admin", "manufacturer", "regulator", "consumer", "recycler"],
+    )
     raw_user_id = resolve_user_id(db, request.state.user)
     if not raw_user_id:
         raise HTTPException(status_code=400, detail="Missing user id")
@@ -50,10 +58,20 @@ def create_vote(request: Request, payload: VoteCreate, db: Session = Depends(get
         user_id = UUID(str(raw_user_id))
     except ValueError as exc:
         raise HTTPException(status_code=400, detail="Invalid user id") from exc
-    existing = db.query(Vote).filter(Vote.user_id == user_id, Vote.target_id == payload.target_id).first()
+    existing = (
+        db.query(Vote)
+        .filter(Vote.user_id == user_id, Vote.target_id == payload.target_id)
+        .first()
+    )
     if existing:
-        return {"id": str(existing.id), "target_id": existing.target_id, "value": existing.value}
-    item = Vote(id=uuid4(), user_id=user_id, target_id=payload.target_id, value=payload.value)
+        return {
+            "id": str(existing.id),
+            "target_id": existing.target_id,
+            "value": existing.value,
+        }
+    item = Vote(
+        id=uuid4(), user_id=user_id, target_id=payload.target_id, value=payload.value
+    )
     db.add(item)
     target_type = "unknown"
     target_uuid: UUID | None = None
@@ -62,20 +80,28 @@ def create_vote(request: Request, payload: VoteCreate, db: Session = Depends(get
     except ValueError:
         target_uuid = None
 
-    annotation = db.query(Annotation).filter(Annotation.id == target_uuid).first() if target_uuid else None
+    annotation = (
+        db.query(Annotation).filter(Annotation.id == target_uuid).first()
+        if target_uuid
+        else None
+    )
     if annotation:
         annotation.votes_count = (annotation.votes_count or 0) + payload.value
         target_type = "annotation"
-    gap_report = db.query(GapReport).filter(GapReport.id == target_uuid).first() if target_uuid else None
+    gap_report = (
+        db.query(GapReport).filter(GapReport.id == target_uuid).first()
+        if target_uuid
+        else None
+    )
     if gap_report:
         gap_report.votes_count = (gap_report.votes_count or 0) + payload.value
         target_type = "gap_report"
     db.commit()
     try:
-        ok, _ = publish_event(
-            get_redis(REDIS_URL),
-            "simulation.events",
-            events.build_event(
+        ok, _ = emit_event(
+            db,
+            stream="simulation.events",
+            payload=events.build_event(
                 events.VOTE_CAST,
                 user_id=str(user_id),
                 source_service="collaboration-service",
@@ -87,10 +113,15 @@ def create_vote(request: Request, payload: VoteCreate, db: Session = Depends(get
                     "value": payload.value,
                 },
             ),
+            redis_url=REDIS_URL,
             maxlen=EVENT_STREAM_MAXLEN,
+            commit=True,
+            log=logger,
         )
         if not ok:
-            logger.warning("Failed to publish vote_cast event", extra={"vote_id": str(item.id)})
+            logger.warning(
+                "Failed to publish vote_cast event", extra={"vote_id": str(item.id)}
+            )
     except Exception as exc:
         logger.warning(
             "Error while publishing vote_cast event",

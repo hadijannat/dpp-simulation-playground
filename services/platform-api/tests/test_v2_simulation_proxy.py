@@ -36,14 +36,20 @@ class DummyResponse:
         return self.payload
 
 
-def test_v2_pause_session_proxies_to_simulation_service(monkeypatch: pytest.MonkeyPatch):
+def test_v2_pause_session_proxies_to_simulation_service(
+    monkeypatch: pytest.MonkeyPatch,
+):
     calls: list[dict[str, Any]] = []
 
-    def fake_request(method: str, url: str, params: Any = None, json: Any = None, **kwargs: Any):
+    def fake_request(
+        method: str, url: str, params: Any = None, json: Any = None, **kwargs: Any
+    ):
         calls.append({"method": method, "url": url, "params": params, "json": json})
-        return DummyResponse({"id": "s-1", "user_id": "u-1", "role": "manufacturer", "state": {}})
+        return DummyResponse(
+            {"id": "s-1", "user_id": "u-1", "role": "manufacturer", "state": {}}
+        )
 
-    monkeypatch.setattr("app.core.proxy.requests.request", fake_request)
+    monkeypatch.setattr("app.core.proxy.pooled_request", fake_request)
 
     response = client.post("/api/v2/simulation/sessions/s-1/pause", headers=HEADERS)
     assert response.status_code == 200
@@ -53,19 +59,30 @@ def test_v2_pause_session_proxies_to_simulation_service(monkeypatch: pytest.Monk
 
 
 def test_v2_progress_normalizes_items_and_alias(monkeypatch: pytest.MonkeyPatch):
-    def fake_request(method: str, url: str, params: Any = None, json: Any = None, **kwargs: Any):
+    def fake_request(
+        method: str, url: str, params: Any = None, json: Any = None, **kwargs: Any
+    ):
         return DummyResponse(
             {
-                "items": [{"id": "p-1", "status": "in_progress", "completion_percentage": 30, "steps_completed": []}],
+                "items": [
+                    {
+                        "id": "p-1",
+                        "status": "in_progress",
+                        "completion_percentage": 30,
+                        "steps_completed": [],
+                    }
+                ],
                 "total": 1,
                 "limit": 10,
                 "offset": 0,
             }
         )
 
-    monkeypatch.setattr("app.core.proxy.requests.request", fake_request)
+    monkeypatch.setattr("app.core.proxy.pooled_request", fake_request)
 
-    response = client.get("/api/v2/simulation/progress?limit=10&offset=0", headers=HEADERS)
+    response = client.get(
+        "/api/v2/simulation/progress?limit=10&offset=0", headers=HEADERS
+    )
     assert response.status_code == 200
     body = response.json()
     assert body["items"] == body["progress"]

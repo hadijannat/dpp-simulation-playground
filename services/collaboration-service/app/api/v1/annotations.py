@@ -8,11 +8,12 @@ from ...models.annotation import Annotation
 from ...config import REDIS_URL, EVENT_STREAM_MAXLEN
 from ...auth import require_roles
 from services.shared import events
-from services.shared.redis_client import get_redis, publish_event
+from services.shared.outbox import emit_event
 from services.shared.user_registry import resolve_user_id
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
+
 
 @router.get("/annotations")
 def list_annotations(
@@ -24,7 +25,9 @@ def list_annotations(
     offset: int = 0,
     db: Session = Depends(get_db),
 ):
-    require_roles(request.state.user, ["developer", "admin", "regulator", "manufacturer"])
+    require_roles(
+        request.state.user, ["developer", "admin", "regulator", "manufacturer"]
+    )
     query = db.query(Annotation)
     if story_id is not None:
         query = query.filter(Annotation.story_id == story_id)
@@ -32,7 +35,9 @@ def list_annotations(
         query = query.filter(Annotation.status == status)
     if target_element:
         query = query.filter(Annotation.target_element == target_element)
-    items = query.order_by(Annotation.created_at.desc()).offset(offset).limit(limit).all()
+    items = (
+        query.order_by(Annotation.created_at.desc()).offset(offset).limit(limit).all()
+    )
     return {
         "items": [
             {
@@ -48,9 +53,15 @@ def list_annotations(
         ]
     }
 
+
 @router.post("/annotations")
-def create_annotation(request: Request, payload: AnnotationCreate, db: Session = Depends(get_db)):
-    require_roles(request.state.user, ["developer", "admin", "manufacturer", "regulator", "consumer", "recycler"])
+def create_annotation(
+    request: Request, payload: AnnotationCreate, db: Session = Depends(get_db)
+):
+    require_roles(
+        request.state.user,
+        ["developer", "admin", "manufacturer", "regulator", "consumer", "recycler"],
+    )
     raw_user_id = resolve_user_id(db, request.state.user)
     if not raw_user_id:
         raise HTTPException(status_code=400, detail="Missing user id")
@@ -70,10 +81,10 @@ def create_annotation(request: Request, payload: AnnotationCreate, db: Session =
     db.add(item)
     db.commit()
     try:
-        ok, _ = publish_event(
-            get_redis(REDIS_URL),
-            "simulation.events",
-            events.build_event(
+        ok, _ = emit_event(
+            db,
+            stream="simulation.events",
+            payload=events.build_event(
                 events.ANNOTATION_CREATED,
                 user_id=str(user_id),
                 source_service="collaboration-service",
@@ -85,10 +96,16 @@ def create_annotation(request: Request, payload: AnnotationCreate, db: Session =
                     "target_element": payload.target_element,
                 },
             ),
+            redis_url=REDIS_URL,
             maxlen=EVENT_STREAM_MAXLEN,
+            commit=True,
+            log=logger,
         )
         if not ok:
-            logger.warning("Failed to publish annotation_created event", extra={"annotation_id": str(item.id)})
+            logger.warning(
+                "Failed to publish annotation_created event",
+                extra={"annotation_id": str(item.id)},
+            )
     except Exception as exc:
         logger.warning(
             "Error while publishing annotation_created event",

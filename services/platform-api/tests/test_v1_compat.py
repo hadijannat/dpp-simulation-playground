@@ -71,7 +71,12 @@ def test_v1_health():
             "/api/v1/sessions/s-1/pause",
             None,
             f"{SIMULATION_URL}/api/v1/sessions/s-1/pause",
-            {"id": "s-1", "user_id": "u-1", "role": "manufacturer", "state": {"lifecycle_state": "paused"}},
+            {
+                "id": "s-1",
+                "user_id": "u-1",
+                "role": "manufacturer",
+                "state": {"lifecycle_state": "paused"},
+            },
         ),
         (
             "GET",
@@ -99,7 +104,11 @@ def test_v1_health():
             "/api/v1/aas/submodels/sub-1/elements",
             {"elements": [{"idShort": "fieldA", "value": 7}]},
             f"{AAS_ADAPTER_URL}/api/v2/aas/submodels/sub-1/elements",
-            {"status": "updated", "submodel_id": "sub-1", "elements": [{"idShort": "fieldA", "value": 7}]},
+            {
+                "status": "updated",
+                "submodel_id": "sub-1",
+                "elements": [{"idShort": "fieldA", "value": 7}],
+            },
         ),
         (
             "POST",
@@ -167,11 +176,17 @@ def test_v1_compat_routes_proxy_to_upstream(
 ):
     calls: list[dict[str, Any]] = []
 
-    def fake_request(method: str, url: str, params: dict[str, Any] | None, json: dict[str, Any] | None, **kwargs: Any):
+    def fake_request(
+        method: str,
+        url: str,
+        params: dict[str, Any] | None,
+        json: dict[str, Any] | None,
+        **kwargs: Any,
+    ):
         calls.append({"method": method, "url": url, "params": params, "json": json})
         return DummyResponse(upstream_payload)
 
-    monkeypatch.setattr("app.core.proxy.requests.request", fake_request)
+    monkeypatch.setattr("app.core.proxy.pooled_request", fake_request)
 
     request_kwargs: dict[str, Any] = {"headers": HEADERS}
     if body is not None:
@@ -208,10 +223,16 @@ def test_v1_compat_passthrough_upstream_errors(
     upstream_payload: dict[str, Any],
     expected_detail: str | dict[str, Any],
 ):
-    def fake_request(method: str, url: str, params: dict[str, Any] | None, json: dict[str, Any] | None, **kwargs: Any):
+    def fake_request(
+        method: str,
+        url: str,
+        params: dict[str, Any] | None,
+        json: dict[str, Any] | None,
+        **kwargs: Any,
+    ):
         return DummyResponse(upstream_payload, status_code=upstream_status)
 
-    monkeypatch.setattr("app.core.proxy.requests.request", fake_request)
+    monkeypatch.setattr("app.core.proxy.pooled_request", fake_request)
 
     response = client.post(
         "/api/v1/compliance/check",
@@ -223,25 +244,43 @@ def test_v1_compat_passthrough_upstream_errors(
     assert response.json()["detail"] == expected_detail
 
 
-def test_v1_compat_returns_502_when_upstream_unavailable(monkeypatch: pytest.MonkeyPatch):
-    def fake_request(method: str, url: str, params: dict[str, Any] | None, json: dict[str, Any] | None, **kwargs: Any):
+def test_v1_compat_returns_502_when_upstream_unavailable(
+    monkeypatch: pytest.MonkeyPatch,
+):
+    def fake_request(
+        method: str,
+        url: str,
+        params: dict[str, Any] | None,
+        json: dict[str, Any] | None,
+        **kwargs: Any,
+    ):
         raise requests.RequestException("connection refused")
 
-    monkeypatch.setattr("app.core.proxy.requests.request", fake_request)
+    monkeypatch.setattr("app.core.proxy.pooled_request", fake_request)
 
     response = client.get("/api/v1/stories", headers=HEADERS)
     assert response.status_code == 502
     assert "Upstream unavailable" in response.json()["detail"]
 
 
-def test_v1_create_shell_maps_legacy_payload_to_aas_adapter(monkeypatch: pytest.MonkeyPatch):
+def test_v1_create_shell_maps_legacy_payload_to_aas_adapter(
+    monkeypatch: pytest.MonkeyPatch,
+):
     calls: list[dict[str, Any]] = []
 
-    def fake_request(method: str, url: str, params: dict[str, Any] | None, json: dict[str, Any] | None, **kwargs: Any):
+    def fake_request(
+        method: str,
+        url: str,
+        params: dict[str, Any] | None,
+        json: dict[str, Any] | None,
+        **kwargs: Any,
+    ):
         calls.append({"method": method, "url": url, "params": params, "json": json})
-        return DummyResponse({"status": "created", "shell": {"id": "urn:uuid:us-02-01"}})
+        return DummyResponse(
+            {"status": "created", "shell": {"id": "urn:uuid:us-02-01"}}
+        )
 
-    monkeypatch.setattr("app.core.proxy.requests.request", fake_request)
+    monkeypatch.setattr("app.core.proxy.pooled_request", fake_request)
 
     response = client.post(
         "/api/v1/aas/shells",

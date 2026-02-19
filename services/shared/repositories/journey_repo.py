@@ -55,7 +55,7 @@ def create_run(
         metadata_=metadata or {},
     )
     db.add(run)
-    db.commit()
+    db.flush()
     db.refresh(run)
     return run
 
@@ -95,7 +95,7 @@ def create_step_run(
         metadata_=metadata or {},
     )
     db.add(step_run)
-    db.commit()
+    db.flush()
     db.refresh(step_run)
     return step_run
 
@@ -103,4 +103,4 @@ def create_step_run(
 def update_run_step(db: Session, run: JourneyRun, step_key: str) -> None:
     run.current_step_key = step_key
     run.updated_at = datetime.now(timezone.utc)
-    db.commit()
+    db.flush()

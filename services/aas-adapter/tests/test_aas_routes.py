@@ -38,11 +38,28 @@ def test_get_submodel_elements_maps_payload(monkeypatch):
     monkeypatch.setattr(main, "verify_request", _set_roles(["developer"]))
     calls: list[dict[str, Any]] = []
 
-    def fake_request(method: str, url: str, json: Any = None, timeout: int = 8):
-        calls.append({"method": method, "url": url, "json": json, "timeout": timeout})
-        return DummyResponse({"submodelElements": [{"idShort": "batteryType", "value": "Li-Ion"}]})
+    def fake_request(
+        *,
+        method: str,
+        url: str,
+        json: Any = None,
+        timeout: int = 8,
+        session_name: str | None = None,
+    ):
+        calls.append(
+            {
+                "method": method,
+                "url": url,
+                "json": json,
+                "timeout": timeout,
+                "session_name": session_name,
+            }
+        )
+        return DummyResponse(
+            {"submodelElements": [{"idShort": "batteryType", "value": "Li-Ion"}]}
+        )
 
-    monkeypatch.setattr("app.api.v2.aas.requests.request", fake_request)
+    monkeypatch.setattr("app.api.v2.aas.pooled_request", fake_request)
 
     client = TestClient(main.app)
     response = client.get("/api/v2/aas/submodels/submodel-1/elements")
@@ -58,11 +75,26 @@ def test_patch_submodel_elements_passes_elements(monkeypatch):
     monkeypatch.setattr(main, "verify_request", _set_roles(["manufacturer"]))
     calls: list[dict[str, Any]] = []
 
-    def fake_request(method: str, url: str, json: Any = None, timeout: int = 8):
-        calls.append({"method": method, "url": url, "json": json, "timeout": timeout})
+    def fake_request(
+        *,
+        method: str,
+        url: str,
+        json: Any = None,
+        timeout: int = 8,
+        session_name: str | None = None,
+    ):
+        calls.append(
+            {
+                "method": method,
+                "url": url,
+                "json": json,
+                "timeout": timeout,
+                "session_name": session_name,
+            }
+        )
         return DummyResponse([{"idShort": "batteryType", "value": "NMC"}])
 
-    monkeypatch.setattr("app.api.v2.aas.requests.request", fake_request)
+    monkeypatch.setattr("app.api.v2.aas.pooled_request", fake_request)
 
     client = TestClient(main.app)
     response = client.patch(

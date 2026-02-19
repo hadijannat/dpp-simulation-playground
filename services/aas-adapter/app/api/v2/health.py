@@ -1,9 +1,8 @@
 from __future__ import annotations
-
-import requests
 from fastapi import APIRouter, HTTPException
 
 from ...config import BASYX_BASE_URL
+from services.shared.http_client import request as pooled_request
 
 router = APIRouter()
 
@@ -22,10 +21,17 @@ def service_health():
 def ready():
     checks = {"basyx": False}
     try:
-        response = requests.get(BASYX_BASE_URL, timeout=1.5)
+        response = pooled_request(
+            method="GET",
+            url=BASYX_BASE_URL,
+            timeout=1.5,
+            session_name="aas-adapter-health",
+        )
         checks["basyx"] = response.status_code < 500
     except Exception:
         checks["basyx"] = False
     if not all(checks.values()):
-        raise HTTPException(status_code=503, detail={"status": "not_ready", "checks": checks})
+        raise HTTPException(
+            status_code=503, detail={"status": "not_ready", "checks": checks}
+        )
     return {"status": "ready", "service": "aas-adapter", "checks": checks}

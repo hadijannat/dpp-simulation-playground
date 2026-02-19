@@ -4,7 +4,6 @@ from sqlalchemy.orm import Session
 from uuid import uuid4
 from datetime import datetime, timezone
 from ...core.step_executor import execute_step
-from ...core.event_publisher import publish_event
 from ...schemas.step_schema import StepExecuteRequest
 from ...core.story_loader import load_story
 from ...core.session_state import ensure_session_active
@@ -12,14 +11,18 @@ from ...core.db import get_db
 from ...models.session import SimulationSession
 from ...models.story_progress import StoryProgress
 from ...auth import require_roles
+from ...config import EVENT_STREAM_MAXLEN, REDIS_URL
 from services.shared.audit import actor_subject, safe_record_audit
 from services.shared import events
+from services.shared.outbox import emit_event
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
 
 
-def _resolve_idempotency_key(request: Request, payload: StepExecuteRequest) -> str | None:
+def _resolve_idempotency_key(
+    request: Request, payload: StepExecuteRequest
+) -> str | None:
     return request.headers.get("idempotency-key") or payload.idempotency_key
 
 
@@ -27,12 +30,22 @@ def _receipt_key(session_id: str, code: str, idx: int, idempotency_key: str) -> 
     return f"{session_id}:{code}:{idx}:{idempotency_key}"
 
 
-def _safe_publish(payload: dict):
-    try:
-        publish_event("simulation.events", payload)
-    except Exception as exc:
-        logger.warning("Failed to publish event", exc_info=exc)
-        return
+def _safe_publish(db: Session, payload: dict):
+    ok, _ = emit_event(
+        db,
+        stream="simulation.events",
+        payload=payload,
+        redis_url=REDIS_URL,
+        maxlen=EVENT_STREAM_MAXLEN,
+        commit=True,
+        log=logger,
+    )
+    if not ok:
+        logger.warning(
+            "Failed to enqueue/publish event",
+            extra={"event_type": payload.get("event_type")},
+        )
+
 
 @router.post("/sessions/{session_id}/stories/{code}/steps/{idx}/execute")
 def execute(
@@ -43,7 +56,10 @@ def execute(
     payload: StepExecuteRequest,
     db: Session = Depends(get_db),
 ):
-    require_roles(request.state.user, ["manufacturer", "developer", "admin", "regulator", "consumer", "recycler"])
+    require_roles(
+        request.state.user,
+        ["manufacturer", "developer", "admin", "regulator", "consumer", "recycler"],
+    )
     try:
         story = load_story(code)
     except KeyError:
@@ -52,14 +68,20 @@ def execute(
         raise HTTPException(status_code=404, detail="Step not found")
     step = story["steps"][idx]
     idempotency_key = _resolve_idempotency_key(request, payload)
-    session_query = db.query(SimulationSession).filter(SimulationSession.id == session_id)
+    session_query = db.query(SimulationSession).filter(
+        SimulationSession.id == session_id
+    )
     if idempotency_key:
         session_query = session_query.with_for_update()
     session = session_query.first()
     if not session:
         raise HTTPException(status_code=404, detail="Session not found")
     ensure_session_active(session.session_state, is_active=bool(session.is_active))
-    receipt_id = _receipt_key(session_id, code, idx, idempotency_key) if idempotency_key else None
+    receipt_id = (
+        _receipt_key(session_id, code, idx, idempotency_key)
+        if idempotency_key
+        else None
+    )
     session_state = dict(session.session_state or {})
     receipts = dict(session_state.get("step_receipts") or {})
     if receipt_id and receipt_id in receipts:
@@ -98,9 +120,13 @@ def execute(
         metadata=payload.metadata,
     )
 
-    progress_query = db.query(StoryProgress).filter(StoryProgress.user_id == session.user_id)
+    progress_query = db.query(StoryProgress).filter(
+        StoryProgress.user_id == session.user_id
+    )
     if session.current_story_id:
-        progress_query = progress_query.filter(StoryProgress.story_id == session.current_story_id)
+        progress_query = progress_query.filter(
+            StoryProgress.story_id == session.current_story_id
+        )
     progress = progress_query.order_by(StoryProgress.started_at.desc()).first()
     if not progress:
         progress = StoryProgress(
@@ -115,7 +141,11 @@ def execute(
         )
         db.add(progress)
         db.commit()
-    steps_completed = progress.steps_completed if progress and progress.steps_completed is not None else []
+    steps_completed = (
+        progress.steps_completed
+        if progress and progress.steps_completed is not None
+        else []
+    )
     if idx not in steps_completed:
         steps_completed.append(idx)
         progress.steps_completed = steps_completed
@@ -160,6 +190,7 @@ def execute(
     if payload.metadata:
         event_meta.update(payload.metadata)
     _safe_publish(
+        db,
         events.build_event(
             events.STORY_STEP_COMPLETED,
             user_id=str(session.user_id),
@@ -170,10 +201,11 @@ def execute(
             step_idx=idx,
             status=result.get("status"),
             metadata=event_meta,
-        )
+        ),
     )
     if progress and progress.status == "completed":
         _safe_publish(
+            db,
             events.build_event(
                 events.STORY_COMPLETED,
                 user_id=str(session.user_id),
@@ -183,12 +215,13 @@ def execute(
                 story_code=code,
                 step_idx=idx,
                 status="completed",
-            )
+            ),
         )
     if step.get("action") == "compliance.check":
         status = result.get("status")
         if status == "compliant":
             _safe_publish(
+                db,
                 events.build_event(
                     events.COMPLIANCE_CHECK_PASSED,
                     user_id=str(session.user_id),
@@ -198,10 +231,11 @@ def execute(
                     story_code=code,
                     step_idx=idx,
                     status=status,
-                )
+                ),
             )
     if step.get("action") == "aas.create" and result.get("status") == "created":
         _safe_publish(
+            db,
             events.build_event(
                 events.AAS_CREATED,
                 user_id=str(session.user_id),
@@ -211,10 +245,11 @@ def execute(
                 story_code=code,
                 step_idx=idx,
                 status="created",
-            )
+            ),
         )
     if step.get("action") == "aas.update" and result.get("status") == "updated":
         _safe_publish(
+            db,
             events.build_event(
                 events.AAS_UPDATED,
                 user_id=str(session.user_id),
@@ -224,10 +259,11 @@ def execute(
                 story_code=code,
                 step_idx=idx,
                 status="updated",
-            )
+            ),
         )
     if step.get("action") == "aas.submodel.add" and result.get("status") == "created":
         _safe_publish(
+            db,
             events.build_event(
                 events.AAS_SUBMODEL_ADDED,
                 user_id=str(session.user_id),
@@ -237,10 +273,11 @@ def execute(
                 story_code=code,
                 step_idx=idx,
                 status="created",
-            )
+            ),
         )
     if step.get("action") == "aas.submodel.patch" and result.get("status") == "updated":
         _safe_publish(
+            db,
             events.build_event(
                 events.AAS_SUBMODEL_PATCHED,
                 user_id=str(session.user_id),
@@ -250,10 +287,11 @@ def execute(
                 story_code=code,
                 step_idx=idx,
                 status="updated",
-            )
+            ),
         )
     if step.get("action") == "aasx.upload" and result.get("status") == "stored":
         _safe_publish(
+            db,
             events.build_event(
                 events.AASX_UPLOADED,
                 user_id=str(session.user_id),
@@ -263,10 +301,11 @@ def execute(
                 story_code=code,
                 step_idx=idx,
                 status="stored",
-            )
+            ),
         )
     if step.get("action") == "api.call" and result.get("status") == "called":
         _safe_publish(
+            db,
             events.build_event(
                 events.API_CALL_SUCCESS,
                 user_id=str(session.user_id),
@@ -276,7 +315,7 @@ def execute(
                 story_code=code,
                 step_idx=idx,
                 status="called",
-            )
+            ),
         )
     safe_record_audit(
         db,

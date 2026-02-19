@@ -3,7 +3,11 @@ from __future__ import annotations
 from typing import Any
 
 from app.config import AAS_ADAPTER_URL
-from app.core.step_executor import execute_step, list_registered_step_plugins, register_step_plugin
+from app.core.step_executor import (
+    execute_step,
+    list_registered_step_plugins,
+    register_step_plugin,
+)
 
 
 def test_default_plugins_include_core_step_types():
@@ -73,12 +77,31 @@ def test_aas_create_plugin_delegates_to_aas_adapter(monkeypatch):
 
     calls: list[dict[str, Any]] = []
 
-    def _fake_request(method: str, url: str, json: dict[str, Any] | None = None, headers: dict[str, str] | None = None, timeout: int = 8):
-        calls.append({"method": method, "url": url, "json": json, "headers": headers or {}, "timeout": timeout})
-        return _DummyResponse({"status": "created", "shell": {"id": "urn:uuid:us-02-01"}})
+    def _fake_request(
+        method: str,
+        url: str,
+        json: dict[str, Any] | None = None,
+        headers: dict[str, str] | None = None,
+        timeout: int = 8,
+        **_kwargs: Any,
+    ):
+        calls.append(
+            {
+                "method": method,
+                "url": url,
+                "json": json,
+                "headers": headers or {},
+                "timeout": timeout,
+            }
+        )
+        return _DummyResponse(
+            {"status": "created", "shell": {"id": "urn:uuid:us-02-01"}}
+        )
 
-    monkeypatch.setattr("app.core.step_executor.get_service_token", lambda: "service-token")
-    monkeypatch.setattr("app.core.step_executor.requests.request", _fake_request)
+    monkeypatch.setattr(
+        "app.core.step_executor.get_service_token", lambda: "service-token"
+    )
+    monkeypatch.setattr("app.core.step_executor.pooled_request", _fake_request)
 
     result = execute_step(
         db=_Db(),
@@ -89,7 +112,12 @@ def test_aas_create_plugin_delegates_to_aas_adapter(monkeypatch):
             "idShort": "DPP-Create",
             "assetInformation": {"globalAssetId": "urn:example:asset:us-02-01"},
         },
-        context={"session_id": "s-1", "story_code": "US-02-01", "user_id": "u-1", "request_id": "req-step-1"},
+        context={
+            "session_id": "s-1",
+            "story_code": "US-02-01",
+            "user_id": "u-1",
+            "request_id": "req-step-1",
+        },
     )
 
     assert result["status"] == "created"

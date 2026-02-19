@@ -29,10 +29,14 @@ def list_snapshots(
     limit: int = 50,
     offset: int = 0,
 ) -> tuple[list[DigitalTwinSnapshot], int]:
-    query = db.query(DigitalTwinSnapshot).filter(DigitalTwinSnapshot.dpp_instance_id == dpp_instance_id)
+    query = db.query(DigitalTwinSnapshot).filter(
+        DigitalTwinSnapshot.dpp_instance_id == dpp_instance_id
+    )
     total = query.count()
     items = (
-        query.order_by(DigitalTwinSnapshot.created_at.desc(), DigitalTwinSnapshot.id.desc())
+        query.order_by(
+            DigitalTwinSnapshot.created_at.desc(), DigitalTwinSnapshot.id.desc()
+        )
         .offset(offset)
         .limit(limit)
         .all()
@@ -40,7 +44,9 @@ def list_snapshots(
     return items, total
 
 
-def get_snapshot_by_id(db: Session, dpp_instance_id, snapshot_id) -> DigitalTwinSnapshot | None:
+def get_snapshot_by_id(
+    db: Session, dpp_instance_id, snapshot_id
+) -> DigitalTwinSnapshot | None:
     return (
         db.query(DigitalTwinSnapshot)
         .filter(
@@ -64,7 +70,7 @@ def create_snapshot(
         metadata_=metadata or {},
     )
     db.add(snapshot)
-    db.commit()
+    db.flush()
     db.refresh(snapshot)
     return snapshot
 
@@ -86,7 +92,7 @@ def add_node(
         payload=payload or {},
     )
     db.add(node)
-    db.commit()
+    db.flush()
     db.refresh(node)
     return node
 
@@ -110,7 +116,7 @@ def add_edge(
         payload=payload or {},
     )
     db.add(edge)
-    db.commit()
+    db.flush()
     db.refresh(edge)
     return edge
 
@@ -139,7 +145,9 @@ def get_graph(db: Session, dpp_instance_id) -> dict | None:
     return {"snapshot": snapshot, "nodes": graph["nodes"], "edges": graph["edges"]}
 
 
-def get_snapshot_counts(db: Session, snapshot_ids: list[Any]) -> tuple[dict[Any, int], dict[Any, int]]:
+def get_snapshot_counts(
+    db: Session, snapshot_ids: list[Any]
+) -> tuple[dict[Any, int], dict[Any, int]]:
     if not snapshot_ids:
         return {}, {}
 
@@ -177,12 +185,19 @@ def _edge_to_dict(edge: DigitalTwinEdge) -> dict[str, Any]:
     }
 
 
-def format_graph_payload(dpp_id: str, snapshot: DigitalTwinSnapshot, nodes: list[DigitalTwinNode], edges: list[DigitalTwinEdge]) -> dict:
+def format_graph_payload(
+    dpp_id: str,
+    snapshot: DigitalTwinSnapshot,
+    nodes: list[DigitalTwinNode],
+    edges: list[DigitalTwinEdge],
+) -> dict:
     return {
         "dpp_id": dpp_id,
         "snapshot_id": str(snapshot.id),
         "snapshot_label": snapshot.label,
-        "snapshot_created_at": snapshot.created_at.isoformat() if snapshot.created_at else None,
+        "snapshot_created_at": snapshot.created_at.isoformat()
+        if snapshot.created_at
+        else None,
         "snapshot_metadata": snapshot.metadata_ or {},
         "nodes": [_node_to_dict(node) for node in nodes],
         "edges": [_edge_to_dict(edge) for edge in edges],
@@ -226,7 +241,9 @@ def _clone_graph_into_snapshot(
     return cloned_nodes, cloned_edges
 
 
-def _seed_default_graph(db: Session, snapshot_id, dpp_instance) -> tuple[list[DigitalTwinNode], list[DigitalTwinEdge]]:
+def _seed_default_graph(
+    db: Session, snapshot_id, dpp_instance
+) -> tuple[list[DigitalTwinNode], list[DigitalTwinEdge]]:
     product_payload = {
         "aas_identifier": getattr(dpp_instance, "aas_identifier", None),
         "product_identifier": getattr(dpp_instance, "product_identifier", None),
@@ -362,12 +379,14 @@ def capture_snapshot_for_dpp(
             transfer_payload.update(
                 {
                     "status": edc_state.get("status"),
-                    "details": edc_state.get("data") if isinstance(edc_state.get("data"), dict) else edc_state,
+                    "details": edc_state.get("data")
+                    if isinstance(edc_state.get("data"), dict)
+                    else edc_state,
                 }
             )
         transfer.payload = transfer_payload
 
-    db.commit()
+    db.flush()
     db.refresh(snapshot)
     return {"snapshot": snapshot, "nodes": nodes, "edges": edges}
 
@@ -384,7 +403,9 @@ def build_diff(from_graph: dict[str, Any], to_graph: dict[str, Any]) -> dict[str
     from_edges = _edge_keyed(from_graph)
     to_edges = _edge_keyed(to_graph)
 
-    def _added_removed_changed(before: dict[str, dict[str, Any]], after: dict[str, dict[str, Any]]):
+    def _added_removed_changed(
+        before: dict[str, dict[str, Any]], after: dict[str, dict[str, Any]]
+    ):
         before_keys = set(before.keys())
         after_keys = set(after.keys())
         added = [after[key] for key in sorted(after_keys - before_keys)]
@@ -406,4 +427,9 @@ def build_diff(from_graph: dict[str, Any], to_graph: dict[str, Any]) -> dict[str
         "edges_removed": len(edge_diff["removed"]),
         "edges_changed": len(edge_diff["changed"]),
     }
-    return {"summary": summary, "nodes": node_diff, "edges": edge_diff, "generated_at": datetime.now(timezone.utc).isoformat()}
+    return {
+        "summary": summary,
+        "nodes": node_diff,
+        "edges": edge_diff,
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+    }

@@ -24,7 +24,7 @@ from ...models.negotiation import EdcNegotiation
 from ...odrl.policy_evaluator import evaluate_policy
 from services.shared import events
 from services.shared.audit import actor_subject, safe_record_audit
-from services.shared.redis_client import get_redis, publish_event
+from services.shared.outbox import emit_event
 from services.shared.user_registry import resolve_user_id
 from ...core.webhook_store import record_webhook_event
 
@@ -84,7 +84,9 @@ def _resolved_step_delay_ms(value: int | None) -> int:
 
 def _set_state(item: EdcNegotiation, state: str) -> None:
     history = item.state_history or []
-    history.append({"state": state, "timestamp": datetime.now(timezone.utc).isoformat()})
+    history.append(
+        {"state": state, "timestamp": datetime.now(timezone.utc).isoformat()}
+    )
     item.state_history = history
     item.current_state = state
 
@@ -107,10 +109,13 @@ def _enforce_policy(item: EdcNegotiation, payload: NegotiationAction | None) -> 
         return
     allowed = evaluate_policy(item.policy_odrl or {}, payload.purpose)
     if not allowed:
-        raise HTTPException(status_code=403, detail="Policy does not allow this purpose")
+        raise HTTPException(
+            status_code=403, detail="Policy does not allow this purpose"
+        )
 
 
 def _publish_state_change_event(
+    db: Session,
     item: EdcNegotiation,
     *,
     previous_state: str,
@@ -132,11 +137,14 @@ def _publish_state_change_event(
             "asset_id": item.asset_id,
         },
     )
-    ok, _ = publish_event(
-        get_redis(REDIS_URL),
-        "simulation.events",
-        state_event,
+    ok, _ = emit_event(
+        db,
+        stream="simulation.events",
+        payload=state_event,
+        redis_url=REDIS_URL,
         maxlen=EVENT_STREAM_MAXLEN,
+        commit=True,
+        log=logger,
     )
     if not ok:
         logger.warning(
@@ -200,10 +208,10 @@ def _emit_completion_side_effects(
         details={"state": item.current_state},
     )
 
-    ok, _ = publish_event(
-        get_redis(REDIS_URL),
-        "simulation.events",
-        events.build_event(
+    ok, _ = emit_event(
+        db,
+        stream="simulation.events",
+        payload=events.build_event(
             events.EDC_NEGOTIATION_COMPLETED,
             user_id=user_id or "",
             source_service="edc-simulator",
@@ -211,7 +219,10 @@ def _emit_completion_side_effects(
             negotiation_id=negotiation_id,
             session_id=str(item.session_id) if item.session_id else None,
         ),
+        redis_url=REDIS_URL,
         maxlen=EVENT_STREAM_MAXLEN,
+        commit=True,
+        log=logger,
     )
     if not ok:
         logger.warning(
@@ -233,7 +244,11 @@ def _run_async_negotiation_flow(
     db = SessionLocal()
     try:
         for target_state in NEGOTIATION_ASYNC_FLOW:
-            item = db.query(EdcNegotiation).filter(EdcNegotiation.negotiation_id == negotiation_id).first()
+            item = (
+                db.query(EdcNegotiation)
+                .filter(EdcNegotiation.negotiation_id == negotiation_id)
+                .first()
+            )
             if not item:
                 return
             if item.current_state in {"TERMINATED", "FINALIZED"}:
@@ -256,6 +271,7 @@ def _run_async_negotiation_flow(
             db.commit()
 
             _publish_state_change_event(
+                db,
                 item,
                 previous_state=previous_state,
                 user_id=user_id,
@@ -290,7 +306,10 @@ def _run_async_negotiation_flow(
             if step_delay_ms > 0:
                 time.sleep(step_delay_ms / 1000.0)
     except Exception:
-        logger.exception("Async negotiation simulation failed", extra={"negotiation_id": negotiation_id})
+        logger.exception(
+            "Async negotiation simulation failed",
+            extra={"negotiation_id": negotiation_id},
+        )
     finally:
         db.close()
 
@@ -335,9 +354,17 @@ def create_negotiation(
 
 
 @router.get("/negotiations/{negotiation_id}")
-def get_negotiation(request: Request, negotiation_id: str, db: Session = Depends(get_db)):
-    require_roles(request.state.user, ["developer", "manufacturer", "admin", "regulator"])
-    item = db.query(EdcNegotiation).filter(EdcNegotiation.negotiation_id == negotiation_id).first()
+def get_negotiation(
+    request: Request, negotiation_id: str, db: Session = Depends(get_db)
+):
+    require_roles(
+        request.state.user, ["developer", "manufacturer", "admin", "regulator"]
+    )
+    item = (
+        db.query(EdcNegotiation)
+        .filter(EdcNegotiation.negotiation_id == negotiation_id)
+        .first()
+    )
     if not item:
         raise HTTPException(status_code=404, detail="Not found")
     return _to_dict(item)
@@ -352,7 +379,11 @@ def simulate_negotiation(
     db: Session = Depends(get_db),
 ):
     require_roles(request.state.user, ["developer", "manufacturer", "admin"])
-    item = db.query(EdcNegotiation).filter(EdcNegotiation.negotiation_id == negotiation_id).first()
+    item = (
+        db.query(EdcNegotiation)
+        .filter(EdcNegotiation.negotiation_id == negotiation_id)
+        .first()
+    )
     if not item:
         raise HTTPException(status_code=404, detail="Not found")
 
@@ -381,7 +412,11 @@ def accept_offer(
     db: Session = Depends(get_db),
 ):
     require_roles(request.state.user, ["developer", "manufacturer", "admin"])
-    item = db.query(EdcNegotiation).filter(EdcNegotiation.negotiation_id == negotiation_id).first()
+    item = (
+        db.query(EdcNegotiation)
+        .filter(EdcNegotiation.negotiation_id == negotiation_id)
+        .first()
+    )
     if not item:
         raise HTTPException(status_code=404, detail="Not found")
     if not can_transition(item.current_state, "ACCEPTED"):
@@ -400,7 +435,11 @@ def request_offer(
     db: Session = Depends(get_db),
 ):
     require_roles(request.state.user, ["developer", "manufacturer", "admin"])
-    item = db.query(EdcNegotiation).filter(EdcNegotiation.negotiation_id == negotiation_id).first()
+    item = (
+        db.query(EdcNegotiation)
+        .filter(EdcNegotiation.negotiation_id == negotiation_id)
+        .first()
+    )
     if not item:
         raise HTTPException(status_code=404, detail="Not found")
     if not can_transition(item.current_state, "REQUESTING"):
@@ -419,7 +458,11 @@ def mark_requested(
     db: Session = Depends(get_db),
 ):
     require_roles(request.state.user, ["developer", "manufacturer", "admin"])
-    item = db.query(EdcNegotiation).filter(EdcNegotiation.negotiation_id == negotiation_id).first()
+    item = (
+        db.query(EdcNegotiation)
+        .filter(EdcNegotiation.negotiation_id == negotiation_id)
+        .first()
+    )
     if not item:
         raise HTTPException(status_code=404, detail="Not found")
     if not can_transition(item.current_state, "REQUESTED"):
@@ -438,7 +481,11 @@ def offer(
     db: Session = Depends(get_db),
 ):
     require_roles(request.state.user, ["developer", "manufacturer", "admin"])
-    item = db.query(EdcNegotiation).filter(EdcNegotiation.negotiation_id == negotiation_id).first()
+    item = (
+        db.query(EdcNegotiation)
+        .filter(EdcNegotiation.negotiation_id == negotiation_id)
+        .first()
+    )
     if not item:
         raise HTTPException(status_code=404, detail="Not found")
     if not can_transition(item.current_state, "OFFERED"):
@@ -457,7 +504,11 @@ def agree(
     db: Session = Depends(get_db),
 ):
     require_roles(request.state.user, ["developer", "manufacturer", "admin"])
-    item = db.query(EdcNegotiation).filter(EdcNegotiation.negotiation_id == negotiation_id).first()
+    item = (
+        db.query(EdcNegotiation)
+        .filter(EdcNegotiation.negotiation_id == negotiation_id)
+        .first()
+    )
     if not item:
         raise HTTPException(status_code=404, detail="Not found")
     if not can_transition(item.current_state, "AGREED"):
@@ -476,7 +527,11 @@ def verify(
     db: Session = Depends(get_db),
 ):
     require_roles(request.state.user, ["developer", "manufacturer", "admin"])
-    item = db.query(EdcNegotiation).filter(EdcNegotiation.negotiation_id == negotiation_id).first()
+    item = (
+        db.query(EdcNegotiation)
+        .filter(EdcNegotiation.negotiation_id == negotiation_id)
+        .first()
+    )
     if not item:
         raise HTTPException(status_code=404, detail="Not found")
     if not can_transition(item.current_state, "VERIFIED"):
@@ -495,7 +550,11 @@ def finalize(
     db: Session = Depends(get_db),
 ):
     require_roles(request.state.user, ["developer", "manufacturer", "admin"])
-    item = db.query(EdcNegotiation).filter(EdcNegotiation.negotiation_id == negotiation_id).first()
+    item = (
+        db.query(EdcNegotiation)
+        .filter(EdcNegotiation.negotiation_id == negotiation_id)
+        .first()
+    )
     if not item:
         raise HTTPException(status_code=404, detail="Not found")
     if not can_transition(item.current_state, "FINALIZED"):
@@ -507,6 +566,7 @@ def finalize(
 
     user_id = resolve_user_id(db, request.state.user)
     _publish_state_change_event(
+        db,
         item,
         previous_state=previous_state,
         user_id=user_id,
@@ -527,7 +587,11 @@ def finalize(
 @router.post("/negotiations/{negotiation_id}/terminate")
 def terminate(request: Request, negotiation_id: str, db: Session = Depends(get_db)):
     require_roles(request.state.user, ["developer", "manufacturer", "admin"])
-    item = db.query(EdcNegotiation).filter(EdcNegotiation.negotiation_id == negotiation_id).first()
+    item = (
+        db.query(EdcNegotiation)
+        .filter(EdcNegotiation.negotiation_id == negotiation_id)
+        .first()
+    )
     if not item:
         raise HTTPException(status_code=404, detail="Not found")
     if not can_transition(item.current_state, "TERMINATED"):

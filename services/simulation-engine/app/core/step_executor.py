@@ -12,9 +12,17 @@ from ..models.dpp_instance import DppInstance
 from ..models.session import SimulationSession
 from .aasx_storage import store_aasx_payload
 from .service_token import get_service_token
+from services.shared.http_client import request as pooled_request
 
 StepHandler = Callable[
-    [Session, dict[str, Any], dict[str, Any], dict[str, Any], dict[str, Any] | None, dict[str, str]],
+    [
+        Session,
+        dict[str, Any],
+        dict[str, Any],
+        dict[str, Any],
+        dict[str, Any] | None,
+        dict[str, str],
+    ],
     dict[str, Any],
 ]
 
@@ -41,12 +49,13 @@ def _call_aas_adapter(
     json_body: dict[str, Any] | None,
     headers: dict[str, str],
 ) -> dict[str, Any]:
-    response = requests.request(
+    response = pooled_request(
         method=method,
         url=f"{AAS_ADAPTER_URL}{path}",
         json=json_body,
         headers=headers,
         timeout=8,
+        session_name="simulation-engine-step-executor",
     )
     response.raise_for_status()
     if not response.content:
@@ -88,11 +97,13 @@ def _execute_compliance_check(
         "story_code": context.get("story_code"),
     }
     try:
-        response = requests.post(
-            f"{COMPLIANCE_URL}/api/v1/compliance/check",
+        response = pooled_request(
+            method="POST",
+            url=f"{COMPLIANCE_URL}/api/v1/compliance/check",
             json=body,
             headers=headers,
             timeout=8,
+            session_name="simulation-engine-step-executor",
         )
         response.raise_for_status()
         result = response.json()
@@ -102,13 +113,20 @@ def _execute_compliance_check(
 
             session_id = context.get("session_id")
             if session_id:
-                dpp = db.query(DppInstance).filter(DppInstance.session_id == session_id).first()
+                dpp = (
+                    db.query(DppInstance)
+                    .filter(DppInstance.session_id == session_id)
+                    .first()
+                )
                 if dpp:
                     graph = digital_twin_repo.get_graph(db, dpp.id)
                     if graph:
                         for node in graph["nodes"]:
                             if node.node_key == "compliance":
-                                node.payload = {"status": result.get("status", "unknown"), "result": result}
+                                node.payload = {
+                                    "status": result.get("status", "unknown"),
+                                    "result": result,
+                                }
                                 db.commit()
                                 break
         except Exception:
@@ -127,14 +145,20 @@ def _execute_edc_negotiation(
     headers: dict[str, str],
 ) -> dict[str, Any]:
     outgoing = _default_payload(payload, params)
-    if isinstance(outgoing, dict) and context.get("session_id") and not outgoing.get("session_id"):
+    if (
+        isinstance(outgoing, dict)
+        and context.get("session_id")
+        and not outgoing.get("session_id")
+    ):
         outgoing["session_id"] = context.get("session_id")
     try:
-        response = requests.post(
-            f"{EDC_URL}/api/v1/edc/negotiations",
+        response = pooled_request(
+            method="POST",
+            url=f"{EDC_URL}/api/v1/edc/negotiations",
             json=outgoing,
             headers=headers,
             timeout=8,
+            session_name="simulation-engine-step-executor",
         )
         response.raise_for_status()
         return {"status": "ok", "data": response.json()}
@@ -151,14 +175,20 @@ def _execute_edc_transfer(
     headers: dict[str, str],
 ) -> dict[str, Any]:
     outgoing = _default_payload(payload, params)
-    if isinstance(outgoing, dict) and context.get("session_id") and not outgoing.get("session_id"):
+    if (
+        isinstance(outgoing, dict)
+        and context.get("session_id")
+        and not outgoing.get("session_id")
+    ):
         outgoing["session_id"] = context.get("session_id")
     try:
-        response = requests.post(
-            f"{EDC_URL}/api/v1/edc/transfers",
+        response = pooled_request(
+            method="POST",
+            url=f"{EDC_URL}/api/v1/edc/transfers",
             json=outgoing,
             headers=headers,
             timeout=8,
+            session_name="simulation-engine-step-executor",
         )
         response.raise_for_status()
         return {"status": "ok", "data": response.json()}
@@ -180,8 +210,14 @@ def _execute_aas_create(
 
     aas_identifier = outgoing.get("aas_identifier") or outgoing.get("id")
     product_name = outgoing.get("product_name") or outgoing.get("idShort")
-    asset_info = outgoing.get("assetInformation", {}) if isinstance(outgoing.get("assetInformation"), dict) else {}
-    product_identifier = outgoing.get("product_identifier") or asset_info.get("globalAssetId")
+    asset_info = (
+        outgoing.get("assetInformation", {})
+        if isinstance(outgoing.get("assetInformation"), dict)
+        else {}
+    )
+    product_identifier = outgoing.get("product_identifier") or asset_info.get(
+        "globalAssetId"
+    )
     if not aas_identifier:
         return {"status": "error", "error": "Missing aas_identifier"}
 
@@ -220,7 +256,9 @@ def _execute_aas_create(
     try:
         from services.shared.repositories import digital_twin_repo
 
-        snapshot = digital_twin_repo.create_snapshot(db, dpp_instance_id=dpp.id, label="Initial DPP")
+        snapshot = digital_twin_repo.create_snapshot(
+            db, dpp_instance_id=dpp.id, label="Initial DPP"
+        )
         digital_twin_repo.add_node(
             db,
             snapshot.id,
@@ -229,11 +267,21 @@ def _execute_aas_create(
             product_name or "Product",
             {"aas_id": str(dpp.aas_identifier)},
         )
-        digital_twin_repo.add_node(db, snapshot.id, "compliance", "status", "Compliance", {"status": "pending"})
-        digital_twin_repo.add_node(db, snapshot.id, "transfer", "dataspace", "Transfer", {})
-        digital_twin_repo.add_edge(db, snapshot.id, "product-compliance", "product", "compliance", "validates")
-        digital_twin_repo.add_edge(db, snapshot.id, "product-transfer", "product", "transfer", "transfers")
+        digital_twin_repo.add_node(
+            db, snapshot.id, "compliance", "status", "Compliance", {"status": "pending"}
+        )
+        digital_twin_repo.add_node(
+            db, snapshot.id, "transfer", "dataspace", "Transfer", {}
+        )
+        digital_twin_repo.add_edge(
+            db, snapshot.id, "product-compliance", "product", "compliance", "validates"
+        )
+        digital_twin_repo.add_edge(
+            db, snapshot.id, "product-transfer", "product", "transfer", "transfers"
+        )
+        db.commit()
     except Exception:
+        db.rollback()
         pass
     return {"status": status, "data": shell}
 
@@ -308,7 +356,11 @@ def _execute_aas_update(
     if isinstance(outgoing, dict):
         update_name = outgoing.get("update")
     if update_name and context.get("session_id"):
-        session = db.query(SimulationSession).filter(SimulationSession.id == context.get("session_id")).first()
+        session = (
+            db.query(SimulationSession)
+            .filter(SimulationSession.id == context.get("session_id"))
+            .first()
+        )
         if session:
             current_state = session.session_state or {}
             updates = current_state.get("aas_updates", [])
@@ -445,7 +497,11 @@ def execute_step(
     try:
         result = handler(db, params, payload, context, metadata, headers)
     except Exception as exc:
-        return {"status": "error", "message": f"Step execution failed for '{action}'", "error": str(exc)}
+        return {
+            "status": "error",
+            "message": f"Step execution failed for '{action}'",
+            "error": str(exc),
+        }
 
     status = result.get("status", "completed")
     result.setdefault("status", status)

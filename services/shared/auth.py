@@ -5,6 +5,7 @@ import requests
 from jose import jwt
 from fastapi import HTTPException, Request
 from uuid import uuid4
+import logging
 
 KEYCLOAK_URL = os.getenv("KEYCLOAK_URL", "http://keycloak:8080")
 KEYCLOAK_REALM = os.getenv("KEYCLOAK_REALM", "dpp")
@@ -16,6 +17,7 @@ DEV_BYPASS_AUTH = os.getenv("DEV_BYPASS_AUTH", "false").lower() in ("1", "true",
 AUTH_MODE = os.getenv("AUTH_MODE", "auto").lower()
 
 _cache = {"keys": None, "fetched": 0, "keycloak_ok": None, "keycloak_checked": 0}
+logger = logging.getLogger(__name__)
 
 
 def _as_bool(value: str | None, *, default: bool = False) -> bool:
@@ -87,7 +89,17 @@ def _bypass_enabled() -> bool:
     if AUTH_MODE == "keycloak":
         return False
     if AUTH_MODE == "auto":
-        return not _keycloak_available()
+        bypass = not _keycloak_available()
+        if bypass:
+            now = time.time()
+            last_warned = _cache.get("last_bypass_warned", 0) or 0
+            if now - last_warned > 60:
+                logger.warning(
+                    "AUTH_MODE=auto bypassing Keycloak validation because realm is unreachable",
+                    extra={"keycloak_url": KEYCLOAK_URL, "realm": KEYCLOAK_REALM},
+                )
+                _cache["last_bypass_warned"] = now
+        return bypass
     return False
 
 
@@ -148,7 +160,9 @@ def _validate_audience(payload: dict) -> None:
     if isinstance(token_audience, str) and token_audience.strip():
         audiences.add(token_audience.strip())
     elif isinstance(token_audience, list):
-        audiences.update(str(item).strip() for item in token_audience if str(item).strip())
+        audiences.update(
+            str(item).strip() for item in token_audience if str(item).strip()
+        )
 
     if not audiences:
         raise HTTPException(status_code=401, detail="Missing token audience")

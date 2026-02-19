@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 import os
 from pathlib import Path
 from typing import Any
@@ -11,11 +12,26 @@ from ..schemas.story_schema import StoryDefinition
 
 ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 DEFAULT_DATA_DIR = os.path.join(ROOT_DIR, "data", "stories")
-DATA_DIR = os.getenv("STORY_DATA_DIR", DEFAULT_DATA_DIR)
+DATA_DIR: str = os.getenv("STORY_DATA_DIR") or DEFAULT_DATA_DIR
+
+_CACHE: dict[str, dict[str, Any]] = {}
 
 
 def _resolve_data_dir(data_dir: str | None = None) -> str:
-    return data_dir or os.getenv("STORY_DATA_DIR", DATA_DIR)
+    return data_dir or os.getenv("STORY_DATA_DIR") or DATA_DIR
+
+
+def _story_files_signature(resolved_dir: str) -> tuple[tuple[str, int, int], ...]:
+    parts: list[tuple[str, int, int]] = []
+    for filename in sorted(os.listdir(resolved_dir)):
+        if not filename.endswith(".yaml"):
+            continue
+        if filename == "schema.yaml":
+            continue
+        path = os.path.join(resolved_dir, filename)
+        stat = os.stat(path)
+        parts.append((filename, int(stat.st_mtime_ns), int(stat.st_size)))
+    return tuple(parts)
 
 
 def _decorate(story: dict[str, Any]) -> dict[str, Any]:
@@ -33,7 +49,8 @@ def _decorate(story: dict[str, Any]) -> dict[str, Any]:
         **story,
         "epic_code": epic_code,
         "order_index": order_index,
-        "roles": story.get("roles") or ["manufacturer", "regulator", "consumer", "recycler", "developer"],
+        "roles": story.get("roles")
+        or ["manufacturer", "regulator", "consumer", "recycler", "developer"],
         "difficulty": story.get("difficulty") or "intermediate",
         "story_version": story.get("story_version") or 1,
     }
@@ -54,12 +71,13 @@ def _load_all(data_dir: str | None = None) -> list[dict[str, Any]]:
     if not os.path.exists(resolved_dir):
         raise KeyError(f"Story data directory not found: {resolved_dir}")
 
+    signature = _story_files_signature(resolved_dir)
+    cached = _CACHE.get(resolved_dir)
+    if cached and cached.get("signature") == signature:
+        return copy.deepcopy(cached.get("stories", []))
+
     all_stories: list[dict[str, Any]] = []
-    for filename in sorted(os.listdir(resolved_dir)):
-        if not filename.endswith(".yaml"):
-            continue
-        if filename == "schema.yaml":
-            continue
+    for filename, _, _ in signature:
         file_path = os.path.join(resolved_dir, filename)
         with open(file_path, "r", encoding="utf-8") as handle:
             parsed = yaml.safe_load(handle) or []
@@ -68,6 +86,11 @@ def _load_all(data_dir: str | None = None) -> list[dict[str, Any]]:
         for index, raw_story in enumerate(parsed):
             validated = _validate_story(raw_story, source=file_path, index=index)
             all_stories.append(_decorate(validated))
+
+    _CACHE[resolved_dir] = {
+        "signature": signature,
+        "stories": copy.deepcopy(all_stories),
+    }
     return all_stories
 
 

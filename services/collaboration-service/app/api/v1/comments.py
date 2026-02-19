@@ -8,15 +8,17 @@ from ...models.comment import Comment
 from ...config import REDIS_URL, EVENT_STREAM_MAXLEN
 from ...auth import require_roles
 from services.shared import events
-from services.shared.redis_client import get_redis, publish_event
+from services.shared.outbox import emit_event
 from services.shared.user_registry import resolve_user_id
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
 
+
 class CommentCreate(BaseModel):
     target_id: str
     content: str
+
 
 @router.get("/comments")
 def list_comments(
@@ -26,7 +28,9 @@ def list_comments(
     offset: int = 0,
     db: Session = Depends(get_db),
 ):
-    require_roles(request.state.user, ["developer", "admin", "regulator", "manufacturer"])
+    require_roles(
+        request.state.user, ["developer", "admin", "regulator", "manufacturer"]
+    )
     query = db.query(Comment)
     if target_id:
         query = query.filter(Comment.target_id == target_id)
@@ -43,9 +47,15 @@ def list_comments(
         ]
     }
 
+
 @router.post("/comments")
-def create_comment(request: Request, payload: CommentCreate, db: Session = Depends(get_db)):
-    require_roles(request.state.user, ["developer", "admin", "manufacturer", "regulator", "consumer", "recycler"])
+def create_comment(
+    request: Request, payload: CommentCreate, db: Session = Depends(get_db)
+):
+    require_roles(
+        request.state.user,
+        ["developer", "admin", "manufacturer", "regulator", "consumer", "recycler"],
+    )
     raw_user_id = resolve_user_id(db, request.state.user)
     if not raw_user_id:
         raise HTTPException(status_code=400, detail="Missing user id")
@@ -62,10 +72,10 @@ def create_comment(request: Request, payload: CommentCreate, db: Session = Depen
     db.add(item)
     db.commit()
     try:
-        ok, _ = publish_event(
-            get_redis(REDIS_URL),
-            "simulation.events",
-            events.build_event(
+        ok, _ = emit_event(
+            db,
+            stream="simulation.events",
+            payload=events.build_event(
                 events.COMMENT_ADDED,
                 user_id=str(user_id),
                 source_service="collaboration-service",
@@ -75,10 +85,16 @@ def create_comment(request: Request, payload: CommentCreate, db: Session = Depen
                     "target_id": payload.target_id,
                 },
             ),
+            redis_url=REDIS_URL,
             maxlen=EVENT_STREAM_MAXLEN,
+            commit=True,
+            log=logger,
         )
         if not ok:
-            logger.warning("Failed to publish comment_added event", extra={"comment_id": str(item.id)})
+            logger.warning(
+                "Failed to publish comment_added event",
+                extra={"comment_id": str(item.id)},
+            )
     except Exception as exc:
         logger.warning(
             "Error while publishing comment_added event",

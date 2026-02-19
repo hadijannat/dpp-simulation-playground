@@ -62,11 +62,13 @@ def test_v2_events_proxy_forwards_filters(monkeypatch: pytest.MonkeyPatch):
         "offset": 0,
     }
 
-    def fake_request(method: str, url: str, params: Any = None, json: Any = None, **kwargs: Any):
+    def fake_request(
+        method: str, url: str, params: Any = None, json: Any = None, **kwargs: Any
+    ):
         calls.append({"method": method, "url": url, "params": params, "json": json})
         return DummyResponse(upstream_payload)
 
-    monkeypatch.setattr("app.core.proxy.requests.request", fake_request)
+    monkeypatch.setattr("app.core.proxy.pooled_request", fake_request)
 
     response = client.get(
         "/api/v2/events?session_id=sess-1&event_type=story_step_completed&limit=25&offset=0",
@@ -84,12 +86,16 @@ def test_v2_events_proxy_forwards_filters(monkeypatch: pytest.MonkeyPatch):
 
 
 def test_v2_events_proxy_normalizes_missing_pagination(monkeypatch: pytest.MonkeyPatch):
-    def fake_request(method: str, url: str, params: Any = None, json: Any = None, **kwargs: Any):
+    def fake_request(
+        method: str, url: str, params: Any = None, json: Any = None, **kwargs: Any
+    ):
         return DummyResponse({"items": []})
 
-    monkeypatch.setattr("app.core.proxy.requests.request", fake_request)
+    monkeypatch.setattr("app.core.proxy.pooled_request", fake_request)
 
-    response = client.get("/api/v2/events?run_id=run-77&limit=10&offset=5", headers=HEADERS)
+    response = client.get(
+        "/api/v2/events?run_id=run-77&limit=10&offset=5", headers=HEADERS
+    )
     assert response.status_code == 200
     body = response.json()
     assert body["items"] == []

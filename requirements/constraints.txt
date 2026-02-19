@@ -1,0 +1,23 @@
+# Shared backend dependency constraints
+fastapi==0.128.1
+uvicorn==0.27.1
+pydantic==2.7.4
+sqlalchemy==2.0.31
+redis==7.1.0
+requests==2.31.0
+httpx==0.27.0
+python-jose==3.3.0
+prometheus-client==0.20.0
+PyYAML==6.0.3
+jsonpath-ng==1.7.0
+psycopg2-binary==2.9.9
+alembic==1.13.1
+minio==7.2.7
+opentelemetry-api==1.39.1
+opentelemetry-sdk==1.39.1
+opentelemetry-exporter-otlp-proto-http==1.39.0
+opentelemetry-instrumentation-fastapi==0.60b1
+opentelemetry-instrumentation-requests==0.60b1
+opentelemetry-instrumentation-sqlalchemy==0.60b1
+pytest==8.3.4
+pytest-asyncio==1.3.0

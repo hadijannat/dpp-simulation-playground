@@ -21,7 +21,9 @@ def _make_client(monkeypatch, roles: list[str] | None = None) -> TestClient:
 
 
 def test_catalog_contains_rich_dataset_fields(monkeypatch):
-    monkeypatch.setattr("app.api.v1.assets.resolve_user_id", lambda *_args, **_kwargs: None)
+    monkeypatch.setattr(
+        "app.api.v1.assets.resolve_user_id", lambda *_args, **_kwargs: None
+    )
     client = _make_client(monkeypatch, ["developer"])
 
     participant_id = f"provider-{uuid4()}"
@@ -66,15 +68,22 @@ def test_catalog_contains_rich_dataset_fields(monkeypatch):
     assert target["@type"] == "dcat:Dataset"
     assert target["publisher"]["id"] == participant_id
     assert target["distribution"][0]["format"] == "application/json"
-    assert target["policySummary"] == {"permissions": 1, "prohibitions": 0, "obligations": 1}
+    assert target["policySummary"] == {
+        "permissions": 1,
+        "prohibitions": 0,
+        "obligations": 1,
+    }
     assert "battery" in target["keywords"]
 
 
 def test_async_negotiation_simulation_reaches_finalized(monkeypatch):
     monkeypatch.setattr(main, "verify_request", _set_roles(["developer"]))
-    monkeypatch.setattr("app.api.v1.negotiations.publish_event", lambda *args, **kwargs: (True, "1-0"))
-    monkeypatch.setattr("app.api.v1.negotiations.get_redis", lambda *_args, **_kwargs: None)
-    monkeypatch.setattr("app.api.v1.negotiations.resolve_user_id", lambda *_args, **_kwargs: None)
+    monkeypatch.setattr(
+        "app.api.v1.negotiations.emit_event", lambda *args, **kwargs: (True, "1-0")
+    )
+    monkeypatch.setattr(
+        "app.api.v1.negotiations.resolve_user_id", lambda *_args, **_kwargs: None
+    )
     client = TestClient(main.app)
 
     negotiation_resp = client.post(
@@ -105,9 +114,12 @@ def test_async_negotiation_simulation_reaches_finalized(monkeypatch):
 
 def test_async_transfer_simulation_reaches_completed(monkeypatch):
     monkeypatch.setattr(main, "verify_request", _set_roles(["developer"]))
-    monkeypatch.setattr("app.api.v1.transfers.publish_event", lambda *args, **kwargs: (True, "1-0"))
-    monkeypatch.setattr("app.api.v1.transfers.get_redis", lambda *_args, **_kwargs: None)
-    monkeypatch.setattr("app.api.v1.transfers.resolve_user_id", lambda *_args, **_kwargs: None)
+    monkeypatch.setattr(
+        "app.api.v1.transfers.emit_event", lambda *args, **kwargs: (True, "1-0")
+    )
+    monkeypatch.setattr(
+        "app.api.v1.transfers.resolve_user_id", lambda *_args, **_kwargs: None
+    )
     client = TestClient(main.app)
 
     transfer_resp = client.post(
@@ -140,13 +152,21 @@ def test_simulated_webhook_endpoints(monkeypatch):
 
     post_resp = client.post(
         "/api/v1/edc/webhooks/simulated",
-        json={"event_type": "sample", "object_id": "obj-1", "state": "REQUESTED", "metadata": {}},
+        json={
+            "event_type": "sample",
+            "object_id": "obj-1",
+            "state": "REQUESTED",
+            "metadata": {},
+        },
     )
     assert post_resp.status_code == 200
 
     list_resp = client.get("/api/v1/edc/webhooks/simulated")
     assert list_resp.status_code == 200
-    assert any(item["payload"].get("event_type") == "sample" for item in list_resp.json()["items"])
+    assert any(
+        item["payload"].get("event_type") == "sample"
+        for item in list_resp.json()["items"]
+    )
 
     delete_resp = client.delete("/api/v1/edc/webhooks/simulated")
     assert delete_resp.status_code == 200

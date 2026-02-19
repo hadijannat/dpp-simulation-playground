@@ -1,6 +1,7 @@
 from sqlalchemy import create_engine, Table, Column, String, Integer
 from sqlalchemy.orm import sessionmaker
 from ..config import DATABASE_URL
+from services.shared.tracing import instrument_sqlalchemy_engine
 
 connect_args = {}
 if DATABASE_URL.startswith("sqlite"):
@@ -8,6 +9,7 @@ if DATABASE_URL.startswith("sqlite"):
 
 engine = create_engine(DATABASE_URL, future=True, connect_args=connect_args)
 SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
+instrument_sqlalchemy_engine(engine, service_name="collaboration-service")
 
 if DATABASE_URL.startswith("sqlite"):
     from ..models.base import Base

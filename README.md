@@ -173,6 +173,12 @@ Platform API hardening flag:
 
 - `ALLOW_DEV_HEADERS` (default `false`; keep disabled outside local/dev)
 
+Production-safe baseline:
+
+- Set `AUTH_MODE=keycloak` in non-dev deployments.
+- Keep `ALLOW_DEV_HEADERS=false` outside local development.
+- Use `AUTH_MODE=bypass` only in explicit local/test environments.
+
 ## Eventing and reliability knobs
 
 The platform uses Redis Streams for async eventing (`simulation.events` + retry + DLQ). Useful limits:
@@ -182,6 +188,18 @@ The platform uses Redis Streams for async eventing (`simulation.events` + retry 
 - `RETRY_STREAM_MAXLEN` (default `20000`)
 - `DLQ_STREAM_MAXLEN` (default `20000`)
 - `STREAM_TRIM_INTERVAL_SECONDS` (default `300`)
+
+Outbox worker controls:
+
+- `OUTBOX_WORKER_ENABLED` (default `true`)
+- `OUTBOX_PUBLISH_BATCH_SIZE` (default `50`)
+- `OUTBOX_PUBLISH_INTERVAL_MS` (default `1000`)
+- `OUTBOX_LOCK_TIMEOUT_SECONDS` (default `60`)
+
+Tracing/telemetry controls:
+
+- `OTEL_EXPORTER_OTLP_ENDPOINT` (optional OTLP HTTP endpoint for trace export)
+- `OTEL_RESOURCE_ATTRIBUTES` (optional comma-separated key=value resource attributes)
 
 ## Project layout
 
