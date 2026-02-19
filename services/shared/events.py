@@ -22,6 +22,9 @@ EDC_TRANSFER_COMPLETED = "edc_transfer_completed"
 EDC_NEGOTIATION_STATE_CHANGED = "edc_negotiation_state_changed"
 EDC_TRANSFER_STATE_CHANGED = "edc_transfer_state_changed"
 GAP_REPORTED = "gap_reported"
+ANNOTATION_CREATED = "annotation_created"
+VOTE_CAST = "vote_cast"
+COMMENT_ADDED = "comment_added"
 EVENT_SCHEMA_VERSION = "1"
 
 REQUIRED_EVENT_FIELDS = (

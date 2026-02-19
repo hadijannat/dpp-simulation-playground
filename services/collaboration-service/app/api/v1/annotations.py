@@ -1,13 +1,18 @@
 from fastapi import APIRouter, Request, Depends, HTTPException
 from ...schemas.annotation_schema import AnnotationCreate
-from uuid import uuid4
+from uuid import UUID, uuid4
+import logging
 from sqlalchemy.orm import Session
 from ...core.db import get_db
 from ...models.annotation import Annotation
+from ...config import REDIS_URL, EVENT_STREAM_MAXLEN
 from ...auth import require_roles
+from services.shared import events
+from services.shared.redis_client import get_redis, publish_event
 from services.shared.user_registry import resolve_user_id
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 @router.get("/annotations")
 def list_annotations(
@@ -46,9 +51,13 @@ def list_annotations(
 @router.post("/annotations")
 def create_annotation(request: Request, payload: AnnotationCreate, db: Session = Depends(get_db)):
     require_roles(request.state.user, ["developer", "admin", "manufacturer", "regulator", "consumer", "recycler"])
-    user_id = resolve_user_id(db, request.state.user)
-    if not user_id:
+    raw_user_id = resolve_user_id(db, request.state.user)
+    if not raw_user_id:
         raise HTTPException(status_code=400, detail="Missing user id")
+    try:
+        user_id = UUID(str(raw_user_id))
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail="Invalid user id") from exc
     item = Annotation(
         id=uuid4(),
         user_id=user_id,
@@ -60,6 +69,31 @@ def create_annotation(request: Request, payload: AnnotationCreate, db: Session =
     )
     db.add(item)
     db.commit()
+    try:
+        ok, _ = publish_event(
+            get_redis(REDIS_URL),
+            "simulation.events",
+            events.build_event(
+                events.ANNOTATION_CREATED,
+                user_id=str(user_id),
+                source_service="collaboration-service",
+                request_id=getattr(request.state, "request_id", None),
+                story_id=str(payload.story_id) if payload.story_id is not None else "",
+                metadata={
+                    "annotation_id": str(item.id),
+                    "annotation_type": payload.annotation_type,
+                    "target_element": payload.target_element,
+                },
+            ),
+            maxlen=EVENT_STREAM_MAXLEN,
+        )
+        if not ok:
+            logger.warning("Failed to publish annotation_created event", extra={"annotation_id": str(item.id)})
+    except Exception as exc:
+        logger.warning(
+            "Error while publishing annotation_created event",
+            extra={"annotation_id": str(item.id), "error": str(exc)},
+        )
     return {
         "id": str(item.id),
         "story_id": item.story_id,
