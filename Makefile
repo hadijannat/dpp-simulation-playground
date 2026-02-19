@@ -1,7 +1,8 @@
-.PHONY: help up down logs restart test seed migrate backfill clean health load-test openapi contract-check rbac-sync rbac-check story-lint
+.PHONY: help up down logs restart test test-backend test-frontend seed migrate backfill clean health load-test openapi contract-check rbac-sync rbac-check story-lint
 
 COMPOSE_FILE := infrastructure/docker/docker-compose.yml
 COMPOSE_DEV  := infrastructure/docker/docker-compose.dev.yml
+BACKEND_SERVICES := simulation-engine compliance-service gamification-service edc-simulator collaboration-service platform-api platform-core aas-adapter
 
 help: ## Show this help message
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | \
@@ -31,8 +32,17 @@ seed: ## Seed database with initial data
 backfill: ## Backfill v2 journey runs from existing sessions
 	python services/simulation-engine/scripts/backfill_journeys.py
 
-test: ## Run all tests
-	@echo "Run unit tests"
+test: test-backend test-frontend ## Run backend + frontend unit tests
+
+test-backend: ## Run backend unit tests for all services
+	@set -e; \
+	for svc in $(BACKEND_SERVICES); do \
+		echo "==> Running backend tests for $$svc"; \
+		(cd services/$$svc && pytest tests/ -v --tb=short); \
+	done
+
+test-frontend: ## Run frontend unit tests
+	cd frontend && npm test
 
 clean: ## Remove all containers and volumes
 	docker compose -f $(COMPOSE_FILE) down -v --remove-orphans

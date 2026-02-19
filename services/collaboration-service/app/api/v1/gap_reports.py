@@ -10,10 +10,11 @@ from ...auth import require_roles
 from services.shared.audit import actor_subject, safe_record_audit
 from services.shared.user_registry import resolve_user_id
 from services.shared import events
-from services.shared.redis_client import get_redis, publish_event
+from services.shared.outbox import emit_event
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
+
 
 class GapReportCreate(BaseModel):
     story_id: int | None = None
@@ -24,6 +25,7 @@ class GapReportUpdate(BaseModel):
     status: str | None = None
     description: str | None = None
 
+
 @router.get("/gap_reports")
 def list_reports(
     request: Request,
@@ -33,13 +35,17 @@ def list_reports(
     offset: int = 0,
     db: Session = Depends(get_db),
 ):
-    require_roles(request.state.user, ["developer", "admin", "regulator", "manufacturer"])
+    require_roles(
+        request.state.user, ["developer", "admin", "regulator", "manufacturer"]
+    )
     query = db.query(GapReport)
     if story_id is not None:
         query = query.filter(GapReport.story_id == story_id)
     if status:
         query = query.filter(GapReport.status == status)
-    items = query.order_by(GapReport.created_at.desc()).offset(offset).limit(limit).all()
+    items = (
+        query.order_by(GapReport.created_at.desc()).offset(offset).limit(limit).all()
+    )
     return {
         "items": [
             {
@@ -53,9 +59,15 @@ def list_reports(
         ]
     }
 
+
 @router.post("/gap_reports")
-def create_report(request: Request, payload: GapReportCreate, db: Session = Depends(get_db)):
-    require_roles(request.state.user, ["developer", "admin", "manufacturer", "regulator", "consumer", "recycler"])
+def create_report(
+    request: Request, payload: GapReportCreate, db: Session = Depends(get_db)
+):
+    require_roles(
+        request.state.user,
+        ["developer", "admin", "manufacturer", "regulator", "consumer", "recycler"],
+    )
     raw_user_id = resolve_user_id(db, request.state.user)
     if not raw_user_id:
         raise HTTPException(status_code=400, detail="Missing user id")
@@ -83,26 +95,37 @@ def create_report(request: Request, payload: GapReportCreate, db: Session = Depe
         details={"story_id": payload.story_id, "status": item.status},
     )
     try:
-        ok, _ = publish_event(
-            get_redis(REDIS_URL),
-            "simulation.events",
-            events.build_event(
+        ok, _ = emit_event(
+            db,
+            stream="simulation.events",
+            payload=events.build_event(
                 events.GAP_REPORTED,
                 user_id=str(user_id),
                 source_service="collaboration-service",
                 request_id=getattr(request.state, "request_id", None),
                 story_id=payload.story_id or "",
             ),
+            redis_url=REDIS_URL,
             maxlen=EVENT_STREAM_MAXLEN,
+            commit=True,
+            log=logger,
         )
         if not ok:
-            logger.warning("Failed to publish gap_reported event", extra={"gap_report_id": str(item.id)})
+            logger.warning(
+                "Failed to publish gap_reported event",
+                extra={"gap_report_id": str(item.id)},
+            )
     except Exception as exc:
         logger.warning(
             "Error while publishing gap_reported event",
             extra={"gap_report_id": str(item.id), "error": str(exc)},
         )
-    return {"id": str(item.id), "story_id": item.story_id, "description": item.description, "status": item.status}
+    return {
+        "id": str(item.id),
+        "story_id": item.story_id,
+        "description": item.description,
+        "status": item.status,
+    }
 
 
 @router.patch("/gap_reports/{report_id}")
@@ -112,7 +135,9 @@ def update_report(
     payload: GapReportUpdate,
     db: Session = Depends(get_db),
 ):
-    require_roles(request.state.user, ["developer", "admin", "manufacturer", "regulator"])
+    require_roles(
+        request.state.user, ["developer", "admin", "manufacturer", "regulator"]
+    )
     item = db.query(GapReport).filter(GapReport.id == report_id).first()
     if not item:
         raise HTTPException(status_code=404, detail="Not found")

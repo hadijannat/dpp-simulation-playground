@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field
 
 from ...auth import require_roles
 from ...config import BASYX_BASE_URL, BASYX_API_PREFIX
+from services.shared.http_client import request as pooled_request
 
 router = APIRouter()
 
@@ -23,10 +24,22 @@ def _basyx_request(
 ) -> requests.Response:
     clean_path = path.lstrip("/")
     primary = f"{BASYX_BASE_URL}{_api_prefix()}/{clean_path}"
-    response = requests.request(method, primary, json=json_body, timeout=timeout)
+    response = pooled_request(
+        method=method,
+        url=primary,
+        json=json_body,
+        timeout=timeout,
+        session_name="aas-adapter",
+    )
     if response.status_code == 404 and _api_prefix():
         fallback = f"{BASYX_BASE_URL}/{clean_path}"
-        response = requests.request(method, fallback, json=json_body, timeout=timeout)
+        response = pooled_request(
+            method=method,
+            url=fallback,
+            json=json_body,
+            timeout=timeout,
+            session_name="aas-adapter",
+        )
     response.raise_for_status()
     return response
 
@@ -52,7 +65,10 @@ class AasxUploadRequest(BaseModel):
 
 @router.get("/aas/shells")
 def list_shells(request: Request):
-    require_roles(request.state.user, ["manufacturer", "developer", "admin", "regulator", "consumer", "recycler"])
+    require_roles(
+        request.state.user,
+        ["manufacturer", "developer", "admin", "regulator", "consumer", "recycler"],
+    )
     try:
         response = _basyx_request("GET", "shells")
         return response.json()
@@ -93,7 +109,10 @@ def create_submodel(request: Request, payload: SubmodelCreateRequest):
 
 @router.get("/aas/submodels/{submodel_id}/elements")
 def get_submodel_elements(request: Request, submodel_id: str):
-    require_roles(request.state.user, ["manufacturer", "developer", "admin", "regulator", "consumer", "recycler"])
+    require_roles(
+        request.state.user,
+        ["manufacturer", "developer", "admin", "regulator", "consumer", "recycler"],
+    )
     try:
         response = _basyx_request("GET", f"submodels/{submodel_id}/submodel-elements")
     except requests.RequestException as exc:
@@ -109,7 +128,9 @@ def get_submodel_elements(request: Request, submodel_id: str):
 
 
 @router.patch("/aas/submodels/{submodel_id}/elements")
-def patch_submodel_elements(request: Request, submodel_id: str, payload: SubmodelPatchRequest):
+def patch_submodel_elements(
+    request: Request, submodel_id: str, payload: SubmodelPatchRequest
+):
     require_roles(request.state.user, ["manufacturer", "developer", "admin"])
     try:
         try:

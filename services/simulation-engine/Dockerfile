@@ -1,7 +1,8 @@
 FROM python:3.11-slim
 WORKDIR /app
 COPY services/simulation-engine/requirements.txt services/simulation-engine/requirements-dev.txt ./
-RUN pip install --no-cache-dir -r requirements.txt
+COPY requirements/constraints.txt /constraints.txt
+RUN pip install --no-cache-dir -c /constraints.txt -r requirements.txt
 COPY services/simulation-engine/app ./app
 COPY services/simulation-engine/alembic.ini ./alembic.ini
 COPY services/simulation-engine/alembic ./alembic

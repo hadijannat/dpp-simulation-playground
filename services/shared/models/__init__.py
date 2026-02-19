@@ -8,6 +8,7 @@ from .validation_result import ValidationResult
 from .achievement import Achievement
 from .point_rule import PointRule
 from .event_log import EventLog
+from .event_outbox import EventOutbox
 from .audit_log import AuditLog
 from .user_achievement import UserAchievement
 from .user_points import UserPoints
@@ -38,6 +39,7 @@ __all__ = [
     "Achievement",
     "PointRule",
     "EventLog",
+    "EventOutbox",
     "AuditLog",
     "UserAchievement",
     "UserPoints",

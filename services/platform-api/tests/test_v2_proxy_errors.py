@@ -80,11 +80,17 @@ def test_v2_proxy_error_passthrough(
 ):
     calls: list[dict[str, Any]] = []
 
-    def fake_request(method: str, url: str, params: dict[str, Any] | None, json: dict[str, Any] | None, **kwargs: Any):
+    def fake_request(
+        method: str,
+        url: str,
+        params: dict[str, Any] | None,
+        json: dict[str, Any] | None,
+        **kwargs: Any,
+    ):
         calls.append({"method": method, "url": url, "params": params, "json": json})
         return DummyResponse(upstream_payload, status_code=upstream_status)
 
-    monkeypatch.setattr("app.core.proxy.requests.request", fake_request)
+    monkeypatch.setattr("app.core.proxy.pooled_request", fake_request)
 
     request_kwargs: dict[str, Any] = {"headers": HEADERS}
     if body is not None:
@@ -100,10 +106,16 @@ def test_v2_proxy_error_passthrough(
 
 
 def test_v2_proxy_returns_502_for_request_exception(monkeypatch: pytest.MonkeyPatch):
-    def fake_request(method: str, url: str, params: dict[str, Any] | None, json: dict[str, Any] | None, **kwargs: Any):
+    def fake_request(
+        method: str,
+        url: str,
+        params: dict[str, Any] | None,
+        json: dict[str, Any] | None,
+        **kwargs: Any,
+    ):
         raise requests.RequestException("network timeout")
 
-    monkeypatch.setattr("app.core.proxy.requests.request", fake_request)
+    monkeypatch.setattr("app.core.proxy.pooled_request", fake_request)
 
     response = client.get("/api/v2/simulation/stories", headers=HEADERS)
     assert response.status_code == 502

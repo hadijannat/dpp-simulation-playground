@@ -7,5 +7,16 @@ repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.6.0
     hooks:
+      - id: check-yaml
+        exclude: ^infrastructure/kong/kong\.template\.yml$
+      - id: check-toml
+      - id: check-json
       - id: end-of-file-fixer
       - id: trailing-whitespace
+  - repo: local
+    hooks:
+      - id: mypy-services
+        name: mypy (services)
+        entry: ./scripts/run-mypy-services.sh
+        language: system
+        pass_filenames: false

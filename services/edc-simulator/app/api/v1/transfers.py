@@ -24,7 +24,7 @@ from ...models.transfer import EdcTransfer
 from ...core.webhook_store import record_webhook_event
 from services.shared import events
 from services.shared.audit import actor_subject, safe_record_audit
-from services.shared.redis_client import get_redis, publish_event
+from services.shared.outbox import emit_event
 from services.shared.user_registry import resolve_user_id
 
 router = APIRouter()
@@ -76,7 +76,9 @@ def _resolved_step_delay_ms(value: int | None) -> int:
 
 def _set_state(item: EdcTransfer, state: str) -> None:
     history = item.state_history or []
-    history.append({"state": state, "timestamp": datetime.now(timezone.utc).isoformat()})
+    history.append(
+        {"state": state, "timestamp": datetime.now(timezone.utc).isoformat()}
+    )
     item.state_history = history
     item.current_state = state
 
@@ -94,6 +96,7 @@ def _to_dict(item: EdcTransfer) -> dict[str, Any]:
 
 
 def _publish_state_change_event(
+    db: Session,
     item: EdcTransfer,
     *,
     previous_state: str,
@@ -115,11 +118,14 @@ def _publish_state_change_event(
             "asset_id": item.asset_id,
         },
     )
-    ok, _ = publish_event(
-        get_redis(REDIS_URL),
-        "simulation.events",
-        state_event,
+    ok, _ = emit_event(
+        db,
+        stream="simulation.events",
+        payload=state_event,
+        redis_url=REDIS_URL,
         maxlen=EVENT_STREAM_MAXLEN,
+        commit=True,
+        log=logger,
     )
     if not ok:
         logger.warning(
@@ -183,10 +189,10 @@ def _emit_completion_side_effects(
         details={"state": item.current_state},
     )
 
-    ok, _ = publish_event(
-        get_redis(REDIS_URL),
-        "simulation.events",
-        events.build_event(
+    ok, _ = emit_event(
+        db,
+        stream="simulation.events",
+        payload=events.build_event(
             events.EDC_TRANSFER_COMPLETED,
             user_id=user_id or "",
             source_service="edc-simulator",
@@ -194,7 +200,10 @@ def _emit_completion_side_effects(
             transfer_id=transfer_id,
             session_id=str(item.session_id) if item.session_id else None,
         ),
+        redis_url=REDIS_URL,
         maxlen=EVENT_STREAM_MAXLEN,
+        commit=True,
+        log=logger,
     )
     if not ok:
         logger.warning(
@@ -216,7 +225,11 @@ def _run_async_transfer_flow(
     db = SessionLocal()
     try:
         for target_state in TRANSFER_ASYNC_FLOW:
-            item = db.query(EdcTransfer).filter(EdcTransfer.transfer_id == transfer_id).first()
+            item = (
+                db.query(EdcTransfer)
+                .filter(EdcTransfer.transfer_id == transfer_id)
+                .first()
+            )
             if not item:
                 return
             if item.current_state in {"TERMINATED", "COMPLETED"}:
@@ -239,6 +252,7 @@ def _run_async_transfer_flow(
             db.commit()
 
             _publish_state_change_event(
+                db,
                 item,
                 previous_state=previous_state,
                 user_id=user_id,
@@ -273,7 +287,9 @@ def _run_async_transfer_flow(
             if step_delay_ms > 0:
                 time.sleep(step_delay_ms / 1000.0)
     except Exception:
-        logger.exception("Async transfer simulation failed", extra={"transfer_id": transfer_id})
+        logger.exception(
+            "Async transfer simulation failed", extra={"transfer_id": transfer_id}
+        )
     finally:
         db.close()
 
@@ -318,7 +334,9 @@ def create_transfer(
 
 @router.get("/transfers/{transfer_id}")
 def get_transfer(request: Request, transfer_id: str, db: Session = Depends(get_db)):
-    require_roles(request.state.user, ["developer", "manufacturer", "admin", "regulator"])
+    require_roles(
+        request.state.user, ["developer", "manufacturer", "admin", "regulator"]
+    )
     item = db.query(EdcTransfer).filter(EdcTransfer.transfer_id == transfer_id).first()
     if not item:
         raise HTTPException(status_code=404, detail="Not found")
@@ -356,7 +374,9 @@ def simulate_transfer(
 
 
 @router.post("/transfers/{transfer_id}/provision")
-def provision_transfer(request: Request, transfer_id: str, db: Session = Depends(get_db)):
+def provision_transfer(
+    request: Request, transfer_id: str, db: Session = Depends(get_db)
+):
     require_roles(request.state.user, ["developer", "manufacturer", "admin"])
     item = db.query(EdcTransfer).filter(EdcTransfer.transfer_id == transfer_id).first()
     if not item:
@@ -435,6 +455,7 @@ def complete(request: Request, transfer_id: str, db: Session = Depends(get_db)):
 
     user_id = resolve_user_id(db, request.state.user)
     _publish_state_change_event(
+        db,
         item,
         previous_state=previous_state,
         user_id=user_id,

@@ -1,6 +1,4 @@
 from __future__ import annotations
-
-import requests
 from fastapi import APIRouter, HTTPException
 
 from ...config import (
@@ -13,6 +11,7 @@ from ...config import (
     SIMULATION_URL,
 )
 from ...schemas.v2 import HealthResponse
+from services.shared.http_client import request as pooled_request
 
 router = APIRouter()
 
@@ -30,7 +29,12 @@ def service_health():
 def _upstream_ok(url: str) -> bool:
     for path in ("/api/v1/health", "/api/v2/health", "/health"):
         try:
-            response = requests.get(f"{url}{path}", timeout=1.5)
+            response = pooled_request(
+                method="GET",
+                url=f"{url}{path}",
+                timeout=1.5,
+                session_name="platform-api-health",
+            )
             if response.ok:
                 return True
         except Exception:
@@ -51,5 +55,7 @@ def ready():
         "aas_adapter": _upstream_ok(AAS_ADAPTER_URL),
     }
     if not all(checks.values()):
-        raise HTTPException(status_code=503, detail={"status": "not_ready", "checks": checks})
+        raise HTTPException(
+            status_code=503, detail={"status": "not_ready", "checks": checks}
+        )
     return {"status": "ready", "service": "platform-api", "checks": checks}

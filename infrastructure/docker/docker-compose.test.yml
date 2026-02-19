@@ -21,7 +21,7 @@ services:
     ports:
       - "8106:8006"
     environment:
-      - AUTH_MODE=dev
+      - AUTH_MODE=bypass
       - DEV_BYPASS_AUTH=true
       - ALLOW_DEV_HEADERS=true
       - PLATFORM_CORE_URL=http://platform-core:8007
@@ -35,7 +35,7 @@ services:
     ports:
       - "8107:8007"
     environment:
-      - AUTH_MODE=dev
+      - AUTH_MODE=bypass
       - DEV_BYPASS_AUTH=true
       - DATABASE_URL=postgresql://test:test@postgres:5432/dpp_playground_test
       - COMPLIANCE_URL=http://simulation-engine:8001
@@ -49,7 +49,7 @@ services:
     ports:
       - "8101:8001"
     environment:
-      - AUTH_MODE=dev
+      - AUTH_MODE=bypass
       - DEV_BYPASS_AUTH=true
       - DATABASE_URL=postgresql://test:test@postgres:5432/dpp_playground_test
       - REDIS_URL=redis://redis:6379/0

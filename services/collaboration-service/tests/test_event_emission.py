@@ -23,14 +23,18 @@ def test_annotation_created_emits_event(monkeypatch):
     _setup_auth(monkeypatch)
     emitted: list[dict] = []
 
-    monkeypatch.setattr("app.api.v1.annotations.resolve_user_id", lambda *_args, **_kwargs: uuid4())
-    monkeypatch.setattr("app.api.v1.annotations.get_redis", lambda *_args, **_kwargs: None)
+    monkeypatch.setattr(
+        "app.api.v1.annotations.resolve_user_id", lambda *_args, **_kwargs: uuid4()
+    )
 
-    def _fake_publish(_client, _stream, payload, **_kwargs):
+    def _fake_emit(_db, *args, **kwargs):
+        payload = kwargs.get("payload")
+        if payload is None and len(args) >= 2:
+            payload = args[1]
         emitted.append(payload)
         return True, "1-0"
 
-    monkeypatch.setattr("app.api.v1.annotations.publish_event", _fake_publish)
+    monkeypatch.setattr("app.api.v1.annotations.emit_event", _fake_emit)
 
     client = TestClient(main.app)
     response = client.post(
@@ -53,14 +57,18 @@ def test_comment_added_emits_event(monkeypatch):
     _setup_auth(monkeypatch)
     emitted: list[dict] = []
 
-    monkeypatch.setattr("app.api.v1.comments.resolve_user_id", lambda *_args, **_kwargs: uuid4())
-    monkeypatch.setattr("app.api.v1.comments.get_redis", lambda *_args, **_kwargs: None)
+    monkeypatch.setattr(
+        "app.api.v1.comments.resolve_user_id", lambda *_args, **_kwargs: uuid4()
+    )
 
-    def _fake_publish(_client, _stream, payload, **_kwargs):
+    def _fake_emit(_db, *args, **kwargs):
+        payload = kwargs.get("payload")
+        if payload is None and len(args) >= 2:
+            payload = args[1]
         emitted.append(payload)
         return True, "1-0"
 
-    monkeypatch.setattr("app.api.v1.comments.publish_event", _fake_publish)
+    monkeypatch.setattr("app.api.v1.comments.emit_event", _fake_emit)
 
     client = TestClient(main.app)
     response = client.post(
@@ -77,14 +85,18 @@ def test_vote_cast_emits_event(monkeypatch):
     _setup_auth(monkeypatch)
     emitted: list[dict] = []
 
-    monkeypatch.setattr("app.api.v1.votes.resolve_user_id", lambda *_args, **_kwargs: uuid4())
-    monkeypatch.setattr("app.api.v1.votes.get_redis", lambda *_args, **_kwargs: None)
+    monkeypatch.setattr(
+        "app.api.v1.votes.resolve_user_id", lambda *_args, **_kwargs: uuid4()
+    )
 
-    def _fake_publish(_client, _stream, payload, **_kwargs):
+    def _fake_emit(_db, *args, **kwargs):
+        payload = kwargs.get("payload")
+        if payload is None and len(args) >= 2:
+            payload = args[1]
         emitted.append(payload)
         return True, "1-0"
 
-    monkeypatch.setattr("app.api.v1.votes.publish_event", _fake_publish)
+    monkeypatch.setattr("app.api.v1.votes.emit_event", _fake_emit)
 
     client = TestClient(main.app)
     response = client.post(

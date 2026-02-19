@@ -1,23 +1,20 @@
-from fastapi import FastAPI, Request
-from uuid import uuid4
+from __future__ import annotations
+
+from fastapi import Request
 
 from .api.router import api_router
 from .auth import verify_request
-from services.shared.error_handling import install_error_handlers
-
-app = FastAPI(title="AAS Adapter", version="0.2.0")
-install_error_handlers(app)
+from services.shared.app_factory import create_service_app
 
 
-@app.middleware("http")
-async def auth_middleware(request: Request, call_next):
-    request.state.request_id = request.headers.get("x-request-id") or str(uuid4())
-    is_probe = request.url.path.endswith("/health") or request.url.path.endswith("/ready")
-    if request.method != "OPTIONS" and not is_probe:
-        verify_request(request)
-    response = await call_next(request)
-    response.headers["X-Request-ID"] = str(request.state.request_id)
-    return response
+def _verify_request(request: Request):
+    return verify_request(request)
 
 
-app.include_router(api_router)
+app = create_service_app(
+    title="AAS Adapter",
+    version="0.2.0",
+    router=api_router,
+    service_name="aas-adapter",
+    verify_request=_verify_request,
+)

@@ -17,6 +17,7 @@ from services.shared.audit import actor_subject, safe_record_audit
 from services.shared.models.compliance_report import ComplianceReport
 from services.shared.repositories import compliance_fix_repo
 from services.shared.user_registry import resolve_user_id
+from services.shared.http_client import request as pooled_request
 
 router = APIRouter()
 
@@ -26,7 +27,9 @@ TRACE_HEADERS = ("traceparent", "tracestate", "baggage")
 
 class ComplianceRunCreateRequest(BaseModel):
     dpp_id: str | None = None
-    regulations: list[str] = Field(default_factory=lambda: ["ESPR", "Battery Regulation", "WEEE", "RoHS"])
+    regulations: list[str] = Field(
+        default_factory=lambda: ["ESPR", "Battery Regulation", "WEEE", "RoHS"]
+    )
     payload: dict[str, Any] = Field(default_factory=dict)
 
 
@@ -67,7 +70,9 @@ def _to_uuid(value: str, *, field_name: str) -> UUID:
 
 def _forward_upstream_headers(request: Request) -> dict[str, str]:
     headers: dict[str, str] = {}
-    request_id = getattr(request.state, "request_id", None) or request.headers.get("x-request-id")
+    request_id = getattr(request.state, "request_id", None) or request.headers.get(
+        "x-request-id"
+    )
     if request_id:
         headers["X-Request-ID"] = str(request_id)
 
@@ -89,18 +94,24 @@ def _forward_upstream_headers(request: Request) -> dict[str, str]:
     return headers
 
 
-def _run_compliance_check(request: Request, payload: dict[str, Any], regulations: list[str]) -> dict[str, Any]:
+def _run_compliance_check(
+    request: Request, payload: dict[str, Any], regulations: list[str]
+) -> dict[str, Any]:
     try:
-        response = requests.post(
-            f"{COMPLIANCE_URL}/api/v1/compliance/check",
+        response = pooled_request(
+            method="POST",
+            url=f"{COMPLIANCE_URL}/api/v1/compliance/check",
             json={"data": payload, "regulations": regulations},
             headers=_forward_upstream_headers(request),
             timeout=8,
+            session_name="platform-core-compliance",
         )
         response.raise_for_status()
         return response.json()
     except requests.RequestException as exc:
-        raise HTTPException(status_code=502, detail=f"Compliance service unavailable: {exc}") from exc
+        raise HTTPException(
+            status_code=502, detail=f"Compliance service unavailable: {exc}"
+        ) from exc
 
 
 def _decode_pointer(path: str) -> list[str]:
@@ -205,7 +216,9 @@ def _apply_patch(document: Any, operations: list[JsonPatchOperation]) -> Any:
     return patched
 
 
-def _normalize_operations(payload: ComplianceFixApplyRequest) -> list[JsonPatchOperation]:
+def _normalize_operations(
+    payload: ComplianceFixApplyRequest,
+) -> list[JsonPatchOperation]:
     if payload.operations:
         return payload.operations
     pointer = _pointer_from_legacy_path(payload.path or "")
@@ -241,7 +254,9 @@ def compliance_status(request: Request):
 
 
 @router.post("/core/compliance/runs")
-def create_run(request: Request, payload: ComplianceRunCreateRequest, db: Session = Depends(get_db)):
+def create_run(
+    request: Request, payload: ComplianceRunCreateRequest, db: Session = Depends(get_db)
+):
     require_roles(request.state.user, COMPLIANCE_ROLES)
     upstream = _run_compliance_check(request, payload.payload, payload.regulations)
 
@@ -321,7 +336,12 @@ def get_run(request: Request, run_id: str, db: Session = Depends(get_db)):
 
 
 @router.post("/core/compliance/runs/{run_id}/apply-fix")
-def apply_fix(request: Request, run_id: str, payload: ComplianceFixApplyRequest, db: Session = Depends(get_db)):
+def apply_fix(
+    request: Request,
+    run_id: str,
+    payload: ComplianceFixApplyRequest,
+    db: Session = Depends(get_db),
+):
     require_roles(request.state.user, COMPLIANCE_ROLES)
     run_uuid = _to_uuid(run_id, field_name="run_id")
     report = db.query(ComplianceReport).filter(ComplianceReport.id == run_uuid).first()
@@ -333,7 +353,9 @@ def apply_fix(request: Request, run_id: str, payload: ComplianceFixApplyRequest,
     data = dict(report.report or {})
     original_payload = data.get("payload")
     if not isinstance(original_payload, dict):
-        raise HTTPException(status_code=409, detail="Compliance run payload is not patchable")
+        raise HTTPException(
+            status_code=409, detail="Compliance run payload is not patchable"
+        )
     before_payload = deepcopy(original_payload)
     before_violations = list(data.get("violations") or [])
     before_warnings = list(data.get("warnings") or [])
@@ -342,13 +364,15 @@ def apply_fix(request: Request, run_id: str, payload: ComplianceFixApplyRequest,
     try:
         patched_payload = _apply_patch(before_payload, operations)
     except ValueError as exc:
-        raise HTTPException(status_code=422, detail=f"Invalid patch operation: {exc}") from exc
+        raise HTTPException(
+            status_code=422, detail=f"Invalid patch operation: {exc}"
+        ) from exc
     if not isinstance(patched_payload, dict):
         raise HTTPException(status_code=422, detail="Patched payload must be an object")
 
     user_id = _resolve_actor_user_id(db, getattr(request.state, "user", None))
     for operation in operations:
-        stored_value = {"op": operation.op}
+        stored_value: dict[str, Any] = {"op": operation.op}
         if operation.op in {"add", "replace"}:
             stored_value["value"] = operation.value
         compliance_fix_repo.create_fix(
@@ -382,10 +406,7 @@ def apply_fix(request: Request, run_id: str, payload: ComplianceFixApplyRequest,
         "warnings": len(data["warnings"]),
         "recommendations": len(data["recommendations"]),
     }
-    deltas = {
-        key: after_counts[key] - before_counts[key]
-        for key in before_counts
-    }
+    deltas = {key: after_counts[key] - before_counts[key] for key in before_counts}
     safe_record_audit(
         db,
         action="compliance.fix_applied",
@@ -395,7 +416,9 @@ def apply_fix(request: Request, run_id: str, payload: ComplianceFixApplyRequest,
         actor_subject_value=actor_subject(getattr(request.state, "user", None)),
         request_id=str(getattr(request.state, "request_id", "")) or None,
         details={
-            "operations": [operation.model_dump(exclude_none=True) for operation in operations],
+            "operations": [
+                operation.model_dump(exclude_none=True) for operation in operations
+            ],
             "deltas": deltas,
             "status": report.status,
         },
@@ -404,7 +427,9 @@ def apply_fix(request: Request, run_id: str, payload: ComplianceFixApplyRequest,
         "run_id": str(report.id),
         "status": report.status,
         "payload": patched_payload,
-        "operations_applied": [operation.model_dump(exclude_none=True) for operation in operations],
+        "operations_applied": [
+            operation.model_dump(exclude_none=True) for operation in operations
+        ],
         "before": {"summary": before_counts},
         "after": {"summary": after_counts},
         "deltas": deltas,
