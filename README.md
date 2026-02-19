@@ -1,10 +1,67 @@
 # DPP Simulation Playground
 
-A microservices-based simulation environment for Digital Product Passport workflows. It combines a React frontend, FastAPI services, Keycloak auth, Kong gateway, and supporting infrastructure (Postgres, Redis, MongoDB, MinIO, BaSyx).
+[![CI Pipeline](https://github.com/hadijannat/dpp-simulation-playground/actions/workflows/ci.yml/badge.svg)](https://github.com/hadijannat/dpp-simulation-playground/actions/workflows/ci.yml)
 
-## Quick Start
+A production-oriented simulation platform for **Digital Product Passport (DPP)** workflows.
 
-1. Copy environment defaults:
+It models end-to-end journeys across:
+- Simulation runtime
+- Compliance validation and fix loops
+- EDC-style data exchange
+- Collaboration and annotations
+- Gamification and progression
+- Digital twin history and diffs
+
+The stack is a React frontend + FastAPI microservices behind Kong, with Keycloak auth, Postgres, Redis Streams, MongoDB, MinIO, and BaSyx.
+
+## Why this project exists
+
+DPP programs are cross-functional. Product, regulatory, and integration teams need a safe environment to run realistic scenarios before production rollout.
+
+This playground provides that environment with:
+- Role-aware journeys and step execution
+- Policy and compliance feedback loops
+- Event-driven scoring and achievements
+- Traceable digital twin snapshots over time
+
+## Architecture at a glance
+
+```mermaid
+flowchart LR
+  UI["Frontend (React)"] --> K["Kong API Gateway"]
+  K --> PAPI["Platform API (BFF)"]
+  PAPI --> CORE["Platform Core"]
+  PAPI --> SIM["Simulation Engine"]
+  PAPI --> COM["Compliance Service"]
+  PAPI --> EDC["EDC Simulator"]
+  PAPI --> COL["Collaboration Service"]
+  PAPI --> GAME["Gamification Service"]
+  PAPI --> AAS["AAS Adapter"]
+  SIM --> REDIS["Redis Streams"]
+  EDC --> REDIS
+  COL --> REDIS
+  GAME --> REDIS
+  CORE --> PG["Postgres"]
+  SIM --> PG
+  COM --> PG
+  COL --> PG
+  EDC --> PG
+  GAME --> PG
+  AAS --> BASYX["BaSyx AAS Environment"]
+  UI --> KEY["Keycloak"]
+  PAPI --> KEY
+```
+
+## Prerequisites
+
+- Docker + Docker Compose
+- GNU Make
+- Python 3.11+ (for local scripts)
+- Node.js 20+ (for frontend local development)
+
+## Quick Start (Docker)
+
+1. Copy env defaults:
 
 ```bash
 cp infrastructure/docker/.env.example infrastructure/docker/.env
@@ -16,93 +73,163 @@ cp infrastructure/docker/.env.example infrastructure/docker/.env
 make up
 ```
 
-3. Run migrations:
+3. Apply migrations:
 
 ```bash
 make migrate
 ```
 
-4. Backfill journey runs (v2 data model):
+4. Backfill journey runs (v2 runtime model):
 
 ```bash
-python services/simulation-engine/scripts/backfill_journeys.py
+make backfill
 ```
 
-5. Seed initial data:
+5. Seed demo data:
 
 ```bash
 make seed
 ```
 
-5. Open the UI:
+6. Open the app:
 
-- http://localhost:3000
+- Frontend: `http://localhost:3000`
+- Gateway: `http://localhost:8000`
+- Platform API health: `http://localhost:8000/api/v2/health`
 
-## Default Credentials
+### Default demo credentials
 
 - Username: `demo@example.com`
 - Password: `demo1234`
 
-## Service-to-Service Auth
+## Service map
 
-Simulation Engine uses Keycloak client credentials:
-- Client ID: `dpp-services`
-- Client Secret: `dev-services-secret`
+| Service | Direct URL | Gateway path |
+|---|---|---|
+| Frontend | `http://localhost:3000` | n/a |
+| Kong API Gateway | `http://localhost:8000` | n/a |
+| Simulation Engine | `http://localhost:8101` | `http://localhost:8000` |
+| Compliance Service | `http://localhost:8102` | `http://localhost:8000` |
+| Gamification Service | `http://localhost:8103` | `http://localhost:8000` |
+| EDC Simulator | `http://localhost:8104` | `http://localhost:8000` |
+| Collaboration Service | `http://localhost:8105` | `http://localhost:8000` |
+| Platform API (v2 BFF) | `http://localhost:8106` | `http://localhost:8000/api/v2` |
+| Platform Core | `http://localhost:8107` | internal |
+| AAS Adapter | `http://localhost:8108` | internal |
+| Keycloak | `http://localhost:8080` | n/a |
+| BaSyx AAS Environment | `http://localhost:8281` | n/a |
+| MinIO API / Console | `http://localhost:9100` / `http://localhost:9101` | n/a |
 
-## Environment Variables (Common)
+## Common developer workflows
 
-- `KEYCLOAK_URL` (default: `http://keycloak:8080`)
-- `KEYCLOAK_REALM` (default: `dpp`)
-- `KEYCLOAK_ISSUERS` (comma-separated; defaults to localhost + docker host issuers)
-- `KEYCLOAK_AUDIENCES` / `KEYCLOAK_AUDIENCE` (optional, comma-separated; when set, bearer token `aud` must match one value)
-- `REQUIRE_TOKEN_AUDIENCE` (default: `true`; enforce presence of token `aud` claim)
-- `JWT_CLOCK_SKEW_SECONDS` (default: `30`; leeway used during JWT time-claim validation)
-- `KEYCLOAK_JWKS_URL` (override JWKS endpoint)
-- `DEV_BYPASS_AUTH` (set `true` for local header-based auth)
-- `AUTH_MODE` (`keycloak`, `bypass`, or `auto`; default: `auto`)
-- `ALLOW_DEV_HEADERS` (platform-api only; allows forwarding `X-Dev-*` headers when no bearer token. Keep `false` outside local/dev test environments.)
-- `AAS_ADAPTER_URL` (default: `http://aas-adapter:8008`; simulation/platform compatibility AAS proxy target)
-- `BASYX_BASE_URL` (default: `http://aas-environment:8081`)
-- `AAS_REGISTRY_URL` (optional)
-- `SUBMODEL_REGISTRY_URL` (optional)
-- `MINIO_ENDPOINT`, `MINIO_ACCESS_KEY`, `MINIO_SECRET_KEY`, `MINIO_BUCKET`, `MINIO_PUBLIC_URL`
-- `EVENT_STREAM_MAXLEN` (default: `50000`; producer-side Redis stream trim target for emitted simulation events)
-- `STREAM_MAXLEN` (default: `50000`; gamification consumer maintenance trim target for `simulation.events`)
-- `RETRY_STREAM_MAXLEN` (default: `20000`; trim target for `simulation.events.retry`)
-- `DLQ_STREAM_MAXLEN` (default: `20000`; trim target for `simulation.events.dlq`)
-- `STREAM_TRIM_INTERVAL_SECONDS` (default: `300`; periodic trim interval in gamification consumer)
+```bash
+make help            # list available commands
+make up              # start stack
+make up-dev          # start with dev overlay
+make logs            # tail logs
+make down            # stop services
+make clean           # stop + remove volumes
+make health          # health check script
+make migrate         # run shared migrations
+make seed            # seed demo data
+make openapi         # export service OpenAPI + regenerate frontend client
+make contract-check  # validate frontend routes against generated OpenAPI
+make rbac-sync       # regenerate RBAC matrix
+make rbac-check      # verify matrix is in sync
+make story-lint      # validate story definitions
+```
 
-## Services
+## Local (without Docker)
 
-- API Gateway: http://localhost:8000
-- Simulation Engine: http://localhost:8101 (gateway: http://localhost:8000)
-- Compliance Service: http://localhost:8102 (gateway: http://localhost:8000)
-- Gamification Service: http://localhost:8103 (gateway: http://localhost:8000)
-- EDC Simulator: http://localhost:8104 (gateway: http://localhost:8000)
-- Collaboration Service: http://localhost:8105 (gateway: http://localhost:8000)
-- Platform API (v2 BFF): http://localhost:8106 (gateway: http://localhost:8000/api/v2)
-- Platform Core: http://localhost:8107
-- AAS Adapter: http://localhost:8108
-- Keycloak: http://localhost:8080
-- MinIO: http://localhost:9100 (console 9101)
+Frontend:
 
-## Development
+```bash
+cd frontend
+npm install
+npm run dev
+```
 
-- Frontend: `cd frontend && npm install && npm run dev`
-- Backend: `cd services/<service> && uvicorn app.main:app --reload --port <port>`
+Backend service (example):
 
-## Documentation
+```bash
+cd services/platform-api
+pip install -r requirements.txt -r requirements-dev.txt
+uvicorn app.main:app --reload --port 8106
+```
 
-See `docs/` for architecture, APIs, compliance, and guides.
+## Security and auth defaults
 
-Generate OpenAPI specs with:
+Key auth settings are environment-driven and shared across services:
+
+- `AUTH_MODE` (`keycloak`, `bypass`, `auto`; default `auto`)
+- `DEV_BYPASS_AUTH` (local/dev only)
+- `KEYCLOAK_URL`, `KEYCLOAK_REALM`
+- `KEYCLOAK_ISSUERS`
+- `KEYCLOAK_AUDIENCES` / `KEYCLOAK_AUDIENCE`
+- `REQUIRE_TOKEN_AUDIENCE` (default `true`)
+- `JWT_CLOCK_SKEW_SECONDS` (default `30`)
+
+Platform API hardening flag:
+
+- `ALLOW_DEV_HEADERS` (default `false`; keep disabled outside local/dev)
+
+## Eventing and reliability knobs
+
+The platform uses Redis Streams for async eventing (`simulation.events` + retry + DLQ). Useful limits:
+
+- `EVENT_STREAM_MAXLEN` (default `50000`)
+- `STREAM_MAXLEN` (default `50000`)
+- `RETRY_STREAM_MAXLEN` (default `20000`)
+- `DLQ_STREAM_MAXLEN` (default `20000`)
+- `STREAM_TRIM_INTERVAL_SECONDS` (default `300`)
+
+## Project layout
+
+```text
+frontend/                     React app + typed API client
+services/
+  platform-api/               Gateway/BFF for v2 APIs
+  platform-core/              Journey runtime + digital twin data APIs
+  simulation-engine/          Story/session/step execution
+  compliance-service/         Rules, reports, apply-fix support
+  edc-simulator/              Catalog, negotiations, transfers
+  collaboration-service/      Gaps, annotations, votes, comments
+  gamification-service/       Stream consumer, points, achievements
+  aas-adapter/                BaSyx-facing AAS operations
+  shared/                     Common auth/events/models/migrations
+infrastructure/docker/        Compose files and service infra
+docs/                         Architecture, APIs, compliance, runbooks
+scripts/                      Repo automation and maintenance scripts
+```
+
+## API contracts and docs
+
+- Service OpenAPI specs: `docs/api/openapi/`
+- Export specs and regenerate frontend types:
 
 ```bash
 make openapi
 ```
 
-RBAC matrix sync:
+- Run route-contract validation:
 
 ```bash
-python scripts/sync-rbac-matrix.py
+make contract-check
 ```
+
+## Recommended docs next
+
+- Getting started: `docs/guides/GETTING_STARTED.md`
+- Architecture: `docs/architecture/ARCHITECTURE.md`
+- Security architecture: `docs/architecture/SECURITY_ARCHITECTURE.md`
+- RBAC matrix: `docs/architecture/RBAC_MATRIX.md`
+- Story authoring: `docs/guides/ADDING_STORIES.md`
+- Compliance rules: `docs/guides/ADDING_COMPLIANCE_RULES.md`
+- Event debugging: `docs/guides/EVENT_DEBUG_RUNBOOK.md`
+- Step failure debugging: `docs/guides/STEP_FAILURE_DEBUG_RUNBOOK.md`
+
+## Contributing
+
+- Contribution guide: `CONTRIBUTING.md`
+- Security policy: `SECURITY.md`
+- Changelog: `CHANGELOG.md`
