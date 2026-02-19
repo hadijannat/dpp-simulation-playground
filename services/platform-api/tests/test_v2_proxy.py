@@ -11,7 +11,7 @@ from typing import Any
 import pytest
 from fastapi.testclient import TestClient
 
-from app.config import EDC_URL, PLATFORM_CORE_URL
+from app.config import EDC_URL, GAMIFICATION_URL, PLATFORM_CORE_URL
 from app.main import app
 
 
@@ -341,6 +341,41 @@ def test_simulate_transfer_proxies_to_edc(monkeypatch: pytest.MonkeyPatch):
     assert calls[0]["json"] == {"step_delay_ms": 0, "callback_url": None}
 
 
+# ---- Gamification -------------------------------------------------------------
+
+def test_get_leaderboard_proxies_window_and_role_params(monkeypatch: pytest.MonkeyPatch):
+    calls: list[dict[str, Any]] = []
+    upstream_payload = {
+        "items": [
+            {"user_id": "u-1", "total_points": 55, "level": 1, "window": "weekly", "role": "manufacturer"}
+        ],
+        "window": "weekly",
+        "role": "manufacturer",
+    }
+
+    def fake_request(method: str, url: str, params: Any = None, json: Any = None, **kwargs: Any):
+        calls.append({"method": method, "url": url, "params": params, "json": json})
+        return DummyResponse(upstream_payload)
+
+    monkeypatch.setattr("app.core.proxy.requests.request", fake_request)
+
+    response = client.get(
+        "/api/v2/gamification/leaderboard?limit=5&offset=1&window=weekly&role=manufacturer",
+        headers=HEADERS,
+    )
+    assert response.status_code == 200
+    assert response.json() == upstream_payload
+    assert calls
+    assert calls[0]["method"] == "GET"
+    assert calls[0]["url"] == f"{GAMIFICATION_URL}/api/v1/leaderboard"
+    assert calls[0]["params"] == {
+        "limit": 5,
+        "offset": 1,
+        "window": "weekly",
+        "role": "manufacturer",
+    }
+
+
 # ---- Error handling -----------------------------------------------------------
 
 @pytest.mark.parametrize(
@@ -375,6 +410,12 @@ def test_simulate_transfer_proxies_to_edc(monkeypatch: pytest.MonkeyPatch):
             "/api/v2/feedback/csat",
             {"score": 3, "role": "developer"},
             f"{PLATFORM_CORE_URL}/api/v2/core/feedback/csat",
+        ),
+        (
+            "GET",
+            "/api/v2/gamification/leaderboard",
+            None,
+            f"{GAMIFICATION_URL}/api/v1/leaderboard",
         ),
         (
             "POST",

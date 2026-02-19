@@ -18,15 +18,28 @@ def list_achievements(request: Request):
 
 
 @router.get("/gamification/leaderboard", response_model=LeaderboardResponse)
-def get_leaderboard(request: Request, limit: int = 10, offset: int = 0):
+def get_leaderboard(
+    request: Request,
+    limit: int = 10,
+    offset: int = 0,
+    window: str = "all",
+    role: str | None = None,
+):
     require_roles(request.state.user, ["manufacturer", "developer", "admin", "regulator", "consumer", "recycler"])
+    params = {"limit": limit, "offset": offset, "window": window}
+    if role is not None:
+        params["role"] = role
     payload = request_json(
         request,
         "GET",
         f"{GAMIFICATION_URL}/api/v1/leaderboard",
-        params={"limit": limit, "offset": offset},
+        params=params,
     )
-    return {"items": payload.get("items", [])}
+    return {
+        "items": payload.get("items", []),
+        "window": payload.get("window", window),
+        "role": payload.get("role"),
+    }
 
 
 @router.get("/gamification/streaks", response_model=StreakResponse)

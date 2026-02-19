@@ -377,10 +377,14 @@ class LeaderboardEntry(BaseModel):
     user_id: str
     total_points: int
     level: int
+    role: str | None = None
+    window: str | None = None
 
 
 class LeaderboardResponse(BaseModel):
     items: list[LeaderboardEntry] = Field(default_factory=list)
+    window: str | None = None
+    role: str | None = None
 
 
 class StreakEntry(BaseModel):

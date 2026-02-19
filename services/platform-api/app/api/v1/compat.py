@@ -306,13 +306,22 @@ def list_achievements(request: Request):
 
 
 @router.get("/leaderboard")
-def leaderboard(request: Request, limit: int = 10, offset: int = 0):
+def leaderboard(
+    request: Request,
+    limit: int = 10,
+    offset: int = 0,
+    window: str = "all",
+    role: str | None = None,
+):
     require_roles(request.state.user, ALL_ROLES)
+    params = {"limit": limit, "offset": offset, "window": window}
+    if role is not None:
+        params["role"] = role
     return request_json(
         request,
         "GET",
         f"{GAMIFICATION_URL}/api/v1/leaderboard",
-        params={"limit": limit, "offset": offset},
+        params=params,
     )
 
 
