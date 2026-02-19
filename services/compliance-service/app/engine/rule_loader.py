@@ -1,4 +1,5 @@
 import os
+import re
 import yaml
 from typing import Any, Dict, List
 
@@ -100,8 +101,29 @@ def load_all_rules(db: Session | None = None) -> Dict[str, List[Dict]]:
 
 def validate_ruleset(rules: Any) -> list[str]:
     errors: list[str] = []
+    allowed_types = {"string", "number", "integer", "boolean", "object", "array"}
     if not isinstance(rules, list):
         return ["rules must be a list"]
+
+    def _validate_jsonpath(path_value: str, label: str) -> None:
+        try:
+            parse(path_value)
+        except Exception as exc:
+            errors.append(f"{label}: invalid jsonpath '{path_value}': {exc}")
+
+    def _validate_path_list(value: Any, label: str) -> None:
+        if isinstance(value, str):
+            _validate_jsonpath(value, label)
+            return
+        if not isinstance(value, list) or not value:
+            errors.append(f"{label}: must be a non-empty string or list of jsonpaths")
+            return
+        for idx, item in enumerate(value):
+            if not isinstance(item, str) or not item:
+                errors.append(f"{label}[{idx}]: must be a jsonpath string")
+                continue
+            _validate_jsonpath(item, f"{label}[{idx}]")
+
     for index, rule in enumerate(rules):
         label = f"rule[{index}]"
         if not isinstance(rule, dict):
@@ -111,14 +133,47 @@ def validate_ruleset(rules: Any) -> list[str]:
             errors.append(f"{label}: missing id")
         path = rule.get("jsonpath")
         if path:
-            try:
-                parse(path)
-            except Exception as exc:
-                errors.append(f"{label}: invalid jsonpath '{path}': {exc}")
+            _validate_jsonpath(path, label)
         when = rule.get("when")
         if when:
-            try:
-                parse(when)
-            except Exception as exc:
-                errors.append(f"{label}: invalid when expression '{when}': {exc}")
+            _validate_jsonpath(when, f"{label}:when")
+
+        rule_type = rule.get("type")
+        if rule_type is not None and rule_type not in allowed_types:
+            errors.append(f"{label}: type must be one of {sorted(allowed_types)}")
+
+        enum_values = rule.get("enum")
+        if enum_values is not None and (not isinstance(enum_values, list) or not enum_values):
+            errors.append(f"{label}: enum must be a non-empty list")
+
+        for numeric_key in ("min", "max", "min_length", "max_length"):
+            numeric_value = rule.get(numeric_key)
+            if numeric_value is None:
+                continue
+            if not isinstance(numeric_value, (int, float)) or isinstance(numeric_value, bool):
+                errors.append(f"{label}: {numeric_key} must be numeric")
+
+        pattern = rule.get("pattern") or rule.get("regex")
+        if pattern is not None:
+            if not isinstance(pattern, str) or not pattern:
+                errors.append(f"{label}: pattern/regex must be a non-empty string")
+            else:
+                try:
+                    re.compile(pattern)
+                except re.error as exc:
+                    errors.append(f"{label}: invalid regex '{pattern}': {exc}")
+
+        if_value = rule.get("if")
+        if if_value is not None:
+            if not isinstance(if_value, str) or not if_value:
+                errors.append(f"{label}: if must be a jsonpath string")
+            else:
+                _validate_jsonpath(if_value, f"{label}:if")
+
+        if "requires" in rule:
+            _validate_path_list(rule.get("requires"), f"{label}:requires")
+        if "then_required" in rule:
+            _validate_path_list(rule.get("then_required"), f"{label}:then_required")
+        if "then" in rule:
+            _validate_path_list(rule.get("then"), f"{label}:then")
     return errors
