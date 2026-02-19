@@ -10,7 +10,7 @@ from redis import Redis
 from sqlalchemy.orm import Session
 
 from ...auth import require_roles
-from ...config import REDIS_URL
+from ...config import DLQ_STREAM_MAXLEN, REDIS_URL, RETRY_STREAM_MAXLEN, STREAM_MAXLEN
 from ...core.db import get_db
 from ...engine.event_consumer import invalidate_runtime_cache
 from ...models.achievement import Achievement
@@ -62,6 +62,13 @@ def _group_pending(client: Redis, stream: str, group_name: str) -> int:
         if name == group_name:
             return int(group.get("pending", 0))
     return 0
+
+
+def _trim_stream(client: Redis, stream: str, maxlen: int) -> int:
+    try:
+        return int(client.xtrim(stream, maxlen=maxlen, approximate=True))
+    except Exception:
+        return 0
 
 
 def _pending_entries(client: Redis, stream: str, group: str, limit: int) -> list[dict[str, Any]]:
@@ -154,6 +161,11 @@ def stream_status(request: Request):
         "pending": {
             "stream": _group_pending(client, STREAM, "gamification"),
             "retry": _group_pending(client, RETRY_STREAM, "gamification-retry"),
+        },
+        "maxlen": {
+            "stream": STREAM_MAXLEN,
+            "retry": RETRY_STREAM_MAXLEN,
+            "dlq": DLQ_STREAM_MAXLEN,
         },
     }
 
@@ -269,6 +281,24 @@ def replay_dlq(request: Request, payload: DlqReplayRequest):
         "skipped": skipped,
         "failed": failed,
         "results": results,
+    }
+
+
+@router.post("/admin/stream/trim")
+def trim_streams(request: Request):
+    require_roles(request.state.user, ["developer", "admin"])
+    client = Redis.from_url(REDIS_URL)
+    return {
+        "trimmed": {
+            "stream": _trim_stream(client, STREAM, STREAM_MAXLEN),
+            "retry": _trim_stream(client, RETRY_STREAM, RETRY_STREAM_MAXLEN),
+            "dlq": _trim_stream(client, DLQ_STREAM, DLQ_STREAM_MAXLEN),
+        },
+        "maxlen": {
+            "stream": STREAM_MAXLEN,
+            "retry": RETRY_STREAM_MAXLEN,
+            "dlq": DLQ_STREAM_MAXLEN,
+        },
     }
 
 

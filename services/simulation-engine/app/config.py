@@ -16,3 +16,17 @@ MINIO_BUCKET = os.getenv("MINIO_BUCKET", "dpp-aasx")
 MINIO_SECURE = os.getenv("MINIO_SECURE", "false").lower() in ("1", "true", "yes")
 MINIO_PUBLIC_URL = os.getenv("MINIO_PUBLIC_URL", "http://localhost:9100")
 AASX_STORAGE_DIR = os.getenv("AASX_STORAGE_DIR", "data/aasx")
+
+
+def _as_int(name: str, default: int) -> int:
+    raw = os.getenv(name)
+    if raw is None:
+        return default
+    try:
+        parsed = int(raw)
+    except ValueError:
+        return default
+    return parsed if parsed > 0 else default
+
+
+EVENT_STREAM_MAXLEN = _as_int("EVENT_STREAM_MAXLEN", 50000)

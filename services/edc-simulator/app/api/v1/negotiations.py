@@ -3,19 +3,21 @@ from pydantic import BaseModel
 from typing import Dict
 from uuid import uuid4
 from datetime import datetime, timezone
+import logging
 from sqlalchemy.orm import Session
 
 from ...dsp.negotiation_state_machine import can_transition
 from ...auth import require_roles
 from ...core.db import get_db
 from ...models.negotiation import EdcNegotiation
-from ...config import REDIS_URL
+from ...config import REDIS_URL, EVENT_STREAM_MAXLEN
 from ...odrl.policy_evaluator import evaluate_policy
 from services.shared.user_registry import resolve_user_id
 from services.shared import events
 from services.shared.redis_client import get_redis, publish_event
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 
 class NegotiationCreate(BaseModel):
@@ -220,7 +222,7 @@ def finalize(
     db.commit()
     try:
         user_id = resolve_user_id(db, request.state.user)
-        publish_event(
+        ok, _ = publish_event(
             get_redis(REDIS_URL),
             "simulation.events",
             events.build_event(
@@ -231,9 +233,15 @@ def finalize(
                 negotiation_id=negotiation_id,
                 session_id=str(item.session_id) if item.session_id else None,
             ),
+            maxlen=EVENT_STREAM_MAXLEN,
         )
-    except Exception:
-        pass
+        if not ok:
+            logger.warning("Failed to publish negotiation completion event", extra={"negotiation_id": negotiation_id})
+    except Exception as exc:
+        logger.warning(
+            "Error while publishing negotiation completion event",
+            extra={"negotiation_id": negotiation_id, "error": str(exc)},
+        )
     return _to_dict(item)
 
 

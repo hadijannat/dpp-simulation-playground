@@ -1,16 +1,18 @@
 from fastapi import APIRouter, Request, Depends, HTTPException
 from pydantic import BaseModel
 from uuid import uuid4
+import logging
 from sqlalchemy.orm import Session
 from ...core.db import get_db
 from ...models.gap_report import GapReport
-from ...config import REDIS_URL
+from ...config import REDIS_URL, EVENT_STREAM_MAXLEN
 from ...auth import require_roles
 from services.shared.user_registry import resolve_user_id
 from services.shared import events
 from services.shared.redis_client import get_redis, publish_event
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 class GapReportCreate(BaseModel):
     story_id: int | None = None
@@ -66,7 +68,7 @@ def create_report(request: Request, payload: GapReportCreate, db: Session = Depe
     db.add(item)
     db.commit()
     try:
-        publish_event(
+        ok, _ = publish_event(
             get_redis(REDIS_URL),
             "simulation.events",
             events.build_event(
@@ -76,9 +78,15 @@ def create_report(request: Request, payload: GapReportCreate, db: Session = Depe
                 request_id=getattr(request.state, "request_id", None),
                 story_id=payload.story_id or "",
             ),
+            maxlen=EVENT_STREAM_MAXLEN,
         )
-    except Exception:
-        pass
+        if not ok:
+            logger.warning("Failed to publish gap_reported event", extra={"gap_report_id": str(item.id)})
+    except Exception as exc:
+        logger.warning(
+            "Error while publishing gap_reported event",
+            extra={"gap_report_id": str(item.id), "error": str(exc)},
+        )
     return {"id": str(item.id), "story_id": item.story_id, "description": item.description, "status": item.status}
 
 

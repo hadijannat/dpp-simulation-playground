@@ -93,6 +93,8 @@ class FakeRedis:
     def xadd(self, stream: str, payload: dict[str, Any], maxlen: int | None = None, approximate: bool = False):
         next_id = f"{len(self.streams.get(stream, [])) + 1}-0"
         self.streams.setdefault(stream, []).append((next_id, payload))
+        if maxlen and len(self.streams[stream]) > maxlen:
+            self.streams[stream] = self.streams[stream][-maxlen:]
         return next_id
 
     def xdel(self, stream: str, message_id: str) -> int:
@@ -100,6 +102,13 @@ class FakeRedis:
         original_len = len(rows)
         self.streams[stream] = [row for row in rows if row[0] != message_id]
         return 1 if len(self.streams[stream]) != original_len else 0
+
+    def xtrim(self, stream: str, maxlen: int, approximate: bool = True) -> int:
+        rows = self.streams.get(stream, [])
+        removed = max(0, len(rows) - maxlen)
+        if removed:
+            self.streams[stream] = rows[-maxlen:]
+        return removed
 
 
 def test_admin_stream_pending_and_dlq(monkeypatch):
@@ -165,3 +174,24 @@ def test_admin_dlq_replay_skips_already_replayed(monkeypatch):
     assert body["failed"] == 0
     assert len(fake_redis.streams[STREAM]) == 0
     assert len(fake_redis.streams[DLQ_STREAM]) == 1
+
+
+def test_admin_trim_endpoint_trims_streams(monkeypatch):
+    fake_redis = FakeRedis()
+    # ensure stream has enough entries to be trimmed by configured test value
+    fake_redis.streams[STREAM] = [(f"{idx}-0", {"k": "v"}) for idx in range(1, 15)]
+    fake_redis.streams[RETRY_STREAM] = [(f"{idx}-0", {"k": "v"}) for idx in range(1, 8)]
+
+    monkeypatch.setattr(main, "verify_request", _set_roles(["admin"]))
+    monkeypatch.setattr("app.api.v1.admin.Redis.from_url", lambda _url: fake_redis)
+    monkeypatch.setattr("app.api.v1.admin.STREAM_MAXLEN", 10)
+    monkeypatch.setattr("app.api.v1.admin.RETRY_STREAM_MAXLEN", 5)
+    monkeypatch.setattr("app.api.v1.admin.DLQ_STREAM_MAXLEN", 1)
+
+    client = TestClient(main.app)
+    response = client.post("/api/v1/admin/stream/trim")
+    assert response.status_code == 200
+    body = response.json()
+    assert body["trimmed"]["stream"] == 4
+    assert body["trimmed"]["retry"] == 2
+    assert body["trimmed"]["dlq"] == 0

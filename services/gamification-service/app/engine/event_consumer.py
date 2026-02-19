@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 import threading
 import time
@@ -7,7 +8,13 @@ from typing import Dict, Any
 from redis import Redis
 from uuid import uuid4
 
-from ..config import REDIS_URL
+from ..config import (
+    DLQ_STREAM_MAXLEN,
+    REDIS_URL,
+    RETRY_STREAM_MAXLEN,
+    STREAM_MAXLEN,
+    STREAM_TRIM_INTERVAL_SECONDS,
+)
 from ..core.db import SessionLocal
 from ..models.user_achievement import UserAchievement
 from ..models.achievement import Achievement
@@ -22,6 +29,7 @@ RETRY_STREAM = "simulation.events.retry"
 DLQ_STREAM = "simulation.events.dlq"
 RETRY_LIMIT = 3
 RULE_CACHE_TTL_SECONDS = max(5, int(os.getenv("RULE_CACHE_TTL_SECONDS", "30")))
+logger = logging.getLogger(__name__)
 
 _rules_cache: dict[str, Any] = {
     "loaded_at": 0.0,
@@ -137,7 +145,7 @@ def _to_dlq(client: Redis, event: Dict[str, Any], error: Exception) -> None:
         "error": str(error),
         "failed_at": time.time(),
     }
-    xadd_with_retry(client, DLQ_STREAM, payload)
+    xadd_with_retry(client, DLQ_STREAM, payload, maxlen=DLQ_STREAM_MAXLEN)
 
 
 def _handle_stream_failure(client: Redis, msg_id: str, event: Dict[str, Any], error: Exception) -> None:
@@ -152,7 +160,7 @@ def _handle_stream_failure(client: Redis, msg_id: str, event: Dict[str, Any], er
         next_event["retry"] = retry + 1
         next_event["last_error"] = error_text
         next_event["retry_delay_seconds"] = min(2 ** retry, 8)
-        xadd_with_retry(client, RETRY_STREAM, next_event)
+        xadd_with_retry(client, RETRY_STREAM, next_event, maxlen=RETRY_STREAM_MAXLEN)
     else:
         _to_dlq(client, event, error)
     try:
@@ -222,7 +230,7 @@ def _retry_worker():
                         time.sleep(min(delay, 8))
                     retry_payload = dict(decoded)
                     retry_payload.pop("retry_delay_seconds", None)
-                    xadd_with_retry(client, STREAM, retry_payload)
+                    xadd_with_retry(client, STREAM, retry_payload, maxlen=STREAM_MAXLEN)
                 except Exception as exc:
                     _to_dlq(client, decoded, exc)
                 finally:
@@ -232,9 +240,28 @@ def _retry_worker():
                         pass
 
 
+def _trim_stream(client: Redis, stream: str, maxlen: int) -> None:
+    try:
+        client.xtrim(stream, maxlen=maxlen, approximate=True)
+    except Exception:
+        logger.warning("Failed to trim stream", extra={"stream": stream, "maxlen": maxlen})
+
+
+def _maintenance_worker():
+    client = Redis.from_url(REDIS_URL)
+    interval = max(10, STREAM_TRIM_INTERVAL_SECONDS)
+    while True:
+        _trim_stream(client, STREAM, STREAM_MAXLEN)
+        _trim_stream(client, RETRY_STREAM, RETRY_STREAM_MAXLEN)
+        _trim_stream(client, DLQ_STREAM, DLQ_STREAM_MAXLEN)
+        time.sleep(interval)
+
+
 def start_consumer():
     stream_thread = threading.Thread(target=_stream_worker, daemon=True)
     retry_thread = threading.Thread(target=_retry_worker, daemon=True)
+    maintenance_thread = threading.Thread(target=_maintenance_worker, daemon=True)
     stream_thread.start()
     retry_thread.start()
+    maintenance_thread.start()
     return stream_thread

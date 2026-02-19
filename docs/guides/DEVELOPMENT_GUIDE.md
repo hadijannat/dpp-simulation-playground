@@ -24,6 +24,11 @@
 - `AAS_REGISTRY_URL` (optional)
 - `SUBMODEL_REGISTRY_URL` (optional)
 - `IDTA_TEMPLATES_DIR` (optional override for template lookup)
+- `EVENT_STREAM_MAXLEN` (default: `50000`; producer-side trim target)
+- `STREAM_MAXLEN` (default: `50000`; `simulation.events` trim target)
+- `RETRY_STREAM_MAXLEN` (default: `20000`; retry stream trim target)
+- `DLQ_STREAM_MAXLEN` (default: `20000`; DLQ stream trim target)
+- `STREAM_TRIM_INTERVAL_SECONDS` (default: `300`; periodic stream trim interval)
 
 ## Local Dev Tips
 

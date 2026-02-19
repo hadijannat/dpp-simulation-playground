@@ -304,6 +304,9 @@ services:
     POST /api/v1/admin/stream/dlq/replay:
     - admin
     - developer
+    POST /api/v1/admin/stream/trim:
+    - admin
+    - developer
     POST /api/v1/points:
     - admin
     - developer

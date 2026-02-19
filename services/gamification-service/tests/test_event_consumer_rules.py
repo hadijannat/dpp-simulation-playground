@@ -29,3 +29,17 @@ def test_invalidate_runtime_cache_resets_loaded_at():
     event_consumer._rules_cache["loaded_at"] = 123.0
     event_consumer.invalidate_runtime_cache()
     assert event_consumer._rules_cache["loaded_at"] == 0.0
+
+
+def test_trim_stream_calls_xtrim_with_maxlen():
+    class _Client:
+        def __init__(self):
+            self.calls = []
+
+        def xtrim(self, stream, maxlen, approximate=True):
+            self.calls.append((stream, maxlen, approximate))
+            return 0
+
+    client = _Client()
+    event_consumer._trim_stream(client, "simulation.events", 100)
+    assert client.calls == [("simulation.events", 100, True)]

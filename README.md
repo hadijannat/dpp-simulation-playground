@@ -66,6 +66,11 @@ Simulation Engine uses Keycloak client credentials:
 - `AAS_REGISTRY_URL` (optional)
 - `SUBMODEL_REGISTRY_URL` (optional)
 - `MINIO_ENDPOINT`, `MINIO_ACCESS_KEY`, `MINIO_SECRET_KEY`, `MINIO_BUCKET`, `MINIO_PUBLIC_URL`
+- `EVENT_STREAM_MAXLEN` (default: `50000`; producer-side Redis stream trim target for emitted simulation events)
+- `STREAM_MAXLEN` (default: `50000`; gamification consumer maintenance trim target for `simulation.events`)
+- `RETRY_STREAM_MAXLEN` (default: `20000`; trim target for `simulation.events.retry`)
+- `DLQ_STREAM_MAXLEN` (default: `20000`; trim target for `simulation.events.dlq`)
+- `STREAM_TRIM_INTERVAL_SECONDS` (default: `300`; periodic trim interval in gamification consumer)
 
 ## Services
 
