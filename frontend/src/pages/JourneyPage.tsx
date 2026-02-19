@@ -1,11 +1,19 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useMutation } from "@tanstack/react-query";
-import { useJourneyCompliance, useJourneyRun, useDigitalTwin, useCsatFeedback } from "../hooks/useJourney";
+import {
+  useJourneyCompliance,
+  useJourneyRun,
+  useDigitalTwin,
+  useDigitalTwinDiff,
+  useDigitalTwinHistory,
+  useCsatFeedback,
+} from "../hooks/useJourney";
 import { useJourneyTemplate } from "../hooks/useJourneyTemplate";
 import { createNegotiation, createTransfer, runNegotiationAction, runTransferAction } from "../services/platformV2Service";
 import { useRoleStore } from "../stores/roleStore";
 import { useSessionStore } from "../stores/sessionStore";
+import DigitalTwinExplorer from "../components/simulation/DigitalTwinExplorer";
 import type { JourneyStepDefinition } from "../types/v2.types";
 
 type DraftState = {
@@ -38,6 +46,8 @@ export default function JourneyPage() {
   const [csatScore, setCsatScore] = useState(5);
   const [csatComment, setCsatComment] = useState("");
   const [isEditorOpen, setIsEditorOpen] = useState(false);
+  const [fromSnapshotIndex, setFromSnapshotIndex] = useState(0);
+  const [toSnapshotIndex, setToSnapshotIndex] = useState(0);
 
   // Re-init draft when template loads
   useMemo(() => {
@@ -58,11 +68,36 @@ export default function JourneyPage() {
     }
   }, [dppDraft.present]);
 
-  const twin = useDigitalTwin(
-    parsedDpp && typeof parsedDpp.aas_identifier === "string"
-      ? parsedDpp.aas_identifier
-      : undefined,
+  const dppId = useMemo(
+    () => (parsedDpp && typeof parsedDpp.aas_identifier === "string" ? parsedDpp.aas_identifier : undefined),
+    [parsedDpp],
   );
+
+  const twin = useDigitalTwin(dppId);
+  const twinHistory = useDigitalTwinHistory(dppId, 50, 0);
+  const historyItems = twinHistory.data?.items || [];
+
+  useEffect(() => {
+    if (historyItems.length === 0) {
+      setFromSnapshotIndex(0);
+      setToSnapshotIndex(0);
+      return;
+    }
+    const latestIndex = historyItems.length - 1;
+    setToSnapshotIndex(latestIndex);
+    setFromSnapshotIndex(Math.max(0, latestIndex - 1));
+  }, [dppId, historyItems.length]);
+
+  const safeFromSnapshotIndex = Math.max(0, Math.min(fromSnapshotIndex, Math.max(historyItems.length - 1, 0)));
+  const safeToSnapshotIndex = Math.max(
+    safeFromSnapshotIndex,
+    Math.min(toSnapshotIndex, Math.max(historyItems.length - 1, 0)),
+  );
+
+  const fromSnapshotId = historyItems[safeFromSnapshotIndex]?.snapshot_id;
+  const toSnapshotId = historyItems[safeToSnapshotIndex]?.snapshot_id;
+
+  const twinDiff = useDigitalTwinDiff(dppId, fromSnapshotId, toSnapshotId);
 
   const negotiation = useMutation({
     mutationFn: () => {
@@ -178,6 +213,16 @@ export default function JourneyPage() {
     "edc.transfer": progressTransfer,
   };
 
+  function handleFromSnapshotIndexChange(index: number) {
+    setFromSnapshotIndex(index);
+    setToSnapshotIndex((current) => Math.max(current, index));
+  }
+
+  function handleToSnapshotIndexChange(index: number) {
+    setToSnapshotIndex(index);
+    setFromSnapshotIndex((current) => Math.min(current, index));
+  }
+
   return (
     <div style={{ display: "grid", gap: 12 }}>
       <div className="card hero-panel">
@@ -273,9 +318,22 @@ export default function JourneyPage() {
 
           <div style={{ marginTop: 14 }}>
             <h2>{t("digitalTwinPreview")}</h2>
-            <div className="mono-panel">
-              <pre>{JSON.stringify(twin.data || { status: t("awaitingDppId") }, null, 2)}</pre>
-            </div>
+            <DigitalTwinExplorer
+              twin={twin.data}
+              history={twinHistory.data}
+              diff={twinDiff.data}
+              historyLoading={twinHistory.isLoading}
+              diffLoading={twinDiff.isLoading}
+              fromSnapshotIndex={safeFromSnapshotIndex}
+              toSnapshotIndex={safeToSnapshotIndex}
+              onFromSnapshotIndexChange={handleFromSnapshotIndexChange}
+              onToSnapshotIndexChange={handleToSnapshotIndexChange}
+            />
+            {!dppId && (
+              <div style={{ marginTop: 10 }} className="pill">
+                {t("awaitingDppId")}
+              </div>
+            )}
           </div>
 
           <div style={{ marginTop: 14 }}>

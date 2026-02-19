@@ -1,5 +1,13 @@
 import { apiGet, apiPost } from "./api";
-import type { ComplianceRun, CsatFeedback, DigitalTwin, JourneyRun, JourneyTemplate } from "../types/v2.types";
+import type {
+  ComplianceRun,
+  CsatFeedback,
+  DigitalTwin,
+  DigitalTwinDiffResponse,
+  DigitalTwinHistoryResponse,
+  JourneyRun,
+  JourneyTemplate,
+} from "../types/v2.types";
 import type { components } from "../types/generated/platform-api";
 
 type Schemas = components["schemas"];
@@ -70,6 +78,22 @@ export function runTransferAction(transferId: string, action: string) {
 
 export function getDigitalTwin(dppId: string) {
   return apiGet<DigitalTwin>(`/api/v2/digital-twins/${dppId}`);
+}
+
+export function getDigitalTwinHistory(dppId: string, limit = 25, offset = 0) {
+  const params = new URLSearchParams({
+    limit: String(limit),
+    offset: String(offset),
+  });
+  return apiGet<DigitalTwinHistoryResponse>(`/api/v2/digital-twins/${dppId}/history?${params.toString()}`);
+}
+
+export function getDigitalTwinDiff(dppId: string, fromSnapshotId: string, toSnapshotId: string) {
+  const params = new URLSearchParams({
+    from: fromSnapshotId,
+    to: toSnapshotId,
+  });
+  return apiGet<DigitalTwinDiffResponse>(`/api/v2/digital-twins/${dppId}/diff?${params.toString()}`);
 }
 
 export function submitCsat(payload: {

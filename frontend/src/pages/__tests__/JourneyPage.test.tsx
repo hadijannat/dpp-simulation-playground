@@ -54,6 +54,8 @@ vi.mock("../../hooks/useJourney", () => ({
     applyFix: { mutateAsync: mockApplyFixMutateAsync },
   }),
   useDigitalTwin: () => ({ data: null }),
+  useDigitalTwinHistory: () => ({ data: null, isLoading: false }),
+  useDigitalTwinDiff: () => ({ data: null, isLoading: false }),
   useCsatFeedback: () => ({ mutateAsync: mockCsatMutateAsync, data: null }),
 }));
 
