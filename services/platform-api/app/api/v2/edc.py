@@ -6,6 +6,7 @@ from ...auth import require_roles
 from ...config import EDC_URL
 from ...core.proxy import request_json
 from ...schemas.v2 import (
+    AsyncSimulationRequest,
     AssetListResponse,
     CatalogResponse,
     NegotiationCreate,
@@ -61,6 +62,20 @@ def run_negotiation_action(request: Request, negotiation_id: str, action: str):
     )
 
 
+@router.post("/edc/negotiations/{negotiation_id}/simulate", response_model=NegotiationResponse)
+def simulate_negotiation(request: Request, negotiation_id: str, payload: AsyncSimulationRequest):
+    require_roles(request.state.user, ["manufacturer", "developer", "admin"])
+    body = payload.model_dump()
+    if not body.get("callback_headers"):
+        body.pop("callback_headers", None)
+    return request_json(
+        request,
+        "POST",
+        f"{EDC_URL}/api/v1/edc/negotiations/{negotiation_id}/simulate",
+        json_body=body,
+    )
+
+
 @router.post("/edc/transfers", response_model=TransferResponse)
 def create_transfer(request: Request, payload: TransferCreate):
     require_roles(request.state.user, ["manufacturer", "developer", "admin"])
@@ -80,4 +95,18 @@ def run_transfer_action(request: Request, transfer_id: str, action: str):
         "POST",
         f"{EDC_URL}/api/v1/edc/transfers/{transfer_id}/{action}",
         json_body={},
+    )
+
+
+@router.post("/edc/transfers/{transfer_id}/simulate", response_model=TransferResponse)
+def simulate_transfer(request: Request, transfer_id: str, payload: AsyncSimulationRequest):
+    require_roles(request.state.user, ["manufacturer", "developer", "admin"])
+    body = payload.model_dump()
+    if not body.get("callback_headers"):
+        body.pop("callback_headers", None)
+    return request_json(
+        request,
+        "POST",
+        f"{EDC_URL}/api/v1/edc/transfers/{transfer_id}/simulate",
+        json_body=body,
     )

@@ -11,7 +11,7 @@ from typing import Any
 import pytest
 from fastapi.testclient import TestClient
 
-from app.config import PLATFORM_CORE_URL
+from app.config import EDC_URL, PLATFORM_CORE_URL
 from app.main import app
 
 
@@ -274,6 +274,73 @@ def test_submit_csat_proxies_to_platform_core(monkeypatch: pytest.MonkeyPatch):
     assert calls[0]["json"]["comment"] == "Excellent"
 
 
+# ---- EDC ---------------------------------------------------------------------
+
+def test_simulate_negotiation_proxies_to_edc(monkeypatch: pytest.MonkeyPatch):
+    calls: list[dict[str, Any]] = []
+    negotiation_id = "neg-123"
+    upstream_payload = {
+        "id": negotiation_id,
+        "state": "REQUESTING",
+        "policy": {},
+        "asset_id": "asset-1",
+        "consumer_id": "consumer",
+        "provider_id": "provider",
+        "state_history": [],
+        "session_id": None,
+    }
+
+    def fake_request(method: str, url: str, params: Any = None, json: Any = None, **kwargs: Any):
+        calls.append({"method": method, "url": url, "params": params, "json": json})
+        return DummyResponse(upstream_payload)
+
+    monkeypatch.setattr("app.core.proxy.requests.request", fake_request)
+
+    response = client.post(
+        f"/api/v2/edc/negotiations/{negotiation_id}/simulate",
+        json={"step_delay_ms": 0},
+        headers=HEADERS,
+    )
+    assert response.status_code == 200
+    assert response.json() == upstream_payload
+    assert calls
+    assert calls[0]["method"] == "POST"
+    assert calls[0]["url"] == f"{EDC_URL}/api/v1/edc/negotiations/{negotiation_id}/simulate"
+    assert calls[0]["json"] == {"step_delay_ms": 0, "callback_url": None}
+
+
+def test_simulate_transfer_proxies_to_edc(monkeypatch: pytest.MonkeyPatch):
+    calls: list[dict[str, Any]] = []
+    transfer_id = "tr-123"
+    upstream_payload = {
+        "id": transfer_id,
+        "state": "PROVISIONING",
+        "asset_id": "asset-1",
+        "consumer_id": "consumer",
+        "provider_id": "provider",
+        "state_history": [],
+        "session_id": None,
+    }
+
+    def fake_request(method: str, url: str, params: Any = None, json: Any = None, **kwargs: Any):
+        calls.append({"method": method, "url": url, "params": params, "json": json})
+        return DummyResponse(upstream_payload)
+
+    monkeypatch.setattr("app.core.proxy.requests.request", fake_request)
+
+    response = client.post(
+        f"/api/v2/edc/transfers/{transfer_id}/simulate",
+        json={"step_delay_ms": 0},
+        headers=HEADERS,
+    )
+    assert response.status_code == 200
+    assert response.json() == upstream_payload
+    assert calls
+    assert calls[0]["method"] == "POST"
+    assert calls[0]["url"] == f"{EDC_URL}/api/v1/edc/transfers/{transfer_id}/simulate"
+    assert calls[0]["json"] == {"step_delay_ms": 0, "callback_url": None}
+
+
 # ---- Error handling -----------------------------------------------------------
 
 @pytest.mark.parametrize(
@@ -308,6 +375,18 @@ def test_submit_csat_proxies_to_platform_core(monkeypatch: pytest.MonkeyPatch):
             "/api/v2/feedback/csat",
             {"score": 3, "role": "developer"},
             f"{PLATFORM_CORE_URL}/api/v2/core/feedback/csat",
+        ),
+        (
+            "POST",
+            "/api/v2/edc/negotiations/neg-1/simulate",
+            {"step_delay_ms": 10},
+            f"{EDC_URL}/api/v1/edc/negotiations/neg-1/simulate",
+        ),
+        (
+            "POST",
+            "/api/v2/edc/transfers/tr-1/simulate",
+            {"step_delay_ms": 10},
+            f"{EDC_URL}/api/v1/edc/transfers/tr-1/simulate",
         ),
     ],
 )

@@ -178,6 +178,10 @@ services:
     - admin
     - developer
     - manufacturer
+    POST /api/v1/edc/negotiations/{negotiation_id}/simulate:
+    - admin
+    - developer
+    - manufacturer
     POST /api/v1/edc/negotiations/{negotiation_id}/terminate:
     - admin
     - developer
@@ -223,11 +227,33 @@ services:
     - admin
     - developer
     - manufacturer
+    POST /api/v1/edc/transfers/{transfer_id}/simulate:
+    - admin
+    - developer
+    - manufacturer
     POST /api/v1/edc/transfers/{transfer_id}/start:
     - admin
     - developer
     - manufacturer
     POST /api/v1/edc/transfers/{transfer_id}/terminate:
+    - admin
+    - developer
+    - manufacturer
+    GET /api/v1/edc/webhooks/simulated:
+    - admin
+    - consumer
+    - developer
+    - manufacturer
+    - recycler
+    - regulator
+    POST /api/v1/edc/webhooks/simulated:
+    - admin
+    - consumer
+    - developer
+    - manufacturer
+    - recycler
+    - regulator
+    DELETE /api/v1/edc/webhooks/simulated:
     - admin
     - developer
     - manufacturer
@@ -477,6 +503,16 @@ services:
     - developer
     - manufacturer
     - regulator
+    GET /api/v2/digital-twins/{dpp_id}/diff:
+    - admin
+    - developer
+    - manufacturer
+    - regulator
+    GET /api/v2/digital-twins/{dpp_id}/history:
+    - admin
+    - developer
+    - manufacturer
+    - regulator
     GET /api/v2/edc/assets:
     - admin
     - consumer
@@ -633,11 +669,19 @@ services:
     - admin
     - developer
     - manufacturer
+    POST /api/v2/edc/negotiations/{negotiation_id}/simulate:
+    - admin
+    - developer
+    - manufacturer
     POST /api/v1/edc/transfers:
     - admin
     - developer
     - manufacturer
     POST /api/v1/edc/transfers/{transfer_id}/{action}:
+    - admin
+    - developer
+    - manufacturer
+    POST /api/v2/edc/transfers/{transfer_id}/simulate:
     - admin
     - developer
     - manufacturer
@@ -853,8 +897,24 @@ services:
     - regulator
     GET /api/v2/core/digital-twins/{dpp_id}:
     - admin
+    - consumer
     - developer
     - manufacturer
+    - recycler
+    - regulator
+    GET /api/v2/core/digital-twins/{dpp_id}/diff:
+    - admin
+    - consumer
+    - developer
+    - manufacturer
+    - recycler
+    - regulator
+    GET /api/v2/core/digital-twins/{dpp_id}/history:
+    - admin
+    - consumer
+    - developer
+    - manufacturer
+    - recycler
     - regulator
     GET /api/v2/core/events:
     - admin

@@ -19,6 +19,8 @@ AAS_SUBMODEL_PATCHED = "aas_submodel_patched"
 AASX_UPLOADED = "aasx_uploaded"
 EDC_NEGOTIATION_COMPLETED = "edc_negotiation_completed"
 EDC_TRANSFER_COMPLETED = "edc_transfer_completed"
+EDC_NEGOTIATION_STATE_CHANGED = "edc_negotiation_state_changed"
+EDC_TRANSFER_STATE_CHANGED = "edc_transfer_state_changed"
 GAP_REPORTED = "gap_reported"
 EVENT_SCHEMA_VERSION = "1"
 

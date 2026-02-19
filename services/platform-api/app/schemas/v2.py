@@ -274,6 +274,13 @@ class CatalogAsset(BaseModel):
     name: str | None = None
     title: str | None = None
     description: str | None = None
+    keyword: list[str] = Field(default_factory=list)
+    keywords: list[str] = Field(default_factory=list)
+    publisher: dict[str, Any] = Field(default_factory=dict)
+    distribution: list[dict[str, Any]] = Field(default_factory=list)
+    policySummary: dict[str, int] = Field(default_factory=dict)
+    policy: dict[str, Any] = Field(default_factory=dict)
+    dataAddress: dict[str, Any] = Field(default_factory=dict)
 
 
 class CatalogResponse(BaseModel):
@@ -306,6 +313,17 @@ class NegotiationCreate(BaseModel):
     consumer_id: str
     provider_id: str
     policy: dict[str, Any] = Field(default_factory=dict)
+    session_id: str | None = None
+    simulate_async: bool = False
+    step_delay_ms: int | None = None
+    callback_url: str | None = None
+    callback_headers: dict[str, str] = Field(default_factory=dict)
+
+
+class AsyncSimulationRequest(BaseModel):
+    step_delay_ms: int | None = None
+    callback_url: str | None = None
+    callback_headers: dict[str, str] = Field(default_factory=dict)
 
 
 class NegotiationResponse(BaseModel):
@@ -321,8 +339,13 @@ class NegotiationResponse(BaseModel):
 
 class TransferCreate(BaseModel):
     asset_id: str
+    session_id: str | None = None
     consumer_id: str | None = None
     provider_id: str | None = None
+    simulate_async: bool = False
+    step_delay_ms: int | None = None
+    callback_url: str | None = None
+    callback_headers: dict[str, str] = Field(default_factory=dict)
 
 
 class TransferResponse(BaseModel):
