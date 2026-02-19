@@ -6,7 +6,7 @@ psycopg2-binary==2.9.9
 redis==7.1.0
 PyYAML==6.0.3
 jsonpath-ng==1.7.0
-python-jose==3.3.0
+python-jose==3.5.0
 requests==2.31.0
 httpx==0.27.0
 prometheus-client==0.20.0
