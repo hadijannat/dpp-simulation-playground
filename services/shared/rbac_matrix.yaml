@@ -485,6 +485,13 @@ services:
     - manufacturer
     - recycler
     - regulator
+    GET /api/v2/collaboration/comments:
+    - admin
+    - consumer
+    - developer
+    - manufacturer
+    - recycler
+    - regulator
     GET /api/v2/compliance/reports:
     - admin
     - developer
@@ -775,6 +782,13 @@ services:
     - recycler
     - regulator
     POST /api/v2/collaboration/votes:
+    - admin
+    - consumer
+    - developer
+    - manufacturer
+    - recycler
+    - regulator
+    POST /api/v2/collaboration/comments:
     - admin
     - consumer
     - developer

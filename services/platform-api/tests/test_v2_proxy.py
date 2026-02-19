@@ -11,7 +11,7 @@ from typing import Any
 import pytest
 from fastapi.testclient import TestClient
 
-from app.config import EDC_URL, GAMIFICATION_URL, PLATFORM_CORE_URL
+from app.config import COLLABORATION_URL, EDC_URL, GAMIFICATION_URL, PLATFORM_CORE_URL
 from app.main import app
 
 
@@ -376,6 +376,57 @@ def test_get_leaderboard_proxies_window_and_role_params(monkeypatch: pytest.Monk
     }
 
 
+# ---- Collaboration -------------------------------------------------------------
+
+def test_list_comments_proxies_to_collaboration(monkeypatch: pytest.MonkeyPatch):
+    calls: list[dict[str, Any]] = []
+    upstream_payload = {
+        "items": [
+            {"id": "c-1", "target_id": "gap-1", "content": "Looks good", "created_at": "2025-01-01T00:00:00"}
+        ]
+    }
+
+    def fake_request(method: str, url: str, params: Any = None, json: Any = None, **kwargs: Any):
+        calls.append({"method": method, "url": url, "params": params, "json": json})
+        return DummyResponse(upstream_payload)
+
+    monkeypatch.setattr("app.core.proxy.requests.request", fake_request)
+
+    response = client.get(
+        "/api/v2/collaboration/comments?target_id=gap-1&limit=10&offset=2",
+        headers=HEADERS,
+    )
+    assert response.status_code == 200
+    assert response.json() == upstream_payload
+    assert calls
+    assert calls[0]["method"] == "GET"
+    assert calls[0]["url"] == f"{COLLABORATION_URL}/api/v1/comments"
+    assert calls[0]["params"] == {"target_id": "gap-1", "limit": 10, "offset": 2}
+
+
+def test_add_comment_proxies_to_collaboration(monkeypatch: pytest.MonkeyPatch):
+    calls: list[dict[str, Any]] = []
+    upstream_payload = {"id": "c-2", "target_id": "gap-1", "content": "Need more detail", "created_at": "2025-01-01T00:00:01"}
+
+    def fake_request(method: str, url: str, params: Any = None, json: Any = None, **kwargs: Any):
+        calls.append({"method": method, "url": url, "params": params, "json": json})
+        return DummyResponse(upstream_payload)
+
+    monkeypatch.setattr("app.core.proxy.requests.request", fake_request)
+
+    response = client.post(
+        "/api/v2/collaboration/comments",
+        json={"target_id": "gap-1", "content": "Need more detail"},
+        headers=HEADERS,
+    )
+    assert response.status_code == 200
+    assert response.json() == upstream_payload
+    assert calls
+    assert calls[0]["method"] == "POST"
+    assert calls[0]["url"] == f"{COLLABORATION_URL}/api/v1/comments"
+    assert calls[0]["json"] == {"target_id": "gap-1", "content": "Need more detail"}
+
+
 # ---- Error handling -----------------------------------------------------------
 
 @pytest.mark.parametrize(
@@ -416,6 +467,12 @@ def test_get_leaderboard_proxies_window_and_role_params(monkeypatch: pytest.Monk
             "/api/v2/gamification/leaderboard",
             None,
             f"{GAMIFICATION_URL}/api/v1/leaderboard",
+        ),
+        (
+            "GET",
+            "/api/v2/collaboration/comments",
+            None,
+            f"{COLLABORATION_URL}/api/v1/comments",
         ),
         (
             "POST",

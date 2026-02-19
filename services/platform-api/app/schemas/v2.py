@@ -453,6 +453,22 @@ class VoteListResponse(BaseModel):
     items: list[VoteItem] = Field(default_factory=list)
 
 
+class CommentCreate(BaseModel):
+    target_id: str
+    content: str
+
+
+class CommentItem(BaseModel):
+    id: str
+    target_id: str
+    content: str
+    created_at: str | None = None
+
+
+class CommentListResponse(BaseModel):
+    items: list[CommentItem] = Field(default_factory=list)
+
+
 class JourneyRunCreate(BaseModel):
     template_code: str = Field(default="manufacturer-core-e2e")
     role: str = Field(default="manufacturer")

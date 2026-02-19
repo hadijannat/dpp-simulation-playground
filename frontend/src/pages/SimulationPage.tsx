@@ -9,8 +9,7 @@ import StepExecutor from "../components/simulation/StepExecutor";
 import ValidationFeedback from "../components/simulation/ValidationFeedback";
 import RoleOnboarding from "../components/role-play/RoleOnboarding";
 import PerspectiveComparison from "../components/role-play/PerspectiveComparison";
-import AnnotationLayer from "../components/collaboration/AnnotationLayer";
-import GapReporter from "../components/collaboration/GapReporter";
+import CollaborationBoard from "../components/collaboration/CollaborationBoard";
 import type { Story } from "../types/api.types";
 
 export default function SimulationPage() {
@@ -144,9 +143,8 @@ export default function SimulationPage() {
                 </div>
                 <ValidationFeedback result={validation} />
               </div>
-              <div className="grid-2" style={{ marginTop: 12 }}>
-                <AnnotationLayer />
-                <GapReporter />
+              <div style={{ marginTop: 12 }}>
+                <CollaborationBoard />
               </div>
             </div>
             <div className="card desktop-only">

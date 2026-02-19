@@ -487,6 +487,51 @@ select {
   }
 }
 
+.collaboration-board-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.collaboration-lanes {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.collaboration-lane {
+  min-height: 280px;
+}
+
+.collaboration-card {
+  border: 1px solid rgba(36, 72, 121, 0.76);
+  border-radius: var(--radius-md);
+  background: rgba(8, 20, 38, 0.64);
+  padding: 10px;
+  display: grid;
+  gap: 8px;
+}
+
+.collaboration-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.collaboration-comments {
+  display: grid;
+  gap: 8px;
+  border-top: 1px solid rgba(38, 66, 106, 0.75);
+  padding-top: 8px;
+}
+
+.collaboration-comment-item {
+  border: 1px solid rgba(40, 65, 104, 0.82);
+  border-radius: var(--radius-sm);
+  padding: 8px;
+  background: rgba(5, 16, 30, 0.6);
+}
+
 .error {
   color: var(--brand-red);
 }
@@ -537,7 +582,8 @@ select {
   .digital-twin-diff-grid,
   .digital-twin-change-grid,
   .gamification-toolbar,
-  .gamification-summary-grid {
+  .gamification-summary-grid,
+  .collaboration-lanes {
     grid-template-columns: 1fr;
   }
 
