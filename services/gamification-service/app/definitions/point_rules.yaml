@@ -8,3 +8,6 @@ edc_negotiation_completed: 20
 gap_reported: 10
 edc_transfer_completed: 20
 aasx_uploaded: 10
+annotation_created: 3
+comment_added: 2
+vote_cast: 1

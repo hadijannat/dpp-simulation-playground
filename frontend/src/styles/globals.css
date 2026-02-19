@@ -357,6 +357,181 @@ select {
   gap: 12px;
 }
 
+.digital-twin-layout {
+  display: grid;
+  gap: 10px;
+}
+
+.digital-twin-filter {
+  display: grid;
+  gap: 4px;
+  min-width: 190px;
+  color: var(--ink-secondary);
+}
+
+.digital-twin-graph {
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(42, 86, 146, 0.72);
+  background:
+    radial-gradient(circle at 50% 18%, rgba(0, 232, 255, 0.08), transparent 34%),
+    rgba(3, 15, 30, 0.74);
+}
+
+.digital-twin-svg {
+  width: 100%;
+  min-height: 320px;
+}
+
+.digital-twin-node-title {
+  font-size: 11px;
+  fill: #def2ff;
+  font-weight: 600;
+}
+
+.digital-twin-node-type {
+  font-size: 10px;
+  fill: #9fbddc;
+}
+
+.digital-twin-edge-label {
+  font-size: 10px;
+  fill: #9eb7db;
+  text-anchor: middle;
+}
+
+.digital-twin-slider-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 10px;
+  color: var(--ink-secondary);
+}
+
+.digital-twin-chip-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.digital-twin-chip {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid rgba(0, 232, 255, 0.32);
+  border-radius: 999px;
+  padding: 5px 10px;
+  color: var(--ink-secondary);
+  font-size: 12px;
+  background: rgba(0, 232, 255, 0.08);
+}
+
+.digital-twin-diff-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.digital-twin-metric {
+  color: var(--ink-muted);
+  font-size: 12px;
+}
+
+.digital-twin-change-grid {
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  color: var(--ink-secondary);
+}
+
+.gamification-toolbar {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.gamification-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.gamification-toast-stack {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 90;
+  display: grid;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.gamification-toast {
+  border: 1px solid rgba(0, 232, 255, 0.38);
+  background: linear-gradient(135deg, rgba(8, 24, 48, 0.94), rgba(7, 42, 54, 0.92));
+  border-radius: var(--radius-md);
+  color: var(--ink-primary);
+  padding: 10px 12px;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.4);
+  max-width: 320px;
+  animation: toast-in var(--motion-medium) ease;
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.collaboration-board-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.collaboration-lanes {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.collaboration-lane {
+  min-height: 280px;
+}
+
+.collaboration-card {
+  border: 1px solid rgba(36, 72, 121, 0.76);
+  border-radius: var(--radius-md);
+  background: rgba(8, 20, 38, 0.64);
+  padding: 10px;
+  display: grid;
+  gap: 8px;
+}
+
+.collaboration-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.collaboration-comments {
+  display: grid;
+  gap: 8px;
+  border-top: 1px solid rgba(38, 66, 106, 0.75);
+  padding-top: 8px;
+}
+
+.collaboration-comment-item {
+  border: 1px solid rgba(40, 65, 104, 0.82);
+  border-radius: var(--radius-sm);
+  padding: 8px;
+  background: rgba(5, 16, 30, 0.6);
+}
+
 .error {
   color: var(--brand-red);
 }
@@ -401,6 +576,21 @@ select {
   .grid-2,
   .grid-3 {
     grid-template-columns: 1fr;
+  }
+
+  .digital-twin-slider-grid,
+  .digital-twin-diff-grid,
+  .digital-twin-change-grid,
+  .gamification-toolbar,
+  .gamification-summary-grid,
+  .collaboration-lanes {
+    grid-template-columns: 1fr;
+  }
+
+  .gamification-toast-stack {
+    left: 14px;
+    right: 14px;
+    bottom: 14px;
   }
 
   .simulation-workspace {

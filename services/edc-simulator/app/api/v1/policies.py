@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Request, HTTPException
 from pydantic import BaseModel
 from typing import Dict
 from ...odrl.policy_builder import build_policy
@@ -13,6 +13,7 @@ class PolicyRequest(BaseModel):
 class PolicyEvalRequest(BaseModel):
     purpose: str
     policy: Dict
+    context: Dict | None = None
 
 @router.post("/policies/build")
 def build(request: Request, payload: PolicyRequest):
@@ -22,4 +23,7 @@ def build(request: Request, payload: PolicyRequest):
 @router.post("/policies/evaluate")
 def evaluate(request: Request, payload: PolicyEvalRequest):
     require_roles(request.state.user, ["developer", "manufacturer", "admin", "regulator"])
-    return {"allowed": evaluate_policy(payload.policy, payload.purpose)}
+    allowed = evaluate_policy(payload.policy, payload.purpose, context=payload.context or {})
+    if not allowed:
+        raise HTTPException(status_code=403, detail="Policy does not allow this purpose")
+    return {"allowed": True}

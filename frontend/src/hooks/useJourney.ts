@@ -4,6 +4,8 @@ import {
   createJourneyRun,
   executeJourneyStep,
   getComplianceRun,
+  getDigitalTwinDiff,
+  getDigitalTwinHistory,
   getDigitalTwin,
   getJourneyRun,
   runCompliance,
@@ -55,6 +57,22 @@ export function useDigitalTwin(dppId?: string) {
     queryKey: ["digital-twin", dppId],
     queryFn: () => getDigitalTwin(dppId || ""),
     enabled: Boolean(dppId),
+  });
+}
+
+export function useDigitalTwinHistory(dppId?: string, limit = 25, offset = 0) {
+  return useQuery({
+    queryKey: ["digital-twin-history", dppId, limit, offset],
+    queryFn: () => getDigitalTwinHistory(dppId || "", limit, offset),
+    enabled: Boolean(dppId),
+  });
+}
+
+export function useDigitalTwinDiff(dppId?: string, fromSnapshotId?: string, toSnapshotId?: string) {
+  return useQuery({
+    queryKey: ["digital-twin-diff", dppId, fromSnapshotId, toSnapshotId],
+    queryFn: () => getDigitalTwinDiff(dppId || "", fromSnapshotId || "", toSnapshotId || ""),
+    enabled: Boolean(dppId && fromSnapshotId && toSnapshotId && fromSnapshotId !== toSnapshotId),
   });
 }
 

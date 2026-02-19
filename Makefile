@@ -1,4 +1,4 @@
-.PHONY: help up down logs restart test seed migrate backfill clean health load-test openapi contract-check
+.PHONY: help up down logs restart test seed migrate backfill clean health load-test openapi contract-check rbac-sync rbac-check story-lint
 
 COMPOSE_FILE := infrastructure/docker/docker-compose.yml
 COMPOSE_DEV  := infrastructure/docker/docker-compose.dev.yml
@@ -49,3 +49,12 @@ openapi: ## Export OpenAPI specs
 
 contract-check: ## Validate frontend API routes against generated OpenAPI contract
 	cd frontend && npm run contract:check
+
+rbac-sync: ## Regenerate RBAC matrix from route guards
+	python scripts/sync-rbac-matrix.py
+
+rbac-check: ## Validate RBAC matrix is in sync
+	python scripts/sync-rbac-matrix.py --check
+
+story-lint: ## Validate simulation story definitions
+	cd services/simulation-engine && python scripts/story_lint.py

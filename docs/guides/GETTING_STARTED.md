@@ -23,3 +23,10 @@ make migrate
 ```
 make seed
 ```
+
+5. Use the operational runbooks:
+
+- `docs/guides/ADDING_STORIES.md`
+- `docs/guides/ADDING_COMPLIANCE_RULES.md`
+- `docs/guides/EVENT_DEBUG_RUNBOOK.md`
+- `docs/guides/STEP_FAILURE_DEBUG_RUNBOOK.md`

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from typing import Any
 from uuid import UUID
 
@@ -9,6 +10,9 @@ from sqlalchemy.orm import Session
 
 from ...auth import require_roles
 from ...core.db import get_db
+from services.shared.models.dpp_instance import DppInstance
+from services.shared.models.session import SimulationSession
+from services.shared.repositories import digital_twin_repo
 from services.shared.repositories import journey_repo
 
 
@@ -22,6 +26,7 @@ def _safe_uuid(value: str | None) -> UUID | None:
         return None
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 ALL_ROLES = ["manufacturer", "developer", "admin", "regulator", "consumer", "recycler"]
 
@@ -103,7 +108,7 @@ def create_run(request: Request, payload: RunCreateRequest, db: Session = Depend
         role=payload.role,
         locale=payload.locale,
         metadata=payload.metadata,
-        session_id=payload.session_id,
+        session_id=_safe_uuid(payload.session_id),
     )
     return _serialize_run(run, template_code=template.code)
 
@@ -135,6 +140,34 @@ def execute_step(
     current_idx = next((i for i, s in enumerate(template_steps) if s.step_key == step_id), -1)
     next_step_key = template_steps[current_idx + 1].step_key if current_idx + 1 < len(template_steps) else "done"
     journey_repo.update_run_step(db, run, next_step_key)
+
+    # Best-effort digital twin snapshot capture for run-linked DPPs.
+    if run.session_id:
+        dpp_instance = (
+            db.query(DppInstance)
+            .filter(DppInstance.session_id == run.session_id)
+            .order_by(DppInstance.created_at.desc())
+            .first()
+        )
+        if dpp_instance:
+            session = db.query(SimulationSession).filter(SimulationSession.id == run.session_id).first()
+            session_state = session.session_state if session and isinstance(session.session_state, dict) else {}
+            try:
+                digital_twin_repo.capture_snapshot_for_dpp(
+                    db,
+                    dpp_instance=dpp_instance,
+                    label=f"Run {run.id} step {step_id}",
+                    metadata={
+                        "source": "platform-core.journeys.execute_step",
+                        "run_id": str(run.id),
+                        "step_id": step_id,
+                        "step_status": step_run.status or "completed",
+                    },
+                    session_state=session_state,
+                )
+            except Exception:  # pragma: no cover - failure should not block step progression
+                logger.exception("Failed to capture digital twin snapshot", extra={"run_id": str(run.id), "step_id": step_id})
+
     return {
         "run_id": str(run.id),
         "execution": {

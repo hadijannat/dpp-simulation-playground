@@ -54,13 +54,23 @@ Simulation Engine uses Keycloak client credentials:
 - `KEYCLOAK_URL` (default: `http://keycloak:8080`)
 - `KEYCLOAK_REALM` (default: `dpp`)
 - `KEYCLOAK_ISSUERS` (comma-separated; defaults to localhost + docker host issuers)
+- `KEYCLOAK_AUDIENCES` / `KEYCLOAK_AUDIENCE` (optional, comma-separated; when set, bearer token `aud` must match one value)
+- `REQUIRE_TOKEN_AUDIENCE` (default: `true`; enforce presence of token `aud` claim)
+- `JWT_CLOCK_SKEW_SECONDS` (default: `30`; leeway used during JWT time-claim validation)
 - `KEYCLOAK_JWKS_URL` (override JWKS endpoint)
 - `DEV_BYPASS_AUTH` (set `true` for local header-based auth)
 - `AUTH_MODE` (`keycloak`, `bypass`, or `auto`; default: `auto`)
+- `ALLOW_DEV_HEADERS` (platform-api only; allows forwarding `X-Dev-*` headers when no bearer token. Keep `false` outside local/dev test environments.)
+- `AAS_ADAPTER_URL` (default: `http://aas-adapter:8008`; simulation/platform compatibility AAS proxy target)
 - `BASYX_BASE_URL` (default: `http://aas-environment:8081`)
 - `AAS_REGISTRY_URL` (optional)
 - `SUBMODEL_REGISTRY_URL` (optional)
 - `MINIO_ENDPOINT`, `MINIO_ACCESS_KEY`, `MINIO_SECRET_KEY`, `MINIO_BUCKET`, `MINIO_PUBLIC_URL`
+- `EVENT_STREAM_MAXLEN` (default: `50000`; producer-side Redis stream trim target for emitted simulation events)
+- `STREAM_MAXLEN` (default: `50000`; gamification consumer maintenance trim target for `simulation.events`)
+- `RETRY_STREAM_MAXLEN` (default: `20000`; trim target for `simulation.events.retry`)
+- `DLQ_STREAM_MAXLEN` (default: `20000`; trim target for `simulation.events.dlq`)
+- `STREAM_TRIM_INTERVAL_SECONDS` (default: `300`; periodic trim interval in gamification consumer)
 
 ## Services
 
@@ -89,4 +99,10 @@ Generate OpenAPI specs with:
 
 ```bash
 make openapi
+```
+
+RBAC matrix sync:
+
+```bash
+python scripts/sync-rbac-matrix.py
 ```

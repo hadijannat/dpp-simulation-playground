@@ -14,7 +14,7 @@ router = APIRouter()
 def check(request: Request, payload: ComplianceCheckRequest, db: Session = Depends(get_db)):
     require_roles(request.state.user, ["manufacturer", "regulator", "developer", "admin"])
     user_id = payload.user_id or resolve_user_id(db, request.state.user)
-    result = evaluate_payload(payload.data, payload.regulations)
+    result = evaluate_payload(payload.data, payload.regulations, db=db)
     report = ComplianceReport(
         id=uuid4(),
         user_id=user_id,

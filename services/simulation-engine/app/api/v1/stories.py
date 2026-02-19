@@ -2,6 +2,7 @@ from fastapi import APIRouter, Request, Depends, HTTPException
 from sqlalchemy.orm import Session
 import requests
 from ...core.story_loader import load_story, list_stories
+from ...core.session_state import ensure_session_active
 from ...core.db import get_db
 from ...models.story import UserStory
 from ...models.story_progress import StoryProgress
@@ -41,6 +42,7 @@ def start_story(request: Request, session_id: str, code: str, db: Session = Depe
     session = db.query(SimulationSession).filter(SimulationSession.id == session_id).first()
     if not session:
         raise HTTPException(status_code=404, detail="Session not found")
+    ensure_session_active(session.session_state, is_active=bool(session.is_active))
     try:
         story = load_story(code)
     except KeyError:
@@ -96,6 +98,10 @@ def validate_story(
     db: Session = Depends(get_db),
 ):
     require_roles(request.state.user, ["manufacturer", "developer", "admin", "regulator", "consumer", "recycler"])
+    session = db.query(SimulationSession).filter(SimulationSession.id == session_id).first()
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+    ensure_session_active(session.session_state, is_active=bool(session.is_active))
     token = get_service_token()
     headers = {"Authorization": f"Bearer {token}"} if token else {}
     body = {
@@ -119,60 +125,64 @@ def validate_story(
     record = ValidationResult(id=str(uuid4()), result=result)
     db.add(record)
 
-    session = db.query(SimulationSession).filter(SimulationSession.id == session_id).first()
-    if session:
-        current_state = session.session_state or {}
-        session.session_state = {**current_state, "last_validation": result}
-        session.last_activity = datetime.now(timezone.utc)
-        if session.current_story_id:
-            progress = (
-                db.query(StoryProgress)
-                .filter(
-                    StoryProgress.user_id == session.user_id,
-                    StoryProgress.story_id == session.current_story_id,
-                    StoryProgress.role_type == session.active_role,
-                )
-                .first()
+    current_state = session.session_state or {}
+    session.session_state = {**current_state, "last_validation": result}
+    session.last_activity = datetime.now(timezone.utc)
+    if session.current_story_id:
+        progress = (
+            db.query(StoryProgress)
+            .filter(
+                StoryProgress.user_id == session.user_id,
+                StoryProgress.story_id == session.current_story_id,
+                StoryProgress.role_type == session.active_role,
             )
-            if progress:
-                progress.validation_results = result
-                if result.get("status") == "compliant":
-                    progress.status = "completed"
-                    progress.completed_at = datetime.now(timezone.utc)
+            .first()
+        )
+        if progress:
+            progress.validation_results = result
+            if result.get("status") == "compliant":
+                progress.status = "completed"
+                progress.completed_at = datetime.now(timezone.utc)
     db.commit()
 
-    if session:
-        if result.get("status") == "compliant":
-            publish_event(
-                "simulation.events",
-                events.build_event(
-                    events.STORY_COMPLETED,
-                    user_id=str(session.user_id),
-                    session_id=session_id,
-                    story_code=code,
-                    status=result.get("status"),
-                ),
-            )
-            publish_event(
-                "simulation.events",
-                events.build_event(
-                    events.COMPLIANCE_CHECK_PASSED,
-                    user_id=str(session.user_id),
-                    session_id=session_id,
-                    story_code=code,
-                    status="compliant",
-                ),
-            )
-        else:
-            publish_event(
-                "simulation.events",
-                events.build_event(
-                    events.STORY_FAILED,
-                    user_id=str(session.user_id),
-                    session_id=session_id,
-                    story_code=code,
-                    status=result.get("status", "error"),
-                    metadata={"error": result.get("error")},
-                ),
-            )
+    request_id = getattr(request.state, "request_id", None)
+    if result.get("status") == "compliant":
+        publish_event(
+            "simulation.events",
+            events.build_event(
+                events.STORY_COMPLETED,
+                user_id=str(session.user_id),
+                source_service="simulation-engine",
+                request_id=request_id,
+                session_id=session_id,
+                story_code=code,
+                status=result.get("status"),
+            ),
+        )
+        publish_event(
+            "simulation.events",
+            events.build_event(
+                events.COMPLIANCE_CHECK_PASSED,
+                user_id=str(session.user_id),
+                source_service="simulation-engine",
+                request_id=request_id,
+                session_id=session_id,
+                story_code=code,
+                status="compliant",
+            ),
+        )
+    else:
+        publish_event(
+            "simulation.events",
+            events.build_event(
+                events.STORY_FAILED,
+                user_id=str(session.user_id),
+                source_service="simulation-engine",
+                request_id=request_id,
+                session_id=session_id,
+                story_code=code,
+                status=result.get("status", "error"),
+                metadata={"error": result.get("error")},
+            ),
+        )
     return {"session_id": session_id, "story_code": code, "result": result}

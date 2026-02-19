@@ -2,3 +2,17 @@ import os
 
 DATABASE_URL = os.getenv("DATABASE_URL") or "sqlite:///./collaboration.db"
 REDIS_URL = os.getenv("REDIS_URL", "redis://redis:6379/0")
+
+
+def _as_int(name: str, default: int) -> int:
+    raw = os.getenv(name)
+    if raw is None:
+        return default
+    try:
+        parsed = int(raw)
+    except ValueError:
+        return default
+    return parsed if parsed > 0 else default
+
+
+EVENT_STREAM_MAXLEN = _as_int("EVENT_STREAM_MAXLEN", 50000)

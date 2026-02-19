@@ -1,5 +1,9 @@
 # RBAC Matrix
 
+Source of truth: `services/shared/rbac_matrix.yaml`.
+Use `python scripts/sync-rbac-matrix.py` after changing endpoint role guards.
+Per-service test suites enforce that route protections match the matrix.
+
 | Endpoint | Roles |
 | --- | --- |
 | POST /api/v1/sessions | manufacturer, developer, admin, regulator, consumer, recycler |

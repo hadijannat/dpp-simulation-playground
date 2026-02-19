@@ -63,12 +63,19 @@ export type ComplianceReportList = {
   reports: ComplianceReportSummary[];
 };
 
-export type LeaderboardEntry = Schemas["LeaderboardEntry"];
+export type LeaderboardEntry = Schemas["LeaderboardEntry"] & {
+  role?: string | null;
+  window?: string | null;
+};
 
 export type Achievement = Schemas["AchievementItem"];
 
+export type LeaderboardWindow = "all" | "daily" | "weekly" | "monthly";
+
 export type LeaderboardResponse = {
   items: LeaderboardEntry[];
+  window?: LeaderboardWindow | string | null;
+  role?: string | null;
 };
 
 export type StreakEntry = Schemas["StreakEntry"];

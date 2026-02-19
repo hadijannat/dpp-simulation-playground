@@ -4,6 +4,7 @@ from typing import Iterable, List
 import requests
 from jose import jwt
 from fastapi import HTTPException, Request
+from uuid import uuid4
 
 KEYCLOAK_URL = os.getenv("KEYCLOAK_URL", "http://keycloak:8080")
 KEYCLOAK_REALM = os.getenv("KEYCLOAK_REALM", "dpp")
@@ -15,6 +16,20 @@ DEV_BYPASS_AUTH = os.getenv("DEV_BYPASS_AUTH", "false").lower() in ("1", "true",
 AUTH_MODE = os.getenv("AUTH_MODE", "auto").lower()
 
 _cache = {"keys": None, "fetched": 0, "keycloak_ok": None, "keycloak_checked": 0}
+
+
+def _as_bool(value: str | None, *, default: bool = False) -> bool:
+    if value is None:
+        return default
+    return value.strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _clock_skew_seconds() -> int:
+    raw = os.getenv("JWT_CLOCK_SKEW_SECONDS", "30").strip()
+    try:
+        return max(0, int(raw))
+    except ValueError:
+        return 30
 
 
 def _build_default_issuers() -> List[str]:
@@ -33,6 +48,20 @@ def _allowed_issuers() -> List[str]:
     if override:
         return [item.strip() for item in override.split(",") if item.strip()]
     return _build_default_issuers()
+
+
+def _allowed_audiences() -> List[str]:
+    configured = os.getenv("KEYCLOAK_AUDIENCES") or os.getenv("KEYCLOAK_AUDIENCE")
+    if configured:
+        return [item.strip() for item in configured.split(",") if item.strip()]
+    fallback = os.getenv("KEYCLOAK_CLIENT_ID")
+    if fallback:
+        return [fallback]
+    return []
+
+
+def _require_audience_check() -> bool:
+    return _as_bool(os.getenv("REQUIRE_TOKEN_AUDIENCE"), default=True)
 
 
 def _keycloak_available() -> bool:
@@ -104,7 +133,34 @@ def _pick_key(keys: Iterable[dict], kid: str | None) -> dict | None:
     return next((k for k in keys if k.get("kid") == kid), None)
 
 
+def _validate_issuer(payload: dict) -> None:
+    issuer = payload.get("iss")
+    if issuer not in _allowed_issuers():
+        raise HTTPException(status_code=401, detail="Invalid token issuer")
+
+
+def _validate_audience(payload: dict) -> None:
+    if not _require_audience_check():
+        return
+
+    token_audience = payload.get("aud")
+    audiences: set[str] = set()
+    if isinstance(token_audience, str) and token_audience.strip():
+        audiences.add(token_audience.strip())
+    elif isinstance(token_audience, list):
+        audiences.update(str(item).strip() for item in token_audience if str(item).strip())
+
+    if not audiences:
+        raise HTTPException(status_code=401, detail="Missing token audience")
+
+    allowed = set(_allowed_audiences())
+    if allowed and audiences.isdisjoint(allowed):
+        raise HTTPException(status_code=401, detail="Invalid token audience")
+
+
 def verify_request(request: Request) -> dict:
+    if not getattr(request.state, "request_id", None):
+        request.state.request_id = request.headers.get("x-request-id") or str(uuid4())
     dev_payload = _dev_bypass(request)
     if dev_payload:
         return dev_payload
@@ -113,7 +169,10 @@ def verify_request(request: Request) -> dict:
     if not auth.startswith("Bearer "):
         raise HTTPException(status_code=401, detail="Missing bearer token")
     token = auth.split(" ", 1)[1]
-    header = jwt.get_unverified_header(token)
+    try:
+        header = jwt.get_unverified_header(token)
+    except Exception as exc:
+        raise HTTPException(status_code=401, detail="Malformed bearer token") from exc
     kid = header.get("kid")
     keys = _get_jwks()
     key = _pick_key(keys, kid)
@@ -123,10 +182,18 @@ def verify_request(request: Request) -> dict:
         key = _pick_key(keys, kid)
     if not key:
         raise HTTPException(status_code=401, detail="Invalid token key")
-    payload = jwt.decode(token, key, algorithms=["RS256"], options={"verify_aud": False})
-    issuer = payload.get("iss")
-    if issuer not in _allowed_issuers():
-        raise HTTPException(status_code=401, detail="Invalid token issuer")
+    try:
+        payload = jwt.decode(
+            token,
+            key,
+            algorithms=["RS256"],
+            options={"verify_aud": False, "leeway": _clock_skew_seconds()},
+        )
+    except Exception as exc:
+        raise HTTPException(status_code=401, detail="Invalid bearer token") from exc
+
+    _validate_issuer(payload)
+    _validate_audience(payload)
     request.state.user = payload
     return payload
 

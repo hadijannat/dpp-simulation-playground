@@ -23,6 +23,7 @@ services:
     environment:
       - AUTH_MODE=dev
       - DEV_BYPASS_AUTH=true
+      - ALLOW_DEV_HEADERS=true
       - PLATFORM_CORE_URL=http://platform-core:8007
     depends_on:
       - platform-core

@@ -13,9 +13,12 @@ def list_reports(
     story_code: str | None = None,
     status: str | None = None,
     limit: int = 50,
+    offset: int = 0,
     db: Session = Depends(get_db),
 ):
     require_roles(request.state.user, ["regulator", "developer", "admin"])
+    limit = max(1, min(limit, 200))
+    offset = max(0, offset)
     query = db.query(ComplianceReport)
     if session_id:
         query = query.filter(ComplianceReport.session_id == session_id)
@@ -23,19 +26,31 @@ def list_reports(
         query = query.filter(ComplianceReport.story_code == story_code)
     if status:
         query = query.filter(ComplianceReport.status == status)
-    items = query.order_by(ComplianceReport.created_at.desc()).limit(limit).all()
+    total = query.count()
+    items = (
+        query.order_by(ComplianceReport.created_at.desc())
+        .offset(offset)
+        .limit(limit)
+        .all()
+    )
+    rows = [
+        {
+            "id": str(item.id),
+            "session_id": str(item.session_id) if item.session_id else None,
+            "story_code": item.story_code,
+            "status": item.status,
+            "regulations": item.regulations,
+            "created_at": item.created_at.isoformat() if item.created_at else None,
+        }
+        for item in items
+    ]
     return {
-        "reports": [
-            {
-                "id": str(item.id),
-                "session_id": str(item.session_id) if item.session_id else None,
-                "story_code": item.story_code,
-                "status": item.status,
-                "regulations": item.regulations,
-                "created_at": item.created_at.isoformat() if item.created_at else None,
-            }
-            for item in items
-        ]
+        "items": rows,
+        "total": total,
+        "limit": limit,
+        "offset": offset,
+        # Backward-compatible alias for existing clients.
+        "reports": rows,
     }
 
 

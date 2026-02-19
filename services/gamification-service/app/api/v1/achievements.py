@@ -3,15 +3,27 @@ from sqlalchemy.orm import Session
 from ...core.db import get_db
 from ...models.user_achievement import UserAchievement
 from ...models.achievement import Achievement
-from ...engine.achievement_engine import load_achievements
 from ...auth import require_roles
 
 router = APIRouter()
 
 @router.get("/achievements")
-def list_achievements(request: Request):
+def list_achievements(request: Request, db: Session = Depends(get_db)):
     require_roles(request.state.user, ["developer", "admin", "manufacturer", "consumer", "regulator", "recycler"])
-    return {"items": load_achievements()}
+    items = db.query(Achievement).order_by(Achievement.code.asc()).all()
+    return {
+        "items": [
+            {
+                "code": item.code,
+                "name": item.name,
+                "description": item.description,
+                "points": int(item.points or 0),
+                "criteria": item.criteria or {},
+                "category": item.category,
+            }
+            for item in items
+        ]
+    }
 
 
 @router.get("/achievements/{user_id}")

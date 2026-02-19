@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Any
+from typing import Any, Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 
 class HealthResponse(BaseModel):
@@ -20,6 +20,7 @@ class StoryItem(BaseModel):
     code: str
     title: str
     description: str | None = None
+    story_version: int = 1
     steps: list[StoryStep] = Field(default_factory=list)
     epic_code: str | None = None
     order_index: int | None = None
@@ -34,12 +35,14 @@ class StoryListResponse(BaseModel):
 class SessionCreateRequest(BaseModel):
     role: str
     state: dict[str, Any] = Field(default_factory=dict)
+    lifecycle_state: str | None = None
 
 
 class SessionUpdateRequest(BaseModel):
     role: str | None = None
     state: dict[str, Any] | None = None
     is_active: bool | None = None
+    lifecycle_state: str | None = None
 
 
 class SessionResponse(BaseModel):
@@ -47,6 +50,8 @@ class SessionResponse(BaseModel):
     user_id: str
     role: str
     state: dict[str, Any] = Field(default_factory=dict)
+    lifecycle_state: str | None = None
+    is_active: bool | None = None
 
 
 class StoryStartResponse(BaseModel):
@@ -59,10 +64,12 @@ class StoryStartResponse(BaseModel):
 class StepExecuteRequest(BaseModel):
     payload: dict[str, Any] = Field(default_factory=dict)
     metadata: dict[str, Any] = Field(default_factory=dict)
+    idempotency_key: str | None = None
 
 
 class StepExecuteResponse(BaseModel):
     result: dict[str, Any] = Field(default_factory=dict)
+    idempotent_replay: bool | None = None
 
 
 class StoryValidateRequest(BaseModel):
@@ -79,12 +86,22 @@ class StoryValidateResponse(BaseModel):
 class ProgressItem(BaseModel):
     id: str
     story_id: int | None = None
+    story_code: str | None = None
+    role_type: str | None = None
     status: str
     completion_percentage: int
     steps_completed: list[int] = Field(default_factory=list)
+    started_at: str | None = None
+    completed_at: str | None = None
+    time_spent_seconds: int | None = None
+    error_count: int | None = None
 
 
 class ProgressResponse(BaseModel):
+    items: list[ProgressItem] = Field(default_factory=list)
+    total: int = 0
+    limit: int = 0
+    offset: int = 0
     progress: list[ProgressItem] = Field(default_factory=list)
 
 
@@ -159,6 +176,7 @@ class ComplianceIssue(BaseModel):
     severity: str | None = None
     level: str | None = None
     path: str | None = None
+    remediation: str | None = None
 
 
 class ComplianceSummary(BaseModel):
@@ -188,14 +206,40 @@ class ComplianceRunResponse(BaseModel):
 
 
 class ComplianceFixRequest(BaseModel):
+    path: str | None = None
+    value: Any | None = None
+    operations: list["JsonPatchOperation"] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def validate_payload(self):
+        if self.operations:
+            return self
+        if not self.path:
+            raise ValueError("Either operations or path must be provided")
+        return self
+
+
+class JsonPatchOperation(BaseModel):
+    op: Literal["add", "replace", "remove"]
     path: str
-    value: Any
+    value: Any | None = None
+
+    @model_validator(mode="after")
+    def validate_value(self):
+        if self.op in {"add", "replace"} and self.value is None:
+            raise ValueError("value is required for add/replace operations")
+        return self
 
 
 class ComplianceFixResponse(BaseModel):
     run_id: str
     status: str
     payload: dict[str, Any] = Field(default_factory=dict)
+    operations_applied: list[JsonPatchOperation] = Field(default_factory=list)
+    before: dict[str, Any] = Field(default_factory=dict)
+    after: dict[str, Any] = Field(default_factory=dict)
+    deltas: dict[str, int] = Field(default_factory=dict)
+    fixes: list[dict[str, Any]] = Field(default_factory=list)
 
 
 class ComplianceReportSummary(BaseModel):
@@ -208,6 +252,11 @@ class ComplianceReportSummary(BaseModel):
 
 
 class ComplianceReportListResponse(BaseModel):
+    items: list[ComplianceReportSummary] = Field(default_factory=list)
+    total: int = 0
+    limit: int = 0
+    offset: int = 0
+    # Backward-compatible alias used by older frontend payload readers.
     reports: list[ComplianceReportSummary] = Field(default_factory=list)
 
 
@@ -225,6 +274,13 @@ class CatalogAsset(BaseModel):
     name: str | None = None
     title: str | None = None
     description: str | None = None
+    keyword: list[str] = Field(default_factory=list)
+    keywords: list[str] = Field(default_factory=list)
+    publisher: dict[str, Any] = Field(default_factory=dict)
+    distribution: list[dict[str, Any]] = Field(default_factory=list)
+    policySummary: dict[str, int] = Field(default_factory=dict)
+    policy: dict[str, Any] = Field(default_factory=dict)
+    dataAddress: dict[str, Any] = Field(default_factory=dict)
 
 
 class CatalogResponse(BaseModel):
@@ -257,6 +313,17 @@ class NegotiationCreate(BaseModel):
     consumer_id: str
     provider_id: str
     policy: dict[str, Any] = Field(default_factory=dict)
+    session_id: str | None = None
+    simulate_async: bool = False
+    step_delay_ms: int | None = None
+    callback_url: str | None = None
+    callback_headers: dict[str, str] = Field(default_factory=dict)
+
+
+class AsyncSimulationRequest(BaseModel):
+    step_delay_ms: int | None = None
+    callback_url: str | None = None
+    callback_headers: dict[str, str] = Field(default_factory=dict)
 
 
 class NegotiationResponse(BaseModel):
@@ -272,8 +339,13 @@ class NegotiationResponse(BaseModel):
 
 class TransferCreate(BaseModel):
     asset_id: str
+    session_id: str | None = None
     consumer_id: str | None = None
     provider_id: str | None = None
+    simulate_async: bool = False
+    step_delay_ms: int | None = None
+    callback_url: str | None = None
+    callback_headers: dict[str, str] = Field(default_factory=dict)
 
 
 class TransferResponse(BaseModel):
@@ -305,10 +377,14 @@ class LeaderboardEntry(BaseModel):
     user_id: str
     total_points: int
     level: int
+    role: str | None = None
+    window: str | None = None
 
 
 class LeaderboardResponse(BaseModel):
     items: list[LeaderboardEntry] = Field(default_factory=list)
+    window: str | None = None
+    role: str | None = None
 
 
 class StreakEntry(BaseModel):
@@ -377,6 +453,22 @@ class VoteListResponse(BaseModel):
     items: list[VoteItem] = Field(default_factory=list)
 
 
+class CommentCreate(BaseModel):
+    target_id: str
+    content: str
+
+
+class CommentItem(BaseModel):
+    id: str
+    target_id: str
+    content: str
+    created_at: str | None = None
+
+
+class CommentListResponse(BaseModel):
+    items: list[CommentItem] = Field(default_factory=list)
+
+
 class JourneyRunCreate(BaseModel):
     template_code: str = Field(default="manufacturer-core-e2e")
     role: str = Field(default="manufacturer")
@@ -416,23 +508,105 @@ class JourneyStepExecuteResponse(BaseModel):
     next_step: str
 
 
+class EventItem(BaseModel):
+    event_id: str
+    event_type: str
+    user_id: str
+    timestamp: str | None = None
+    source_service: str
+    session_id: str | None = None
+    run_id: str | None = None
+    request_id: str | None = None
+    metadata: dict[str, Any] | list[Any] = Field(default_factory=dict)
+    version: str | None = None
+    stream: str | None = None
+    stream_message_id: str | None = None
+    published: bool | None = None
+
+
+class EventListResponse(BaseModel):
+    items: list[EventItem] = Field(default_factory=list)
+    total: int = 0
+    limit: int = 0
+    offset: int = 0
+
+
 class DigitalTwinNode(BaseModel):
     id: str
     label: str
     type: str
+    payload: dict[str, Any] = Field(default_factory=dict)
 
 
 class DigitalTwinEdge(BaseModel):
     id: str
     source: str
     target: str
+    label: str | None = None
+    payload: dict[str, Any] = Field(default_factory=dict)
+
+
+class DigitalTwinSnapshotItem(BaseModel):
+    snapshot_id: str
+    label: str | None = None
+    created_at: str | None = None
+    metadata: dict[str, Any] = Field(default_factory=dict)
+    node_count: int = 0
+    edge_count: int = 0
 
 
 class DigitalTwinResponse(BaseModel):
     dpp_id: str
+    snapshot_id: str | None = None
+    snapshot_label: str | None = None
+    snapshot_created_at: str | None = None
+    snapshot_metadata: dict[str, Any] = Field(default_factory=dict)
     nodes: list[DigitalTwinNode] = Field(default_factory=list)
     edges: list[DigitalTwinEdge] = Field(default_factory=list)
     timeline: list[dict[str, Any]] = Field(default_factory=list)
+
+
+class DigitalTwinHistoryResponse(BaseModel):
+    dpp_id: str
+    items: list[DigitalTwinSnapshotItem] = Field(default_factory=list)
+    total: int = 0
+    limit: int = 0
+    offset: int = 0
+
+
+class DigitalTwinDiffChangedItem(BaseModel):
+    key: str
+    before: dict[str, Any]
+    after: dict[str, Any]
+
+
+class DigitalTwinDiffGroup(BaseModel):
+    added: list[dict[str, Any]] = Field(default_factory=list)
+    removed: list[dict[str, Any]] = Field(default_factory=list)
+    changed: list[DigitalTwinDiffChangedItem] = Field(default_factory=list)
+
+
+class DigitalTwinDiffSummary(BaseModel):
+    nodes_added: int = 0
+    nodes_removed: int = 0
+    nodes_changed: int = 0
+    edges_added: int = 0
+    edges_removed: int = 0
+    edges_changed: int = 0
+
+
+class DigitalTwinDiffResult(BaseModel):
+    summary: DigitalTwinDiffSummary
+    nodes: DigitalTwinDiffGroup
+    edges: DigitalTwinDiffGroup
+    generated_at: str | None = None
+
+
+class DigitalTwinDiffResponse(BaseModel):
+    dpp_id: str
+    from_snapshot: DigitalTwinSnapshotItem
+    to_snapshot: DigitalTwinSnapshotItem
+    diff: DigitalTwinDiffResult
 
 
 class CsatFeedback(BaseModel):

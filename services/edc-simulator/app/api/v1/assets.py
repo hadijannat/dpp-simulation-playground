@@ -6,6 +6,8 @@ from uuid import uuid4
 from ...core.db import get_db
 from ...models.asset import EdcAsset
 from ...auth import require_roles
+from services.shared.audit import actor_subject, safe_record_audit
+from services.shared.user_registry import resolve_user_id
 
 router = APIRouter()
 
@@ -56,6 +58,17 @@ def create_asset(request: Request, payload: AssetCreate, db: Session = Depends(g
     )
     db.add(item)
     db.commit()
+    user_id = resolve_user_id(db, request.state.user)
+    safe_record_audit(
+        db,
+        action="edc.asset_created",
+        object_type="edc_asset",
+        object_id=payload.asset_id,
+        actor_user_id=user_id,
+        actor_subject_value=actor_subject(getattr(request.state, "user", None)),
+        request_id=str(getattr(request.state, "request_id", "")) or None,
+        details={"name": payload.name},
+    )
     return {"id": str(item.id), "asset_id": item.asset_id, "name": item.name}
 
 

@@ -10,6 +10,27 @@ from ...config import BASYX_BASE_URL, BASYX_API_PREFIX
 router = APIRouter()
 
 
+def _api_prefix() -> str:
+    return f"/{BASYX_API_PREFIX.strip('/')}" if BASYX_API_PREFIX else ""
+
+
+def _basyx_request(
+    method: str,
+    path: str,
+    *,
+    json_body: Dict[str, Any] | list | None = None,
+    timeout: int = 8,
+) -> requests.Response:
+    clean_path = path.lstrip("/")
+    primary = f"{BASYX_BASE_URL}{_api_prefix()}/{clean_path}"
+    response = requests.request(method, primary, json=json_body, timeout=timeout)
+    if response.status_code == 404 and _api_prefix():
+        fallback = f"{BASYX_BASE_URL}/{clean_path}"
+        response = requests.request(method, fallback, json=json_body, timeout=timeout)
+    response.raise_for_status()
+    return response
+
+
 class ShellCreateRequest(BaseModel):
     aas_identifier: str
     product_name: str | None = None
@@ -33,8 +54,7 @@ class AasxUploadRequest(BaseModel):
 def list_shells(request: Request):
     require_roles(request.state.user, ["manufacturer", "developer", "admin", "regulator", "consumer", "recycler"])
     try:
-        response = requests.get(f"{BASYX_BASE_URL}{BASYX_API_PREFIX}", timeout=8)
-        response.raise_for_status()
+        response = _basyx_request("GET", "shells")
         return response.json()
     except requests.RequestException:
         return {"items": []}
@@ -52,8 +72,7 @@ def create_shell(request: Request, payload: ShellCreateRequest):
         },
     }
     try:
-        response = requests.post(f"{BASYX_BASE_URL}{BASYX_API_PREFIX}", json=shell, timeout=8)
-        response.raise_for_status()
+        response = _basyx_request("POST", "shells", json_body=shell)
         return {"status": "created", "shell": response.json()}
     except requests.RequestException as exc:
         return {"status": "degraded", "shell": shell, "error": str(exc)}
@@ -64,13 +83,51 @@ def create_submodel(request: Request, payload: SubmodelCreateRequest):
     require_roles(request.state.user, ["manufacturer", "developer", "admin"])
     if not payload.submodel:
         raise HTTPException(status_code=400, detail="Missing submodel")
-    return {"status": "created", "submodel": payload.submodel}
+    try:
+        response = _basyx_request("POST", "submodels", json_body=payload.submodel)
+    except requests.RequestException as exc:
+        return {"status": "error", "error": str(exc)}
+    created = response.json() if response.content else payload.submodel
+    return {"status": "created", "submodel": created}
+
+
+@router.get("/aas/submodels/{submodel_id}/elements")
+def get_submodel_elements(request: Request, submodel_id: str):
+    require_roles(request.state.user, ["manufacturer", "developer", "admin", "regulator", "consumer", "recycler"])
+    try:
+        response = _basyx_request("GET", f"submodels/{submodel_id}/submodel-elements")
+    except requests.RequestException as exc:
+        return {"error": str(exc), "submodel_id": submodel_id, "items": []}
+    payload = response.json() if response.content else {"items": []}
+    if isinstance(payload, dict):
+        if "submodel_id" not in payload:
+            payload["submodel_id"] = submodel_id
+        if "items" not in payload:
+            payload["items"] = payload.get("submodelElements", [])
+        return payload
+    return {"submodel_id": submodel_id, "items": payload}
 
 
 @router.patch("/aas/submodels/{submodel_id}/elements")
 def patch_submodel_elements(request: Request, submodel_id: str, payload: SubmodelPatchRequest):
     require_roles(request.state.user, ["manufacturer", "developer", "admin"])
-    return {"status": "updated", "submodel_id": submodel_id, "elements": payload.elements}
+    try:
+        try:
+            response = _basyx_request(
+                "PATCH",
+                f"submodels/{submodel_id}/submodel-elements",
+                json_body=payload.elements,
+            )
+        except requests.RequestException:
+            response = _basyx_request(
+                "PUT",
+                f"submodels/{submodel_id}/submodel-elements",
+                json_body=payload.elements,
+            )
+    except requests.RequestException as exc:
+        return {"status": "error", "error": str(exc)}
+    updated = response.json() if response.content else payload.elements
+    return {"status": "updated", "submodel_id": submodel_id, "elements": updated}
 
 
 @router.post("/aasx/upload")

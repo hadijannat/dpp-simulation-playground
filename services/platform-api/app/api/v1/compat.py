@@ -6,6 +6,7 @@ from fastapi import APIRouter, Request
 
 from ...auth import require_roles
 from ...config import (
+    AAS_ADAPTER_URL,
     COLLABORATION_URL,
     COMPLIANCE_URL,
     EDC_URL,
@@ -62,6 +63,24 @@ def delete_session(request: Request, session_id: str):
     return request_json(request, "DELETE", f"{SIMULATION_URL}/api/v1/sessions/{session_id}")
 
 
+@router.post("/sessions/{session_id}/pause")
+def pause_session(request: Request, session_id: str):
+    require_roles(request.state.user, ALL_ROLES)
+    return request_json(request, "POST", f"{SIMULATION_URL}/api/v1/sessions/{session_id}/pause")
+
+
+@router.post("/sessions/{session_id}/resume")
+def resume_session(request: Request, session_id: str):
+    require_roles(request.state.user, ALL_ROLES)
+    return request_json(request, "POST", f"{SIMULATION_URL}/api/v1/sessions/{session_id}/resume")
+
+
+@router.post("/sessions/{session_id}/complete")
+def complete_session(request: Request, session_id: str):
+    require_roles(request.state.user, ALL_ROLES)
+    return request_json(request, "POST", f"{SIMULATION_URL}/api/v1/sessions/{session_id}/complete")
+
+
 @router.post("/sessions/{session_id}/stories/{code}/start")
 def start_story(request: Request, session_id: str, code: str, payload: dict[str, Any] | None = None):
     require_roles(request.state.user, ALL_ROLES)
@@ -107,9 +126,28 @@ def validate_story(
 
 
 @router.get("/progress")
-def get_progress(request: Request):
+def get_progress(
+    request: Request,
+    session_id: str | None = None,
+    role: str | None = None,
+    status: str | None = None,
+    story_code: str | None = None,
+    user_id: str | None = None,
+    limit: int = 50,
+    offset: int = 0,
+):
     require_roles(request.state.user, ALL_ROLES)
-    return request_json(request, "GET", f"{SIMULATION_URL}/api/v1/progress")
+    params = {
+        "session_id": session_id,
+        "role": role,
+        "status": status,
+        "story_code": story_code,
+        "user_id": user_id,
+        "limit": limit,
+        "offset": offset,
+    }
+    clean_params = {key: value for key, value in params.items() if value is not None}
+    return request_json(request, "GET", f"{SIMULATION_URL}/api/v1/progress", params=clean_params)
 
 
 @router.get("/progress/epics")
@@ -121,35 +159,44 @@ def get_epic_progress(request: Request):
 @router.get("/aas/shells")
 def list_shells(request: Request):
     require_roles(request.state.user, ALL_ROLES)
-    return request_json(request, "GET", f"{SIMULATION_URL}/api/v1/aas/shells")
+    return request_json(request, "GET", f"{AAS_ADAPTER_URL}/api/v2/aas/shells")
 
 
 @router.post("/aas/shells")
 def create_shell(request: Request, payload: dict[str, Any]):
     require_roles(request.state.user, CREATOR_ROLES)
-    return request_json(request, "POST", f"{SIMULATION_URL}/api/v1/aas/shells", json_body=payload)
+    asset_information = payload.get("assetInformation")
+    global_asset_id = asset_information.get("globalAssetId") if isinstance(asset_information, dict) else None
+    adapter_payload = {
+        "aas_identifier": payload.get("aas_identifier") or payload.get("id"),
+        "product_name": payload.get("product_name") or payload.get("idShort"),
+        "product_identifier": payload.get("product_identifier") or global_asset_id,
+    }
+    return request_json(request, "POST", f"{AAS_ADAPTER_URL}/api/v2/aas/shells", json_body=adapter_payload)
 
 
 @router.post("/aas/submodels")
 def create_submodel(request: Request, payload: dict[str, Any]):
     require_roles(request.state.user, CREATOR_ROLES)
-    return request_json(request, "POST", f"{SIMULATION_URL}/api/v1/aas/submodels", json_body=payload)
+    body = {"submodel": payload.get("submodel") or payload}
+    return request_json(request, "POST", f"{AAS_ADAPTER_URL}/api/v2/aas/submodels", json_body=body)
 
 
 @router.get("/aas/submodels/{submodel_id}/elements")
 def get_submodel_elements(request: Request, submodel_id: str):
     require_roles(request.state.user, ALL_ROLES)
-    return request_json(request, "GET", f"{SIMULATION_URL}/api/v1/aas/submodels/{submodel_id}/elements")
+    return request_json(request, "GET", f"{AAS_ADAPTER_URL}/api/v2/aas/submodels/{submodel_id}/elements")
 
 
 @router.patch("/aas/submodels/{submodel_id}/elements")
 def patch_submodel_elements(request: Request, submodel_id: str, payload: dict[str, Any]):
     require_roles(request.state.user, CREATOR_ROLES)
+    body = {"elements": payload.get("elements", payload)}
     return request_json(
         request,
         "PATCH",
-        f"{SIMULATION_URL}/api/v1/aas/submodels/{submodel_id}/elements",
-        json_body=payload,
+        f"{AAS_ADAPTER_URL}/api/v2/aas/submodels/{submodel_id}/elements",
+        json_body=body,
     )
 
 
@@ -162,7 +209,11 @@ def validate_aas(request: Request, payload: dict[str, Any]):
 @router.post("/aasx/upload")
 def upload_aasx(request: Request, payload: dict[str, Any]):
     require_roles(request.state.user, CREATOR_ROLES)
-    return request_json(request, "POST", f"{SIMULATION_URL}/api/v1/aasx/upload", json_body=payload)
+    body = {
+        "filename": payload.get("filename"),
+        "content_base64": payload.get("content_base64"),
+    }
+    return request_json(request, "POST", f"{AAS_ADAPTER_URL}/api/v2/aasx/upload", json_body=body)
 
 
 @router.post("/compliance/check")
@@ -255,13 +306,22 @@ def list_achievements(request: Request):
 
 
 @router.get("/leaderboard")
-def leaderboard(request: Request, limit: int = 10, offset: int = 0):
+def leaderboard(
+    request: Request,
+    limit: int = 10,
+    offset: int = 0,
+    window: str = "all",
+    role: str | None = None,
+):
     require_roles(request.state.user, ALL_ROLES)
+    params = {"limit": limit, "offset": offset, "window": window}
+    if role is not None:
+        params["role"] = role
     return request_json(
         request,
         "GET",
         f"{GAMIFICATION_URL}/api/v1/leaderboard",
-        params={"limit": limit, "offset": offset},
+        params=params,
     )
 
 

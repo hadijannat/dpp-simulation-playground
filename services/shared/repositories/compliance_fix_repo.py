@@ -8,7 +8,13 @@ from ..models.compliance_run_fix import ComplianceRunFix
 
 
 def create_fix(
-    db: Session, report_id, path: str, value, applied_by=None
+    db: Session,
+    report_id,
+    path: str,
+    value,
+    applied_by=None,
+    *,
+    commit: bool = True,
 ) -> ComplianceRunFix:
     fix = ComplianceRunFix(
         id=uuid4(),
@@ -18,8 +24,9 @@ def create_fix(
         applied_by=applied_by,
     )
     db.add(fix)
-    db.commit()
-    db.refresh(fix)
+    if commit:
+        db.commit()
+        db.refresh(fix)
     return fix
 
 

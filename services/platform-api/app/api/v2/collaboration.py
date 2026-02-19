@@ -9,6 +9,9 @@ from ...schemas.v2 import (
     AnnotationCreate,
     AnnotationItem,
     AnnotationListResponse,
+    CommentCreate,
+    CommentItem,
+    CommentListResponse,
     GapCreate,
     GapItem,
     GapListResponse,
@@ -126,6 +129,41 @@ def vote(request: Request, payload: VoteCreate):
         request,
         "POST",
         f"{COLLABORATION_URL}/api/v1/votes",
+        json_body=payload.model_dump(),
+    )
+    return upstream
+
+
+@router.get("/collaboration/comments", response_model=CommentListResponse)
+def list_comments(
+    request: Request,
+    target_id: str | None = None,
+    limit: int = 50,
+    offset: int = 0,
+):
+    require_roles(request.state.user, ["developer", "admin", "regulator", "manufacturer", "consumer", "recycler"])
+    params = {
+        "target_id": target_id,
+        "limit": limit,
+        "offset": offset,
+    }
+    clean_params = {k: v for k, v in params.items() if v is not None}
+    payload = request_json(
+        request,
+        "GET",
+        f"{COLLABORATION_URL}/api/v1/comments",
+        params=clean_params,
+    )
+    return {"items": payload.get("items", [])}
+
+
+@router.post("/collaboration/comments", response_model=CommentItem)
+def add_comment(request: Request, payload: CommentCreate):
+    require_roles(request.state.user, ["manufacturer", "developer", "admin", "regulator", "consumer", "recycler"])
+    upstream = request_json(
+        request,
+        "POST",
+        f"{COLLABORATION_URL}/api/v1/comments",
         json_body=payload.model_dump(),
     )
     return upstream
