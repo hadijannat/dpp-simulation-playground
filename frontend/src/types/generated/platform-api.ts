@@ -1118,6 +1118,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v2/digital-twins/{dpp_id}/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Digital Twin History */
+        get: operations["get_digital_twin_history_api_v2_digital_twins__dpp_id__history_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v2/digital-twins/{dpp_id}/diff": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Digital Twin Diff */
+        get: operations["get_digital_twin_diff_api_v2_digital_twins__dpp_id__diff_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v2/collaboration/annotations": {
         parameters: {
             query?: never;
@@ -1166,6 +1200,24 @@ export interface paths {
         put?: never;
         /** Vote */
         post: operations["vote_api_v2_collaboration_votes_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v2/collaboration/comments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Comments */
+        get: operations["list_comments_api_v2_collaboration_comments_get"];
+        put?: never;
+        /** Add Comment */
+        post: operations["add_comment_api_v2_collaboration_comments_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1364,6 +1416,29 @@ export interface components {
             /** Dataset */
             dataset?: components["schemas"]["CatalogAsset"][];
         };
+        /** CommentCreate */
+        CommentCreate: {
+            /** Target Id */
+            target_id: string;
+            /** Content */
+            content: string;
+        };
+        /** CommentItem */
+        CommentItem: {
+            /** Id */
+            id: string;
+            /** Target Id */
+            target_id: string;
+            /** Content */
+            content: string;
+            /** Created At */
+            created_at?: string | null;
+        };
+        /** CommentListResponse */
+        CommentListResponse: {
+            /** Items */
+            items?: components["schemas"]["CommentItem"][];
+        };
         /** ComplianceFixRequest */
         ComplianceFixRequest: {
             /** Path */
@@ -1541,6 +1616,116 @@ export interface components {
             label: string;
             /** Type */
             type: string;
+        };
+        /** DigitalTwinSnapshotItem */
+        DigitalTwinSnapshotItem: {
+            /** Snapshot Id */
+            snapshot_id: string;
+            /** Label */
+            label?: string | null;
+            /** Created At */
+            created_at?: string | null;
+            /** Metadata */
+            metadata?: Record<string, never>;
+            /**
+             * Node Count
+             * @default 0
+             */
+            node_count: number;
+            /**
+             * Edge Count
+             * @default 0
+             */
+            edge_count: number;
+        };
+        /** DigitalTwinHistoryResponse */
+        DigitalTwinHistoryResponse: {
+            /** Dpp Id */
+            dpp_id: string;
+            /** Items */
+            items?: components["schemas"]["DigitalTwinSnapshotItem"][];
+            /**
+             * Total
+             * @default 0
+             */
+            total: number;
+            /**
+             * Limit
+             * @default 0
+             */
+            limit: number;
+            /**
+             * Offset
+             * @default 0
+             */
+            offset: number;
+        };
+        /** DigitalTwinDiffChangedItem */
+        DigitalTwinDiffChangedItem: {
+            /** Key */
+            key: string;
+            /** Before */
+            before: Record<string, never>;
+            /** After */
+            after: Record<string, never>;
+        };
+        /** DigitalTwinDiffGroup */
+        DigitalTwinDiffGroup: {
+            /** Added */
+            added?: Record<string, never>[];
+            /** Removed */
+            removed?: Record<string, never>[];
+            /** Changed */
+            changed?: components["schemas"]["DigitalTwinDiffChangedItem"][];
+        };
+        /** DigitalTwinDiffSummary */
+        DigitalTwinDiffSummary: {
+            /**
+             * Nodes Added
+             * @default 0
+             */
+            nodes_added: number;
+            /**
+             * Nodes Removed
+             * @default 0
+             */
+            nodes_removed: number;
+            /**
+             * Nodes Changed
+             * @default 0
+             */
+            nodes_changed: number;
+            /**
+             * Edges Added
+             * @default 0
+             */
+            edges_added: number;
+            /**
+             * Edges Removed
+             * @default 0
+             */
+            edges_removed: number;
+            /**
+             * Edges Changed
+             * @default 0
+             */
+            edges_changed: number;
+        };
+        /** DigitalTwinDiffResult */
+        DigitalTwinDiffResult: {
+            summary: components["schemas"]["DigitalTwinDiffSummary"];
+            nodes: components["schemas"]["DigitalTwinDiffGroup"];
+            edges: components["schemas"]["DigitalTwinDiffGroup"];
+            /** Generated At */
+            generated_at?: string | null;
+        };
+        /** DigitalTwinDiffResponse */
+        DigitalTwinDiffResponse: {
+            /** Dpp Id */
+            dpp_id: string;
+            from_snapshot: components["schemas"]["DigitalTwinSnapshotItem"];
+            to_snapshot: components["schemas"]["DigitalTwinSnapshotItem"];
+            diff: components["schemas"]["DigitalTwinDiffResult"];
         };
         /** DigitalTwinResponse */
         DigitalTwinResponse: {
@@ -4181,6 +4366,74 @@ export interface operations {
             };
         };
     };
+    get_digital_twin_history_api_v2_digital_twins__dpp_id__history_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path: {
+                dpp_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DigitalTwinHistoryResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_digital_twin_diff_api_v2_digital_twins__dpp_id__diff_get: {
+        parameters: {
+            query: {
+                from: string;
+                to: string;
+            };
+            header?: never;
+            path: {
+                dpp_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DigitalTwinDiffResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_annotations_api_v2_collaboration_annotations_get: {
         parameters: {
             query?: {
@@ -4369,6 +4622,72 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["VoteItem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_comments_api_v2_collaboration_comments_get: {
+        parameters: {
+            query?: {
+                target_id?: string | null;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CommentListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_comment_api_v2_collaboration_comments_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CommentCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CommentItem"];
                 };
             };
             /** @description Validation Error */

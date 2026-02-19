@@ -1780,6 +1780,80 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+  /api/v2/digital-twins/{dpp_id}/history:
+    get:
+      summary: Get Digital Twin History
+      operationId: get_digital_twin_history_api_v2_digital_twins__dpp_id__history_get
+      parameters:
+      - name: dpp_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Dpp Id
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          default: 25
+          title: Limit
+      - name: offset
+        in: query
+        required: false
+        schema:
+          type: integer
+          default: 0
+          title: Offset
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DigitalTwinHistoryResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v2/digital-twins/{dpp_id}/diff:
+    get:
+      summary: Get Digital Twin Diff
+      operationId: get_digital_twin_diff_api_v2_digital_twins__dpp_id__diff_get
+      parameters:
+      - name: dpp_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Dpp Id
+      - name: from
+        in: query
+        required: true
+        schema:
+          type: string
+          title: From
+      - name: to
+        in: query
+        required: true
+        schema:
+          type: string
+          title: To
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DigitalTwinDiffResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
   /api/v2/collaboration/annotations:
     get:
       summary: List Annotations
@@ -1984,6 +2058,68 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/VoteItem'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v2/collaboration/comments:
+    get:
+      summary: List Comments
+      operationId: list_comments_api_v2_collaboration_comments_get
+      parameters:
+      - name: target_id
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Target Id
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          default: 50
+          title: Limit
+      - name: offset
+        in: query
+        required: false
+        schema:
+          type: integer
+          default: 0
+          title: Offset
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommentListResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    post:
+      summary: Add Comment
+      operationId: add_comment_api_v2_collaboration_comments_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CommentCreate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommentItem'
         '422':
           description: Validation Error
           content:
@@ -2366,6 +2502,50 @@ components:
           title: Dataset
       type: object
       title: CatalogResponse
+    CommentCreate:
+      properties:
+        target_id:
+          type: string
+          title: Target Id
+        content:
+          type: string
+          title: Content
+      type: object
+      required:
+      - target_id
+      - content
+      title: CommentCreate
+    CommentItem:
+      properties:
+        id:
+          type: string
+          title: Id
+        target_id:
+          type: string
+          title: Target Id
+        content:
+          type: string
+          title: Content
+        created_at:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Created At
+      type: object
+      required:
+      - id
+      - target_id
+      - content
+      title: CommentItem
+    CommentListResponse:
+      properties:
+        items:
+          items:
+            $ref: '#/components/schemas/CommentItem'
+          type: array
+          title: Items
+      type: object
+      title: CommentListResponse
     ComplianceFixRequest:
       properties:
         path:
@@ -2703,6 +2883,163 @@ components:
       - label
       - type
       title: DigitalTwinNode
+    DigitalTwinSnapshotItem:
+      properties:
+        snapshot_id:
+          type: string
+          title: Snapshot Id
+        label:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Label
+        created_at:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Created At
+        metadata:
+          type: object
+          title: Metadata
+        node_count:
+          type: integer
+          title: Node Count
+          default: 0
+        edge_count:
+          type: integer
+          title: Edge Count
+          default: 0
+      type: object
+      required:
+      - snapshot_id
+      title: DigitalTwinSnapshotItem
+    DigitalTwinHistoryResponse:
+      properties:
+        dpp_id:
+          type: string
+          title: Dpp Id
+        items:
+          items:
+            $ref: '#/components/schemas/DigitalTwinSnapshotItem'
+          type: array
+          title: Items
+        total:
+          type: integer
+          title: Total
+          default: 0
+        limit:
+          type: integer
+          title: Limit
+          default: 0
+        offset:
+          type: integer
+          title: Offset
+          default: 0
+      type: object
+      required:
+      - dpp_id
+      title: DigitalTwinHistoryResponse
+    DigitalTwinDiffChangedItem:
+      properties:
+        key:
+          type: string
+          title: Key
+        before:
+          type: object
+          title: Before
+        after:
+          type: object
+          title: After
+      type: object
+      required:
+      - key
+      - before
+      - after
+      title: DigitalTwinDiffChangedItem
+    DigitalTwinDiffGroup:
+      properties:
+        added:
+          items:
+            type: object
+          type: array
+          title: Added
+        removed:
+          items:
+            type: object
+          type: array
+          title: Removed
+        changed:
+          items:
+            $ref: '#/components/schemas/DigitalTwinDiffChangedItem'
+          type: array
+          title: Changed
+      type: object
+      title: DigitalTwinDiffGroup
+    DigitalTwinDiffSummary:
+      properties:
+        nodes_added:
+          type: integer
+          title: Nodes Added
+          default: 0
+        nodes_removed:
+          type: integer
+          title: Nodes Removed
+          default: 0
+        nodes_changed:
+          type: integer
+          title: Nodes Changed
+          default: 0
+        edges_added:
+          type: integer
+          title: Edges Added
+          default: 0
+        edges_removed:
+          type: integer
+          title: Edges Removed
+          default: 0
+        edges_changed:
+          type: integer
+          title: Edges Changed
+          default: 0
+      type: object
+      title: DigitalTwinDiffSummary
+    DigitalTwinDiffResult:
+      properties:
+        summary:
+          $ref: '#/components/schemas/DigitalTwinDiffSummary'
+        nodes:
+          $ref: '#/components/schemas/DigitalTwinDiffGroup'
+        edges:
+          $ref: '#/components/schemas/DigitalTwinDiffGroup'
+        generated_at:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Generated At
+      type: object
+      required:
+      - summary
+      - nodes
+      - edges
+      title: DigitalTwinDiffResult
+    DigitalTwinDiffResponse:
+      properties:
+        dpp_id:
+          type: string
+          title: Dpp Id
+        from_snapshot:
+          $ref: '#/components/schemas/DigitalTwinSnapshotItem'
+        to_snapshot:
+          $ref: '#/components/schemas/DigitalTwinSnapshotItem'
+        diff:
+          $ref: '#/components/schemas/DigitalTwinDiffResult'
+      type: object
+      required:
+      - dpp_id
+      - from_snapshot
+      - to_snapshot
+      - diff
+      title: DigitalTwinDiffResponse
     DigitalTwinResponse:
       properties:
         dpp_id:
