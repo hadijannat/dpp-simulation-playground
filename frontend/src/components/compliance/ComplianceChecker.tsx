@@ -9,7 +9,7 @@ export default function ComplianceChecker() {
   const { checkCompliance } = useCompliance();
 
   async function run() {
-    let parsed: Record<string, unknown> = {};
+    let parsed: Record<string, unknown>;
     try {
       parsed = JSON.parse(payload);
     } catch {

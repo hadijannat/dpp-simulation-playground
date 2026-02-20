@@ -10,8 +10,8 @@ export default function RequestBuilder() {
   const [response, setResponse] = useState<string>("");
 
   async function run() {
-    let parsedHeaders: Record<string, string> = {};
-    let parsedBody: unknown = undefined;
+    let parsedHeaders: Record<string, string>;
+    let parsedBody: unknown;
     try {
       parsedHeaders = JSON.parse(headers);
     } catch {
