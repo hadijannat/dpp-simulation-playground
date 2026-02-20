@@ -75,7 +75,7 @@ test("manufacturer mobile journey completes end-to-end flow", async ({ page }) =
         body: JSON.stringify(body),
       });
 
-    let requestBody: Record<string, unknown> = {};
+    let requestBody: Record<string, unknown>;
     try {
       requestBody = request.postDataJSON() as Record<string, unknown>;
     } catch {
