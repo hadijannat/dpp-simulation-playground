@@ -1,6 +1,6 @@
 # Shared backend dependency constraints
 fastapi==0.128.1
-uvicorn==0.27.1
+uvicorn==0.41.0
 pydantic==2.7.4
 sqlalchemy==2.0.31
 redis==7.1.0
