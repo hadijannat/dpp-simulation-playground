@@ -9,7 +9,7 @@ httpx==0.28.1
 python-jose==3.5.0
 prometheus-client==0.24.1
 PyYAML==6.0.3
-jsonpath-ng==1.7.0
+jsonpath-ng==1.8.0
 psycopg2-binary==2.9.9
 alembic==1.18.4
 minio==7.2.20
