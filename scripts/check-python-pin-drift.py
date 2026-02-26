@@ -16,6 +16,7 @@ TARGET_PACKAGES = {
     "redis",
     "requests",
     "httpx",
+    "jsonpath-ng",
     "opentelemetry-api",
     "opentelemetry-sdk",
     "opentelemetry-instrumentation-fastapi",
