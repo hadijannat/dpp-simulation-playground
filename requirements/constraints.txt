@@ -10,7 +10,7 @@ python-jose==3.5.0
 prometheus-client==0.24.1
 PyYAML==6.0.3
 jsonpath-ng==1.7.0
-psycopg2-binary==2.9.9
+psycopg2-binary==2.9.11
 alembic==1.13.1
 minio==7.2.7
 opentelemetry-api==1.39.1

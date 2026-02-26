@@ -13,6 +13,7 @@ TARGET_PACKAGES = {
     "uvicorn",
     "pydantic",
     "sqlalchemy",
+    "psycopg2-binary",
     "redis",
     "requests",
     "httpx",
