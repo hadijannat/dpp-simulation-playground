@@ -37,6 +37,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: lint-backend
     strategy:
+      fail-fast: false
       matrix:
         service:
           - simulation-engine
@@ -79,6 +80,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [lint-backend, typecheck-backend]
     strategy:
+      fail-fast: false
       matrix:
         service:
           - simulation-engine
