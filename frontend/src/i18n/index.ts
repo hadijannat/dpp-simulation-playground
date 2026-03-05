@@ -22,15 +22,29 @@ import frEdc from "./locales/fr/edc.json";
 import frGamification from "./locales/fr/gamification.json";
 import frJourney from "./locales/fr/journey.json";
 
-const STORAGE_KEY = "dpp-locale";
+export const STORAGE_KEY = "dpp-locale";
+export const SUPPORTED_LANGUAGES = ["en", "de", "fr"] as const;
 
-const defaultLanguage =
-  localStorage.getItem(STORAGE_KEY) ||
-  (navigator.language || "en").split("-")[0] ||
-  "en";
+type SupportedLanguage = (typeof SUPPORTED_LANGUAGES)[number];
+
+export function normalizeLanguage(language: string | null | undefined): string {
+  return (language ?? "").trim().toLowerCase().replace(/_/g, "-").split("-")[0];
+}
+
+export function resolveDefaultLanguage(
+  storedLanguage: string | null,
+  browserLanguage: string | undefined,
+): SupportedLanguage {
+  const candidate = normalizeLanguage(storedLanguage) || normalizeLanguage(browserLanguage) || "en";
+  return SUPPORTED_LANGUAGES.includes(candidate as SupportedLanguage)
+    ? (candidate as SupportedLanguage)
+    : "en";
+}
+
+const defaultLanguage = resolveDefaultLanguage(localStorage.getItem(STORAGE_KEY), navigator.language);
 
 i18n.use(initReactI18next).init({
-  lng: ["en", "de", "fr"].includes(defaultLanguage) ? defaultLanguage : "en",
+  lng: defaultLanguage,
   fallbackLng: "en",
   defaultNS: "common",
   ns: ["common", "simulation", "compliance", "edc", "gamification", "journey"],
