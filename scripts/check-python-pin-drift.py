@@ -20,7 +20,10 @@ TARGET_PACKAGES = {
     "jsonpath-ng",
     "opentelemetry-api",
     "opentelemetry-sdk",
+    "opentelemetry-exporter-otlp-proto-http",
     "opentelemetry-instrumentation-fastapi",
+    "opentelemetry-instrumentation-requests",
+    "opentelemetry-instrumentation-sqlalchemy",
 }
 
 
