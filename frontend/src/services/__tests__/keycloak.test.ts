@@ -23,21 +23,24 @@ vi.mock("../../config/keycloak", () => ({
   },
 }));
 
-import { getToken, initKeycloak, keycloak } from "../keycloak";
+async function loadKeycloakModule() {
+  return import("../keycloak");
+}
 
 describe("keycloak service", () => {
   beforeEach(() => {
+    vi.resetModules();
     vi.clearAllMocks();
     mockInstance.authenticated = false;
     mockInstance.token = null;
   });
 
-  it("initializes keycloak once with expected options", async () => {
+  it("initializes only once when called concurrently", async () => {
     mockInstance.init.mockResolvedValue(true);
 
-    const first = await initKeycloak();
-    const second = await initKeycloak();
+    const { initKeycloak } = await loadKeycloakModule();
 
+    const [first, second] = await Promise.all([initKeycloak(), initKeycloak()]);
     expect(first).toBe(true);
     expect(second).toBe(true);
     expect(mockInstance.init).toHaveBeenCalledTimes(1);
@@ -51,28 +54,43 @@ describe("keycloak service", () => {
     expect(arg.silentCheckSsoRedirectUri).toContain("/silent-check-sso.html");
   });
 
-  it("returns null token when user is not authenticated", async () => {
-    keycloak.authenticated = false;
+  it("resets init promise after failure and allows retry", async () => {
+    mockInstance.init.mockRejectedValueOnce(new Error("bootstrap failed")).mockResolvedValueOnce(true);
+
+    const { initKeycloak } = await loadKeycloakModule();
+
+    await expect(initKeycloak()).rejects.toThrow("bootstrap failed");
+    await expect(initKeycloak()).resolves.toBe(true);
+    expect(mockInstance.init).toHaveBeenCalledTimes(2);
+  });
+
+  it("returns null when user is not authenticated", async () => {
+    mockInstance.authenticated = false;
+
+    const { getToken } = await loadKeycloakModule();
 
     await expect(getToken()).resolves.toBeNull();
     expect(mockInstance.updateToken).not.toHaveBeenCalled();
   });
 
   it("refreshes and returns token when authenticated", async () => {
-    keycloak.authenticated = true;
-    keycloak.token = "jwt-token";
+    mockInstance.authenticated = true;
+    mockInstance.token = "token-123";
     mockInstance.updateToken.mockResolvedValue(true);
 
-    await expect(getToken()).resolves.toBe("jwt-token");
+    const { getToken } = await loadKeycloakModule();
+
+    await expect(getToken()).resolves.toBe("token-123");
     expect(mockInstance.updateToken).toHaveBeenCalledWith(30);
   });
 
-  it("returns null when token refresh fails", async () => {
-    keycloak.authenticated = true;
-    keycloak.token = "stale-token";
+  it("returns null when token refresh throws", async () => {
+    mockInstance.authenticated = true;
+    mockInstance.token = "token-123";
     mockInstance.updateToken.mockRejectedValue(new Error("refresh failed"));
 
+    const { getToken } = await loadKeycloakModule();
+
     await expect(getToken()).resolves.toBeNull();
-    expect(mockInstance.updateToken).toHaveBeenCalledWith(30);
   });
 });
