@@ -168,10 +168,15 @@ jobs:
         working-directory: frontend
       - run: npm run build
         working-directory: frontend
-      - uses: treosh/lighthouse-ci-action@v12
+      - name: Run Lighthouse CI
+        run: npx --yes @lhci/cli@0.15.1 autorun --config=frontend/lighthouserc.json
+      - name: Upload Lighthouse artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
         with:
-          configPath: frontend/lighthouserc.json
-          uploadArtifacts: true
+          name: lighthouse-results
+          path: .lighthouseci
+          if-no-files-found: ignore
 
   e2e-integration:
     runs-on: ubuntu-latest
