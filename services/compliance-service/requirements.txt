@@ -9,7 +9,7 @@ jsonpath-ng==1.8.0
 python-jose==3.5.0
 requests==2.33.1
 httpx==0.28.1
-prometheus-client==0.24.1
+prometheus-client==0.25.0
 opentelemetry-api==1.40.0
 opentelemetry-sdk==1.40.0
 opentelemetry-exporter-otlp-proto-http==1.40.0
