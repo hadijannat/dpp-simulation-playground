@@ -7,7 +7,7 @@ redis==7.4.0
 requests==2.33.1
 httpx==0.28.1
 python-jose==3.5.0
-prometheus-client==0.24.1
+prometheus-client==0.25.0
 PyYAML==6.0.3
 jsonpath-ng==1.8.0
 psycopg2-binary==2.9.11
