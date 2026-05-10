@@ -1,6 +1,6 @@
 FROM python:3.11-slim
 WORKDIR /app
-COPY services/platform-api/requirements.txt services/platform-api/requirements-dev.txt ./
+COPY services/platform-api/requirements.txt ./
 COPY requirements/constraints.txt /constraints.txt
 RUN pip install --no-cache-dir -c /constraints.txt -r requirements.txt
 COPY services/platform-api/app ./app
