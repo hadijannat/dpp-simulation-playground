@@ -21,7 +21,7 @@
     "keycloak-js": "26.2.4",
     "monaco-editor": "0.55.1",
     "react": "19.2.5",
-    "react-dom": "19.2.5",
+    "react-dom": "19.2.6",
     "react-i18next": "^17.0.8",
     "react-router-dom": "7.14.2",
     "reactflow": "11.11.4",
