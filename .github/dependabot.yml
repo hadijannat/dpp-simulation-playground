@@ -13,38 +13,70 @@ updates:
     directory: "/services/simulation-engine"
     schedule:
       interval: "weekly"
+    ignore:
+      - dependency-name: "requests"
+      - dependency-name: "uvicorn"
+      - dependency-name: "opentelemetry-*"
 
   - package-ecosystem: "pip"
     directory: "/services/compliance-service"
     schedule:
       interval: "weekly"
+    ignore:
+      - dependency-name: "requests"
+      - dependency-name: "uvicorn"
+      - dependency-name: "opentelemetry-*"
 
   - package-ecosystem: "pip"
     directory: "/services/gamification-service"
     schedule:
       interval: "weekly"
+    ignore:
+      - dependency-name: "requests"
+      - dependency-name: "uvicorn"
+      - dependency-name: "opentelemetry-*"
 
   - package-ecosystem: "pip"
     directory: "/services/edc-simulator"
     schedule:
       interval: "weekly"
+    ignore:
+      - dependency-name: "requests"
+      - dependency-name: "uvicorn"
+      - dependency-name: "opentelemetry-*"
 
   - package-ecosystem: "pip"
     directory: "/services/collaboration-service"
     schedule:
       interval: "weekly"
+    ignore:
+      - dependency-name: "requests"
+      - dependency-name: "uvicorn"
+      - dependency-name: "opentelemetry-*"
 
   - package-ecosystem: "pip"
     directory: "/services/platform-api"
     schedule:
       interval: "weekly"
+    ignore:
+      - dependency-name: "requests"
+      - dependency-name: "uvicorn"
+      - dependency-name: "opentelemetry-*"
 
   - package-ecosystem: "pip"
     directory: "/services/platform-core"
     schedule:
       interval: "weekly"
+    ignore:
+      - dependency-name: "requests"
+      - dependency-name: "uvicorn"
+      - dependency-name: "opentelemetry-*"
 
   - package-ecosystem: "pip"
     directory: "/services/aas-adapter"
     schedule:
       interval: "weekly"
+    ignore:
+      - dependency-name: "requests"
+      - dependency-name: "uvicorn"
+      - dependency-name: "opentelemetry-*"
