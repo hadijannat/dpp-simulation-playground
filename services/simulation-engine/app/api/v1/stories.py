@@ -11,6 +11,7 @@ from ...models.validation_result import ValidationResult
 from pydantic import BaseModel
 from uuid import uuid4
 from datetime import datetime, timezone
+from typing import Any
 from ...auth import require_roles
 from ...config import COMPLIANCE_URL, EVENT_STREAM_MAXLEN, REDIS_URL
 from ...core.service_token import get_service_token
@@ -121,7 +122,7 @@ def start_story(
 
 
 class StoryValidateRequest(BaseModel):
-    data: dict
+    data: dict[str, Any]
     regulations: list[str] = []
 
 
@@ -145,7 +146,7 @@ def validate_story(
     ensure_session_active(session.session_state, is_active=bool(session.is_active))
     token = get_service_token()
     headers = {"Authorization": f"Bearer {token}"} if token else {}
-    body = {
+    body: dict[str, Any] = {
         "data": payload.data,
         "regulations": payload.regulations,
         "session_id": session_id,
