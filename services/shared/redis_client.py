@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 import time
 from typing import Any
 
@@ -42,8 +43,48 @@ EVENT_PUBLISH_RETRIES = _build_counter(
 )
 
 
+def _bool_from_env(name: str, default: bool) -> bool:
+    raw = os.getenv(name)
+    if raw is None:
+        return default
+    return raw.strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _int_from_env(name: str, default: int, *, minimum: int) -> int:
+    raw = os.getenv(name)
+    if raw is None:
+        return default
+    try:
+        value = int(raw)
+    except ValueError:
+        return default
+    return max(minimum, value)
+
+
+def _float_from_env(name: str, default: float, *, minimum: float) -> float:
+    raw = os.getenv(name)
+    if raw is None:
+        return default
+    try:
+        value = float(raw)
+    except ValueError:
+        return default
+    return max(minimum, value)
+
+
+def redis_connection_kwargs() -> dict[str, Any]:
+    return {
+        "protocol": _int_from_env("REDIS_PROTOCOL", 2, minimum=2),
+        "socket_timeout": _float_from_env("REDIS_SOCKET_TIMEOUT_SECONDS", 10.0, minimum=0.1),
+        "socket_connect_timeout": _float_from_env("REDIS_SOCKET_CONNECT_TIMEOUT_SECONDS", 5.0, minimum=0.1),
+        "socket_keepalive": _bool_from_env("REDIS_SOCKET_KEEPALIVE", True),
+        "max_connections": _int_from_env("REDIS_MAX_CONNECTIONS", 100, minimum=1),
+        "retry_on_timeout": _bool_from_env("REDIS_RETRY_ON_TIMEOUT", False),
+    }
+
+
 def get_redis(url: str) -> redis.Redis:
-    return redis.from_url(url)
+    return redis.from_url(url, **redis_connection_kwargs())
 
 
 def ensure_stream_group(client: redis.Redis, stream: str, group: str) -> None:
