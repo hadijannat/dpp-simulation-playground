@@ -120,7 +120,7 @@ jobs:
       - name: Install dependencies
         run: pip install -c requirements/constraints.txt pytest redis sqlalchemy pydantic prometheus-client
       - name: Run shared backend tests
-        run: pytest services/shared/tests/ -v --tb=short
+        run: PYTHONPATH=. pytest services/shared/tests/ -v --tb=short
 
   test-frontend:
     runs-on: ubuntu-latest
