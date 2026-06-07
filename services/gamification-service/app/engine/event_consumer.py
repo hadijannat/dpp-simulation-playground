@@ -21,7 +21,7 @@ from ..models.achievement import Achievement
 from .points_engine import add_points
 from .achievement_engine import load_achievements
 from .point_rule_engine import load_active_point_rules, load_point_rules_from_yaml
-from services.shared.redis_client import ensure_stream_group, xadd_with_retry
+from services.shared.redis_client import ensure_stream_group, get_redis, xadd_with_retry
 from services.shared.events import validate_event
 
 STREAM = "simulation.events"
@@ -185,7 +185,7 @@ def _process_stream_message(
 
 
 def _stream_worker():
-    client = Redis.from_url(REDIS_URL)
+    client = get_redis(REDIS_URL)
     group = "gamification"
     consumer = f"consumer-{uuid4()}"
     ensure_stream_group(client, STREAM, group)
@@ -209,7 +209,7 @@ def _stream_worker():
 
 
 def _retry_worker():
-    client = Redis.from_url(REDIS_URL)
+    client = get_redis(REDIS_URL)
     group = "gamification-retry"
     consumer = f"retry-consumer-{uuid4()}"
     ensure_stream_group(client, RETRY_STREAM, group)
@@ -248,7 +248,7 @@ def _trim_stream(client: Redis, stream: str, maxlen: int) -> None:
 
 
 def _maintenance_worker():
-    client = Redis.from_url(REDIS_URL)
+    client = get_redis(REDIS_URL)
     interval = max(10, STREAM_TRIM_INTERVAL_SECONDS)
     while True:
         _trim_stream(client, STREAM, STREAM_MAXLEN)
