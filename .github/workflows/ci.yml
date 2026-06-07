@@ -109,6 +109,19 @@ jobs:
         if: matrix.service == 'simulation-engine'
         run: cd services/${{ matrix.service }} && alembic -c ../shared/migrations/alembic.ini heads
 
+  test-shared-backend:
+    runs-on: ubuntu-latest
+    needs: lint-backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Install dependencies
+        run: pip install -c requirements/constraints.txt pytest redis sqlalchemy pydantic prometheus-client
+      - name: Run shared backend tests
+        run: PYTHONPATH=. pytest services/shared/tests/ -v --tb=short
+
   test-frontend:
     runs-on: ubuntu-latest
     needs: lint-frontend
