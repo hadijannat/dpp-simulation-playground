@@ -1,10 +1,12 @@
 import json
 from typing import Dict, Any
-from redis import Redis
+
+from services.shared.redis_client import get_redis
+
 from .config import REDIS_URL
 
 
-_client = Redis.from_url(REDIS_URL)
+_client = get_redis(REDIS_URL)
 _fallback: Dict[str, Dict[str, Any]] = {}
 
 
