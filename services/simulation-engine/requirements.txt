@@ -3,7 +3,7 @@ uvicorn==0.47.0
 pydantic==2.13.4
 sqlalchemy==2.0.50
 psycopg2-binary==2.9.12
-redis==7.4.0
+redis==8.0.0
 PyYAML==6.0.3
 jsonpath-ng==1.8.0
 python-jose==3.5.0
