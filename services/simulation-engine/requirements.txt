@@ -3,13 +3,13 @@ uvicorn==0.47.0
 pydantic==2.13.4
 sqlalchemy==2.0.50
 psycopg2-binary==2.9.12
-redis==8.0.0
+redis==8.0.1
 PyYAML==6.0.3
 jsonpath-ng==1.8.0
 python-jose==3.5.0
 requests==2.34.2
 httpx==0.28.1
-alembic==1.18.4
+alembic==1.18.5
 minio==7.2.20
 prometheus-client==0.25.0
 opentelemetry-api==1.42.0
