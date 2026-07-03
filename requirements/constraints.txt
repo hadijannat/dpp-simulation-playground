@@ -3,7 +3,7 @@ fastapi==0.136.3
 uvicorn==0.47.0
 pydantic==2.13.4
 sqlalchemy==2.0.50
-redis==8.0.0
+redis==8.0.1
 requests==2.34.2
 httpx==0.28.1
 python-jose==3.5.0
@@ -11,7 +11,7 @@ prometheus-client==0.25.0
 PyYAML==6.0.3
 jsonpath-ng==1.8.0
 psycopg2-binary==2.9.12
-alembic==1.18.4
+alembic==1.18.5
 minio==7.2.20
 opentelemetry-api==1.42.0
 opentelemetry-sdk==1.42.0
@@ -19,5 +19,5 @@ opentelemetry-exporter-otlp-proto-http==1.42.0
 opentelemetry-instrumentation-fastapi==0.63b0
 opentelemetry-instrumentation-requests==0.63b0
 opentelemetry-instrumentation-sqlalchemy==0.63b0
-pytest==9.0.3
+pytest==9.1.1
 pytest-asyncio==1.4.0
