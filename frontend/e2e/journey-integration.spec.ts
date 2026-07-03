@@ -4,12 +4,10 @@ const API_URL = process.env.VITE_API_URL || "http://127.0.0.1:8106";
 
 test.describe("Journey Integration @integration", () => {
   test.beforeAll(async () => {
-    try {
-      const response = await fetch(`${API_URL}/health`, { signal: AbortSignal.timeout(5_000) });
-      if (!response.ok) test.skip(true, "Backend not reachable");
-    } catch {
-      test.skip(true, "Backend not reachable");
-    }
+    const healthUrl = `${API_URL}/api/v2/health`;
+    const response = await fetch(healthUrl, { signal: AbortSignal.timeout(5_000) });
+
+    expect(response.ok, `Expected backend health check to pass at ${healthUrl}`).toBe(true);
   });
 
   test("manufacturer journey completes end-to-end against real backend", async ({ page }) => {
