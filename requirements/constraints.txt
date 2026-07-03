@@ -19,5 +19,5 @@ opentelemetry-exporter-otlp-proto-http==1.42.0
 opentelemetry-instrumentation-fastapi==0.63b0
 opentelemetry-instrumentation-requests==0.63b0
 opentelemetry-instrumentation-sqlalchemy==0.63b0
-pytest==9.0.3
+pytest==9.1.1
 pytest-asyncio==1.4.0
