@@ -207,8 +207,41 @@ jobs:
         working-directory: frontend
       - name: Start backend services
         run: docker compose -f infrastructure/docker/docker-compose.test.yml up -d
+      - name: Prepare integration database
+        env:
+          DATABASE_URL: postgresql://test:test@postgres:5432/dpp_playground_test
+        run: |
+          for i in {1..30}; do
+            if docker compose -f infrastructure/docker/docker-compose.test.yml exec -T postgres pg_isready -U test -d dpp_playground_test; then
+              break
+            fi
+            if [ "$i" -eq 30 ]; then
+              docker compose -f infrastructure/docker/docker-compose.test.yml logs postgres
+              exit 1
+            fi
+            sleep 2
+          done
+          docker compose -f infrastructure/docker/docker-compose.test.yml run --rm -T --no-deps \
+            -v "$PWD:/workspace" \
+            -w /workspace \
+            -e DATABASE_URL="$DATABASE_URL" \
+            platform-core \
+            sh -c "python -m pip install -c requirements/constraints.txt alembic && alembic -c services/shared/migrations/alembic.ini upgrade head && python services/simulation-engine/scripts/backfill_journeys.py"
       - name: Wait for services
-        run: sleep 15
+        run: |
+          for i in {1..30}; do
+            if curl --fail --silent --show-error \
+              -H "X-Dev-User: ci" \
+              -H "X-Dev-Roles: manufacturer" \
+              http://127.0.0.1:8106/api/v2/journeys/templates > /dev/null; then
+              break
+            fi
+            if [ "$i" -eq 30 ]; then
+              docker compose -f infrastructure/docker/docker-compose.test.yml logs platform-api platform-core compliance-service edc-simulator
+              exit 1
+            fi
+            sleep 2
+          done
       - run: npx playwright test --project=integration-chromium
         working-directory: frontend
         env:

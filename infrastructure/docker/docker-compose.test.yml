@@ -25,8 +25,12 @@ services:
       - DEV_BYPASS_AUTH=true
       - ALLOW_DEV_HEADERS=true
       - PLATFORM_CORE_URL=http://platform-core:8007
+      - COMPLIANCE_URL=http://compliance-service:8002
+      - EDC_URL=http://edc-simulator:8004
     depends_on:
       - platform-core
+      - compliance-service
+      - edc-simulator
 
   platform-core:
     build:
@@ -38,9 +42,10 @@ services:
       - AUTH_MODE=bypass
       - DEV_BYPASS_AUTH=true
       - DATABASE_URL=postgresql://test:test@postgres:5432/dpp_playground_test
-      - COMPLIANCE_URL=http://simulation-engine:8001
+      - COMPLIANCE_URL=http://compliance-service:8002
     depends_on:
       - postgres
+      - compliance-service
 
   simulation-engine:
     build:
@@ -48,6 +53,36 @@ services:
       dockerfile: services/simulation-engine/Dockerfile
     ports:
       - "8101:8001"
+    environment:
+      - AUTH_MODE=bypass
+      - DEV_BYPASS_AUTH=true
+      - DATABASE_URL=postgresql://test:test@postgres:5432/dpp_playground_test
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      - postgres
+      - redis
+
+  compliance-service:
+    build:
+      context: ../..
+      dockerfile: services/compliance-service/Dockerfile
+    ports:
+      - "8102:8002"
+    environment:
+      - AUTH_MODE=bypass
+      - DEV_BYPASS_AUTH=true
+      - DATABASE_URL=postgresql://test:test@postgres:5432/dpp_playground_test
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      - postgres
+      - redis
+
+  edc-simulator:
+    build:
+      context: ../..
+      dockerfile: services/edc-simulator/Dockerfile
+    ports:
+      - "8104:8004"
     environment:
       - AUTH_MODE=bypass
       - DEV_BYPASS_AUTH=true

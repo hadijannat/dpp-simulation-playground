@@ -116,7 +116,7 @@ def ensure_steps(conn, template_id: str) -> None:
             text(
                 """
                 INSERT INTO journey_steps (id, template_id, step_key, title, action, order_index, help_text, default_payload)
-                VALUES (:id, :template_id, :step_key, :title, :action, :order_index, :help_text, :default_payload::jsonb)
+                VALUES (:id, :template_id, :step_key, :title, :action, :order_index, :help_text, CAST(:default_payload AS JSONB))
                 """
             ),
             {
