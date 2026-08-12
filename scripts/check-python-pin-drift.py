@@ -14,6 +14,7 @@ TARGET_PACKAGES = {
     "pydantic",
     "sqlalchemy",
     "psycopg2-binary",
+    "prometheus-client",
     "redis",
     "requests",
     "httpx",
