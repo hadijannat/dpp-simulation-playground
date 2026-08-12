@@ -1,4 +1,7 @@
 # Shared backend dependency constraints
+# Keep CI linting reproducible; newer Ruff releases enable rules that the
+# existing backend codebase does not yet satisfy.
+ruff==0.15.20
 fastapi==0.136.3
 uvicorn==0.47.0
 pydantic==2.13.4
