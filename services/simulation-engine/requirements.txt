@@ -11,7 +11,7 @@ requests==2.34.2
 httpx==0.28.1
 alembic==1.18.5
 minio==7.2.20
-prometheus-client==0.25.0
+prometheus-client==0.26.0
 opentelemetry-api==1.42.0
 opentelemetry-sdk==1.42.0
 opentelemetry-exporter-otlp-proto-http==1.42.0
