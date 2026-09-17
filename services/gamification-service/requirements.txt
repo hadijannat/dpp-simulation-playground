@@ -2,7 +2,7 @@ fastapi==0.136.3
 uvicorn==0.47.0
 pydantic==2.13.4
 sqlalchemy==2.0.50
-psycopg2-binary==2.9.12
+psycopg2-binary==2.9.13
 redis==8.1.0
 PyYAML==6.0.3
 jsonpath-ng==1.8.0
