@@ -3,7 +3,7 @@ uvicorn==0.47.0
 pydantic==2.13.4
 python-jose==3.5.0
 sqlalchemy==2.0.50
-psycopg2-binary==2.9.12
+psycopg2-binary==2.9.13
 requests==2.34.2
 httpx==0.28.1
 PyYAML==6.0.3
